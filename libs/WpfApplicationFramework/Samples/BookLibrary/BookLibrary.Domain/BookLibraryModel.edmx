@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="BookLibraryModel.Store" Alias="Self" Provider="System.Data.SqlServerCe.3.5" ProviderManifestToken="3.5" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2006/04/edm/ssdl">
+        <EntityContainer Name="BookLibraryModelStoreContainer">
+          <EntitySet Name="Book" EntityType="BookLibraryModel.Store.Book" store:Type="Tables" />
+          <EntitySet Name="Person" EntityType="BookLibraryModel.Store.Person" store:Type="Tables" />
+          <AssociationSet Name="FK_Person_Book" Association="BookLibraryModel.Store.FK_Person_Book">
+            <End Role="Person" EntitySet="Person" />
+            <End Role="Book" EntitySet="Book" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Book">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Title" Type="nvarchar" Nullable="false" MaxLength="100" />
+          <Property Name="Author" Type="nvarchar" Nullable="false" MaxLength="100" />
+          <Property Name="Publisher" Type="nvarchar" MaxLength="100" />
+          <Property Name="PublishDate" Type="datetime" />
+          <Property Name="Isbn" Type="nvarchar" MaxLength="14" />
+          <Property Name="Language" Type="int" Nullable="false" />
+          <Property Name="Pages" Type="int" Nullable="false" />
+          <Property Name="PersonId" Type="uniqueidentifier" />
+        </EntityType>
+        <EntityType Name="Person">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Firstname" Type="nvarchar" Nullable="false" MaxLength="30" />
+          <Property Name="Lastname" Type="nvarchar" Nullable="false" MaxLength="30" />
+          <Property Name="Email" Type="nvarchar" MaxLength="100" />
+        </EntityType>
+        <Association Name="FK_Person_Book">
+          <End Role="Person" Type="BookLibraryModel.Store.Person" Multiplicity="0..1" />
+          <End Role="Book" Type="BookLibraryModel.Store.Book" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Person">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Book">
+              <PropertyRef Name="PersonId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="BookLibraryModel" Alias="Self" xmlns="http://schemas.microsoft.com/ado/2006/04/edm">
+        <EntityContainer Name="BookLibraryEntities">
+          <EntitySet Name="Books" EntityType="BookLibraryModel.Book" />
+          <EntitySet Name="Persons" EntityType="BookLibraryModel.Person" />
+          <AssociationSet Name="FK_Person_Book" Association="BookLibraryModel.FK_Person_Book">
+            <End Role="Person" EntitySet="Persons" />
+            <End Role="Book" EntitySet="Books" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Book">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="Title" Type="String" Nullable="false" MaxLength="100" Unicode="true" FixedLength="false" />
+          <Property Name="Author" Type="String" Nullable="false" MaxLength="100" Unicode="true" FixedLength="false" />
+          <Property Name="Publisher" Type="String" MaxLength="100" Unicode="true" FixedLength="false" />
+          <Property Name="PublishDate" Type="DateTime" />
+          <Property Name="Isbn" Type="String" MaxLength="14" Unicode="true" FixedLength="false" />
+          <Property Name="Pages" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="LendTo" Relationship="BookLibraryModel.FK_Person_Book" FromRole="Book" ToRole="Person" />
+          <Property Name="LanguageInternal" Type="Int32" Nullable="false" a:GetterAccess="Private" xmlns:a="http://schemas.microsoft.com/ado/2006/04/codegeneration" a:SetterAccess="Private" /></EntityType>
+        <EntityType Name="Person">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="Firstname" Type="String" Nullable="false" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="Lastname" Type="String" Nullable="false" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="Email" Type="String" MaxLength="100" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Borrowed" Relationship="BookLibraryModel.FK_Person_Book" FromRole="Person" ToRole="Book" a:SetterAccess="Private" xmlns:a="http://schemas.microsoft.com/ado/2006/04/codegeneration" />
+        </EntityType>
+        <Association Name="FK_Person_Book">
+          <End Role="Person" Type="BookLibraryModel.Person" Multiplicity="0..1" />
+          <End Role="Book" Type="BookLibraryModel.Book" Multiplicity="*" />
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="urn:schemas-microsoft-com:windows:storage:mapping:CS">
+        <EntityContainerMapping StorageEntityContainer="BookLibraryModelStoreContainer" CdmEntityContainer="BookLibraryEntities">
+          <EntitySetMapping Name="Books">
+            <EntityTypeMapping TypeName="IsTypeOf(BookLibraryModel.Book)">
+              <MappingFragment StoreEntitySet="Book">
+                <ScalarProperty Name="LanguageInternal" ColumnName="Language" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="Author" ColumnName="Author" />
+                <ScalarProperty Name="Publisher" ColumnName="Publisher" />
+                <ScalarProperty Name="PublishDate" ColumnName="PublishDate" />
+                <ScalarProperty Name="Isbn" ColumnName="Isbn" />
+                <ScalarProperty Name="Pages" ColumnName="Pages" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Persons">
+            <EntityTypeMapping TypeName="IsTypeOf(BookLibraryModel.Person)">
+              <MappingFragment StoreEntitySet="Person">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Firstname" ColumnName="Firstname" />
+                <ScalarProperty Name="Lastname" ColumnName="Lastname" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <AssociationSetMapping Name="FK_Person_Book" TypeName="BookLibraryModel.FK_Person_Book" StoreEntitySet="Book">
+            <EndProperty Name="Person">
+              <ScalarProperty Name="Id" ColumnName="PersonId" />
+            </EndProperty>
+            <EndProperty Name="Book">
+              <ScalarProperty Name="Id" ColumnName="Id" />
+            </EndProperty>
+            <Condition ColumnName="PersonId" IsNull="false" />
+          </AssociationSetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2007/06/edmx">
+    <edmx:Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </edmx:Connection>
+    <edmx:Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+      </DesignerInfoPropertySet>
+    </edmx:Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram Name="BookLibraryModel">
+        <EntityTypeShape EntityType="BookLibraryModel.Book" Width="1.5" PointX="3.625" PointY="1" Height="2.7494921874999996" IsExpanded="true" />
+        <EntityTypeShape EntityType="BookLibraryModel.Person" Width="1.5" PointX="0.75" PointY="1.375" Height="1.9802864583333335" IsExpanded="true" />
+        <AssociationConnector Association="BookLibraryModel.FK_Person_Book" ManuallyRouted="false">
+          <ConnectorPoint PointX="2.25" PointY="2.3651432291666667" />
+          <ConnectorPoint PointX="3.625" PointY="2.3651432291666667" /></AssociationConnector></Diagram></edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

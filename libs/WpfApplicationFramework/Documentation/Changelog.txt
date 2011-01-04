@@ -1,0 +1,106 @@
+Changelog
+---------
+
+Legend: O (Marked member as obsolete); B (Breaking Change)
+
+
+Version 1.0.0.350 (Release)
+- Minor improvements in the samples.
+- Documentation updated.
+
+
+Version 1.0.0.90 (Release Candidate)
+B WAF: Moved Model class from System.Waf.Domain into the System.Waf.Foundation namespace.
+- ShortcutKey: Minor updates
+- LocalizationSample: Minor updates
+- ViewModel: Minor updates
+- Writer: Minor updates
+- BookLibrary: Minor updates  
+
+
+Version 1.0.0.11 (Milestone 11)
+B WAF: Moved Model class from System.Waf.Domain into the System.Waf.Foundation namespace.
+- WAF: Improved the unit tests and increased the code coverage.
+- BookLibrary: Create unit tests for the Presentation and Applications project.
+- BookLibrary: Minor changes in bootstrapper (App.xaml.cs)
+- EmailClient: Minor code improvements
+
+
+Version 1.0.0.10 (Milestone 10)
+- BookLibrary: Rewrite the validation part - implement IDataErrorInfo.
+- Use the new version of MEF "Preview 9".
+- Add new code snippet "wafvalconv" which creates a WPF value converter class.
+- Add the new design time tags for Visual Studio 2010 data binding support.
+- EmailClient: Fix minor issue in WPF styles
+- BookLibrary: Fix minor issue in WPF styles
+- BookLibrary: General code improvements
+
+
+Version 1.0.0.9 (Milestone 9)
+- WAF: Minor code improvements found with code inspection.
+- BookLibrary: Add a new sample application which uses the Entity Framework and the SQL Server CE.
+- Writer: Add PresentationController to initialize the correct current culture.
+- Writer: Minor style improvements
+- EmailClient: Minor style improvements
+
+
+Version 1.0.0.8 (Milestone 8)
+B WAF: Rename ViewModel<T>.View property to ViewCore and change it from public to protected.
+B WAF: ViewModel.View property exposes now only object and not IView.
+- WAF: Add new argument null checks in public methods.
+B UnitTesting: Remove the DispatcherUtil class because the DoEvents method is not necessary anymore.
+B UnitTesting: Rename the AssertUtil class to AssertHelper.
+- Writer: Add the introduction Readme.doc.
+- Writer: Bug fix for DocumentManager Save handling.
+- Writer: Minor improvements in the Writer sample application.
+
+
+Version 1.0.0.7 (Milestone 7)
+B Remove the IWeakEventListener interface and the ReceiveWeakEvent method from the Controller and the ViewModel
+  base class. Use the AddWeakEventListener method instead.
+- Use the new version of MEF "Preview 8".
+- Add code snippets for common developer tasks.
+- Add print preview and print functionality in the Writer sample application.
+
+
+Version 1.0.0.6 (Milestone 6)
+- Add WafConfiguration.Debug. When this property is set to true then WAF helps to find coding errors.
+- Add the AssertUtil.CanExecuteChangedEvent method.
+- Add unit tests for the Writer sample application.
+- Minor improvements and bug fixing in the Writer application.
+
+
+Version 1.0.0.5 (Milestone 5)
+- Note: WAF requires the System.ComponentModel.Composition.dll library since this version.
+- Add method 'AddWeakEventListener' and 'RemoveWeakEventListener' to Controller and ViewModel base class 
+  which simplifies the use of the weak event pattern.
+O Mark the method 'ReceiveWeakEvent' in Controller and ViewModel as obsolete. 
+- Add the GetViewModel extension method for the IView interface.
+- Add a basic message service (IMessageService)
+- Add a basic file dialog service (IFileDialogService)
+- Writer: A new sample application which is more a realistic than the other samples.
+
+
+Version 1.0.0.4 (Milestone 4)
+- Simplify unit testing of ViewModel implementations (DispatcherUtil.DoEvents is not necessary anymore)
+- Improve caching of ApplicationInfo properties
+- Add Company property to ApplicationInfo class
+- Use the new version of MEF "Preview 7" for the ViewModel sample
+
+
+Version 1.0.0.3 (Milestone 3)
+- Use the new version of MEF: Preview 6
+- Minor corrections in the Readme documentations
+
+
+Version 1.0.0.2 (Milestone 2)
+- Add the AssertUtil.ExpectedException<T> method and adapt the unit tests to use this method
+  instead of the [ExpectedException] attributes.
+- Fix bug in LocalizationSample/App.config
+- Add Readme.doc to Localization Sample
+- Add Readme.doc to ShortcutKey Sample
+- Add Readme.doc to ViewModel Sample
+
+
+Version 1.0.0.1 (Milestone 1)
+- Initial version

@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{9971D012-1A81-4197-B79A-080885F3C799}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Fap.Domain</RootNamespace>
+    <AssemblyName>Fap.Domain</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <ExpressionBlendVersion>4.0.20525.0</ExpressionBlendVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\libs\Autofac\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BufferedFileReader.cs" />
+    <Compile Include="Client.cs" />
+    <Compile Include="Commands\DownloadClient.cs" />
+    <Compile Include="Commands\DownloadServer.cs" />
+    <Compile Include="Commands\ICommsCommand.cs" />
+    <Compile Include="Commands\UnknownCMD.cs" />
+    <Compile Include="Controllers\SuperNodeController.cs" />
+    <Compile Include="Entity\DownloadQueue.cs" />
+    <Compile Include="Entity\DownloadRequest.cs" />
+    <Compile Include="Entity\FileSystemEntity.cs" />
+    <Compile Include="Entity\Model.cs" />
+    <Compile Include="Entity\Network.cs" />
+    <Compile Include="Entity\NodeModel.cs" />
+    <Compile Include="Entity\Token.cs" />
+    <Compile Include="Entity\Share.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ConnectionService.cs" />
+    <Compile Include="Services\DownloadService.cs" />
+    <Compile Include="Services\IconService.cs" />
+    <Compile Include="Services\ServerService.cs" />
+    <Compile Include="Services\ServerUploadLimiterService.cs" />
+    <Compile Include="Services\SocketHelper.cs" />
+    <Compile Include="Services\ClientDownloadLimiterService.cs" />
+    <Compile Include="Verbs\BrowseVerb.cs" />
+    <Compile Include="Verbs\ChatVerb.cs" />
+    <Compile Include="Verbs\ClientVerb.cs" />
+    <Compile Include="Verbs\ConnectVerb.cs" />
+    <Compile Include="Verbs\HeloVerb.cs" />
+    <Compile Include="Verbs\InfoVerb.cs" />
+    <Compile Include="Verbs\VerbBase.cs" />
+    <Compile Include="Verbs\VerbFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fap.Foundation\Fap.Foundation.csproj">
+      <Project>{D8890820-A42F-4642-BCDB-B864C3A7B741}</Project>
+      <Name>Fap.Foundation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fap.Network\Fap.Network.csproj">
+      <Project>{9F0CE65A-C35B-4BCB-B8DA-4ACF2CC53B9C}</Project>
+      <Name>Fap.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\libs\WpfApplicationFramework\WpfApplicationFramework\WpfApplicationFramework\WpfApplicationFramework.csproj">
+      <Project>{27B67DFE-0BF1-4435-B036-E4C083EAEA03}</Project>
+      <Name>WpfApplicationFramework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,18 @@
+﻿<Window x:Class="Fap.Presentation.InputWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="InputWindow" Height="140" Width="374">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition Height="25px" />
+        </Grid.RowDefinitions>
+        <Label Content="Question" Name="Question2" />
+        <TextBox Grid.Row="1" Text="df" />
+        <DockPanel Grid.Row="2" LastChildFill="False">
+            <Button Width="100" Content="Ok" DockPanel.Dock="Left" Click="Button_Click" />
+            <Button Width="100" Content="Cancel"  DockPanel.Dock="Right" Click="Button_Click_1" />
+        </DockPanel>
+    </Grid>
+</Window>

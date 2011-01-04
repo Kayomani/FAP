@@ -1,0 +1,33 @@
+﻿<Window x:Class="Writer.Presentation.Views.ShellWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:c="clr-namespace:Writer.Presentation.Converters"
+    xmlns:p="clr-namespace:Writer.Presentation.Properties"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Writer.Applications.ViewModels;assembly=Writer.Applications"
+    mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:ShellViewModel}"
+    Title="{Binding Title}" Icon="{StaticResource WriterImageSource}"
+    Height="450" Width="700">
+
+    <DockPanel>
+        <DockPanel.LayoutTransform>
+            <ScaleTransform ScaleX="{Binding ZoomService.ActiveZoom}" ScaleY="{Binding ZoomService.ActiveZoom}"/>            
+        </DockPanel.LayoutTransform>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem Content="{x:Static p:Resources.Ready}"/>
+            <StatusBarItem HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="{x:Static p:Resources.ZoomMenu}" Target="{Binding ElementName=zoomBox}" VerticalAlignment="Center" Padding="0" Margin="0"/>
+                    <ComboBox x:Name="zoomBox" ItemsSource="{Binding ZoomService.DefaultZooms}" SelectedItem="{Binding ZoomService.ActiveZoom}" 
+                              ItemStringFormat="{}{0:P}" Margin="7,0,0,0" Style="{StaticResource {x:Static ToolBar.ComboBoxStyleKey}}"/>
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+        
+        <ContentPresenter Content="{Binding ContentView}"/>
+    </DockPanel>
+
+</Window>

@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="BookLibrary.Presentation.Views.PersonListView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:p="clr-namespace:BookLibrary.Presentation.Properties"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:BookLibrary.Applications.ViewModels;assembly=BookLibrary.Applications"
+    mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:PersonListViewModel}">
+    
+    <DockPanel>
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar>
+                <Button Command="{Binding AddNewCommand}" Content="{x:Static p:Resources.Add}"/>
+                <Button Command="{Binding RemoveCommand}" Content="{x:Static p:Resources.Remove}"/>
+            </ToolBar>
+        </ToolBarTray>
+
+        <ListView ItemsSource="{Binding Persons}" SelectedItem="{Binding SelectedPerson}"
+                  SelectionChanged="ListViewSelectionChanged">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Firstname}" Header="{x:Static p:Resources.Firstname}" Width="125"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Lastname}" Header="{x:Static p:Resources.Lastname}" Width="100"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Email}" Header="{x:Static p:Resources.Email}" Width="250"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </DockPanel>
+        
+</UserControl>
