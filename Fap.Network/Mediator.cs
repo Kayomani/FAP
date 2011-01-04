@@ -57,14 +57,14 @@ namespace Fap.Network
             //Add command + param
             if (string.IsNullOrEmpty(r.Param))
             {
-                sb.Append(r.Command);
+                sb.Append(MakeSafe(r.Command));
                 sb.Append(NEWLINE);
             }
             else
             {
-                sb.Append(r.Command);
+                sb.Append(MakeSafe(r.Command));
                 sb.Append(" ");
-                sb.Append(r.Param);
+                sb.Append(MakeSafe(r.Param));
                 sb.Append(NEWLINE);
             }
             //Add request ID
@@ -89,15 +89,25 @@ namespace Fap.Network
             }
             foreach (var s in r.AdditionalHeaders)
             {
-                sb.Append(s.Key);
+                sb.Append(MakeSafe(s.Key));
                 sb.Append(":");
-                sb.Append(s.Value);
+                sb.Append(MakeSafe(s.Value));
                 sb.Append(NEWLINE);
             }
             //Terminate header
             sb.Append(NEWLINE);
             return Encoding.Unicode.GetBytes(sb.ToString());
         }
+
+        private static string MakeSafe(string s)
+        {
+            if (null == s)
+                return string.Empty;
+            s = s.Replace("\n", "\\n").Replace("\r", "\\r");
+            return s;
+        }
+
+
         public static bool Deserialize(string input, out Request r)
         {
             r = new Request();

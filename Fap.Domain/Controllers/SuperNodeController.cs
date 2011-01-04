@@ -28,6 +28,8 @@ using System.Threading;
 using Fap.Domain.Verbs;
 using System.Net.Sockets;
 using Fap.Foundation.Logging;
+using System.Xml.Linq;
+using System.Xml;
 
 namespace Fap.Domain.Controllers
 {
@@ -377,9 +379,110 @@ namespace Fap.Domain.Controllers
                 {
                     connectionService.FreeClientSession(session);
                 }
+                ScanClient(node);
             }
+
         }
 
+        /// <summary>
+        /// Scan the client machine for services such as HTTP or samba shares
+        /// </summary>
+        /// <param name="n"></param>
+        private void ScanClient(Node n)
+        {
+            //Check for HTTP
+            string webTitle = string.Empty;
+            try
+            {
+                WebClient wc = new WebClient();
+                string html = wc.DownloadString("http://" + n.Host);
+                if (!string.IsNullOrEmpty(html))
+                    webTitle = "Web";
+                XDocument doc = XDocument.Parse(html);
+                var title = doc.Elements("html").Where(x => (string.Equals(x.Name.LocalName, "title", StringComparison.InvariantCultureIgnoreCase))).FirstOrDefault();
+                if (null != title && !string.IsNullOrEmpty(title.Value))
+                    webTitle = title.Value;
+            }
+            catch { }
+
+            //Check for FTP
+            string ftp = string.Empty;
+            try
+            {
+                TcpClient client = new TcpClient();
+                client.Connect(n.Host, 21);
+                ftp = "FTP";
+                StringBuilder sb = new StringBuilder();
+                long start = Environment.TickCount+3000;
+                byte[] data = new byte[20000];
+                client.ReceiveBufferSize = data.Length;
+
+                while (start > Environment.TickCount && client.Connected)
+                {
+                    if (client.GetStream().DataAvailable)
+                    {
+                        int length = client.GetStream().Read(data, 0, data.Length);
+                        sb.Append(Encoding.ASCII.GetString(data, 0, length));
+                    }
+                    else
+                    {
+                        Thread.Sleep(50);
+                    }
+                }
+                client.Close();
+
+                string title = sb.ToString();
+                if (!string.IsNullOrEmpty(title))
+                    ftp = title;
+            }
+            catch { }
+
+            //Check for samba shares
+
+            string samba = string.Empty;
+            try
+            {
+                var shares = ShareCollection.GetShares(n.Host);
+                StringBuilder sb = new StringBuilder();
+                foreach (SambaShare share in shares)
+                {
+                    if (share.IsFileSystem && share.ShareType == ShareType.Disk)
+                    {
+                        try
+                        {
+                            if(sb.Length>0)
+                                sb.Append("|");
+                            //Make sure its readable
+                            System.IO.DirectoryInfo[] Flds = share.Root.GetDirectories();
+                            sb.Append(share.NetName);
+                           
+                        }
+                        catch { }
+                    }
+                }
+                samba = sb.ToString();
+            }
+            catch { }
+
+
+            //Update client
+            if (n.GetData("HTTP") != webTitle ||
+               n.GetData("FTP") != ftp ||
+               n.GetData("Shares") != samba)
+            {
+                n.SetData("HTTP", webTitle);
+                n.SetData("FTP", ftp);
+                n.SetData("Shares", samba);
+                //Fake a update request
+                Request r = new Request();
+                r.Command = "CLIENT";
+                r.Param = n.ID;
+                r.AdditionalHeaders.Add("HTTP", webTitle);
+                r.AdditionalHeaders.Add("FTP", ftp);
+                r.AdditionalHeaders.Add("Shares", samba);
+                HandleClientAsync(r);
+            }
+        }
 
         /// <summary>
         /// Sends the new client to all the other clients

@@ -54,9 +54,6 @@
     <Reference Include="Autofac">
       <HintPath>..\libs\Autofac\Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="ContinuousLinq">
-      <HintPath>..\libs\CLINQ\ContinuousLinq.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationCore">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>

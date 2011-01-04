@@ -92,6 +92,7 @@
     <Compile Include="SafeDictionary.cs" />
     <Compile Include="SafeObservable.cs" />
     <Compile Include="Services\IDService.cs" />
+    <Compile Include="SambaShare.cs" />
     <Compile Include="SimpleCrypt.cs" />
     <Compile Include="Sorting\MergeSort.cs" />
     <Compile Include="Sorting\QuickSort.cs" />
