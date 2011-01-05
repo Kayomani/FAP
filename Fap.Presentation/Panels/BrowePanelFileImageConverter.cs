@@ -44,7 +44,7 @@ namespace Fap.Presentation.Panels
                 Fap.Domain.Entity.FileSystemEntity fse = value as Fap.Domain.Entity.FileSystemEntity;
                 filename = fse.Name;
                 if (fse.IsFolder)
-                    return "/Fap.Presentation;component/Images/Browser/folder.png";
+                    return "/Fap.Presentation;component/Images/folder.png";
             }
 
             else if (value is Fap.Domain.Entity.DownloadRequest)
@@ -52,7 +52,7 @@ namespace Fap.Presentation.Panels
                 Fap.Domain.Entity.DownloadRequest dl = value as Fap.Domain.Entity.DownloadRequest;
                 filename = dl.FileName;
                 if (dl.IsFolder)
-                    return "/Fap.Presentation;component/Images/Browser/folder.png";
+                    return "/Fap.Presentation;component/Images/folder.png";
             }
             if (string.IsNullOrEmpty(filename))
                 return string.Empty;

@@ -39,7 +39,7 @@
                         <Setter.Value>
                             <DataTemplate DataType="ContentPresenter">
                                 <StackPanel Orientation="Horizontal">
-                                    <Image  x:Name="img"  Width="20" Height="20"  Stretch="Fill" Source="/Fap.Presentation;component/Images/Browser/folder.png"   />
+                                    <Image  x:Name="img"  Width="20" Height="20"  Stretch="Fill" Source="/Fap.Presentation;component/Images/folder.png"   />
                                     <TextBlock Text="{Binding}" Margin="5,0" />
                                 </StackPanel>
 

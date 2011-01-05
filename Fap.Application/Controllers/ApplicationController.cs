@@ -39,32 +39,34 @@ using Autofac;
 using Fap.Network.Entity;
 using System.Net.Sockets;
 using Fap.Domain.Controllers;
+using System.Diagnostics;
 
 namespace Fap.Application.Controllers
 {
     public class ApplicationController : AsyncControllerBase
     {
         private readonly IContainer container;
-        private readonly MainWindowViewModel mainWindowModel;
         private readonly LoggerViewModel loggerModel;
         private readonly PopupWindowController popupController;
         private readonly QueryViewModel browser;
+        private readonly PeerController peerController;
+        private readonly SharesController shareController;
+        private readonly Logger logger;
+        private readonly DownloadService downloadService;
+        private readonly WatchdogController watchdog;
+        private readonly ServerService server;
 
-        private PeerController peerController;
-        private SharesController shareController;
+        private MainWindowViewModel mainWindowModel;
+
         private Model model;
         private Node node;
-        private Logger logger;
-        private DownloadService downloadService;
-        private WatchdogController watchdog;
-        private ServerService server;
+       
         private TrayIconViewModel trayIcon;
 
         public ApplicationController(IContainer container)
         {
             if (container == null) { throw new ArgumentNullException("container"); }
             this.container = container;
-            mainWindowModel = container.Resolve<MainWindowViewModel>();
             peerController = container.Resolve<PeerController>();
             shareController = container.Resolve<SharesController>();
             loggerModel = container.Resolve<LoggerViewModel>();
@@ -75,6 +77,7 @@ namespace Fap.Application.Controllers
             downloadService = container.Resolve<DownloadService>();
             watchdog = container.Resolve<WatchdogController>();
             trayIcon = container.Resolve<TrayIconViewModel>();
+            server = container.Resolve<ServerService>();
             logger.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(logger_CollectionChanged);
             QueueWork(new DelegateCommand(SetupAsync));
         }
@@ -173,35 +176,18 @@ namespace Fap.Application.Controllers
                 logger.LogException(e);
             }
 
-            mainWindowModel.WindowTitle = "FAP - 'Overkill' edition - Release " + Model.NetCodeVersion + "." + Model.ClientVersion ;
-            mainWindowModel.SendChatMessage = new DelegateCommand(sendChatMessage);
-            mainWindowModel.ViewShare = new DelegateCommand(viewShare);
-            mainWindowModel.EditShares = new DelegateCommand(EditShares);
-            mainWindowModel.ChangeAvatar = new DelegateCommand(ChangeAvatar);
-            mainWindowModel.Settings = new DelegateCommand(Settings);
-            mainWindowModel.ViewQueue = new DelegateCommand(ViewQueue);
-            mainWindowModel.Closing = new DelegateCommand(Closing);
+           
             //Logger
             loggerModel.Logs = logger.Logs;
-            mainWindowModel.LogView = loggerModel.View;
-            mainWindowModel.Avatar = model.Avatar;
-            mainWindowModel.Nickname = model.Nickname;
-            mainWindowModel.Description = model.Description;
-            mainWindowModel.Sessions = model.Sessions;
-            mainWindowModel.ChatMessages = model.Messages;
-            model.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(model_PropertyChanged);
             shareController.Initalise();
             node = new Node();
-            server = container.Resolve<ServerService>();
+            
             server.Start();
             peerController.Start();
-            mainWindowModel.Peers = model.Peers;
-            mainWindowModel.Peers.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(ClientList_CollectionChanged);
-            mainWindowModel.Node = node;
-            ClientList_CollectionChanged(null, null);
+            model.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(model_PropertyChanged);
 
             //Tray icon
-            trayIcon.Exit = new DelegateCommand(Closing);
+            trayIcon.Exit = new DelegateCommand(Exit);
             trayIcon.Model = model;
             trayIcon.Open = new DelegateCommand(ShowMainWindow);
             trayIcon.Queue = new DelegateCommand(ViewQueue);
@@ -214,7 +200,49 @@ namespace Fap.Application.Controllers
 
         private void ShowMainWindow()
         {
+            if (null == mainWindowModel)
+            {
+                mainWindowModel = container.Resolve<MainWindowViewModel>();
+                mainWindowModel.WindowTitle = "FAP - 'Overkill' edition - Release " + Model.NetCodeVersion + "." + Model.ClientVersion;
+                mainWindowModel.SendChatMessage = new DelegateCommand(sendChatMessage);
+                mainWindowModel.ViewShare = new DelegateCommand(viewShare);
+                mainWindowModel.EditShares = new DelegateCommand(EditShares);
+                mainWindowModel.ChangeAvatar = new DelegateCommand(ChangeAvatar);
+                mainWindowModel.Settings = new DelegateCommand(Settings);
+                mainWindowModel.ViewQueue = new DelegateCommand(ViewQueue);
+                mainWindowModel.Closing = new DelegateCommand(MainWindowClosing);
+                mainWindowModel.OpenExternal = new DelegateCommand(OpenExternal);
+                mainWindowModel.LogView = loggerModel.View;
+                mainWindowModel.Avatar = model.Avatar;
+                mainWindowModel.Nickname = model.Nickname;
+                mainWindowModel.Description = model.Description;
+                mainWindowModel.Sessions = model.Sessions;
+                mainWindowModel.ChatMessages = model.Messages;
+                mainWindowModel.Peers = model.Peers;
+                mainWindowModel.Node = node;
+                ClientList_CollectionChanged(null, null);
+                mainWindowModel.Show();
+            }
+            else
+            {
+                if (mainWindowModel.Visible)
+                    mainWindowModel.DoFlashWindow();
+                else
+                    mainWindowModel.Show();
+            }
+        }
 
+
+        private void OpenExternal(object o)
+        {
+            string url = o as string;
+            if (!string.IsNullOrEmpty(url))
+                Process.Start(url);
+        }
+
+        private void MainWindowClosing()
+        {
+            mainWindowModel = null;
         }
 
         private IPAddress GetLocalAddress()
@@ -233,27 +261,30 @@ namespace Fap.Application.Controllers
             return a;
         }
 
-        private void Closing()
+        
+
+        private void Exit()
         {
             QueueWork(new DelegateCommand(ShutDown));
         }
 
-
-
         void ClientList_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("Status: Connected to ");
-            sb.Append(mainWindowModel.Peers.Where(p=>p.NodeType!= ClientType.Overlord).Count());
-            sb.Append(" clients sharing a total of ");
-
-            long total =0;
-            foreach(var client in mainWindowModel.Peers.ToList())
+            if (null != mainWindowModel)
             {
-                total+=client.ShareSize;
+                StringBuilder sb = new StringBuilder();
+                sb.Append("Status: Connected to ");
+                sb.Append(model.Peers.Where(p => p.NodeType != ClientType.Overlord).Count());
+                sb.Append(" clients sharing a total of ");
+
+                long total = 0;
+                foreach (var client in model.Peers.ToList())
+                {
+                    total += client.ShareSize;
+                }
+                sb.Append(Utility.FormatBytes(total));
+                mainWindowModel.NetworkStatus = sb.ToString();
             }
-            sb.Append(Utility.FormatBytes(total));
-            mainWindowModel.NetworkStatus = sb.ToString();
         }
 
 
@@ -418,11 +449,9 @@ namespace Fap.Application.Controllers
 
         public void Run()
         {
-            mainWindowModel.Show();
-           // peerController.StartBroadcast();
-           // peerController.StartBroadcastClient();
             watchdog.Run();
             downloadService.Run();
+            ShowMainWindow();
         }
 
         public void ShutDown()
@@ -455,16 +484,20 @@ namespace Fap.Application.Controllers
             }
             model.Save();
             model.DownloadQueue.Save();
-           Environment.FailFast(null);
 
             mainWindowModel.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
             new Action(
              delegate()
              {
-                 mainWindowModel.Close();
+                 if (null != mainWindowModel)
+                 {
+                     popupController.Close();
+                     mainWindowModel.Close();
+                 }
              }
             ));
-            
+            //Kill the other foreground thread
+            watchdog.Stop();
         }
     }
 }

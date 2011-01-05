@@ -46,6 +46,12 @@ namespace Fap.Application.Controllers
              }
          }
 
+         public void Close()
+         {
+             if (windowOpen)
+                 viewModel.CloseWindow();
+         }
+
          private void windowClosing()
          {
              viewModel.DocumentViews.Clear();

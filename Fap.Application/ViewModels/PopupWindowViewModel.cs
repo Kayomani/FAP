@@ -64,5 +64,10 @@ namespace Fap.Application.ViewModels
         {
             ViewCore.Show();
         }
+
+        public void CloseWindow()
+        {
+            ViewCore.Close();
+        }
     }
 }

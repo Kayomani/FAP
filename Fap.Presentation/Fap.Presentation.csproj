@@ -117,6 +117,7 @@
     </Compile>
     <Compile Include="BinaryImageConverter.cs" />
     <Compile Include="Converters.cs" />
+    <Compile Include="FlashWindow.cs" />
     <Compile Include="GridViewSort.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="InputWindow.xaml.cs">
@@ -151,8 +152,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MainWindow2.xaml.cs">
-      <DependentUpon>MainWindow2.xaml</DependentUpon>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Panels\BrowePanelFileImageConverter.cs" />
     <Compile Include="Query.cs" />
@@ -215,7 +216,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainWindow2.xaml">
+    <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

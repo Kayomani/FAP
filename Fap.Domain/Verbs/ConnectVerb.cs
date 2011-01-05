@@ -27,14 +27,6 @@ namespace Fap.Domain.Verbs
 {
     public class ConnectVerb : VerbBase, IVerb
     {
-     //   private Node model;
-
-
-        public ConnectVerb(Node m)
-        {
-        //    model = m;
-        }
-
         public Network.Entity.Request CreateRequest()
         {
             Request r = new Request();

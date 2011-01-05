@@ -41,6 +41,7 @@ namespace Fap.Application.ViewModels
         private ICommand changeAvatar;
         private ICommand viewQueue;
         private ICommand closing;
+        private ICommand openExternal;
         private object logView;
         private object selectedClient;
         private byte[] avatar;
@@ -50,6 +51,8 @@ namespace Fap.Application.ViewModels
         private string windowTitle;
         private Node node;
         private SafeObservable<Node> peers;
+        private bool visible = false;
+        private bool allowClose = false;
 
         public MainWindowViewModel(IMainWindow view)
             : base(view)
@@ -57,14 +60,37 @@ namespace Fap.Application.ViewModels
 
         }
 
-        public bool AllowClose { set; get; }
+        public void DoFlashWindow()
+        {
+            ViewCore.Flash();
+        }
+
+        public bool Visible
+        {
+            get { return visible; }
+            set
+            {
+                visible = value;
+                RaisePropertyChanged("Visible");
+            }
+        }
+
+        public bool AllowClose
+        {
+            get { return allowClose; }
+            protected set
+            {
+                allowClose = value;
+                RaisePropertyChanged("AllowClose");
+            }
+        }
 
         public SafeObservable<Node> Peers
         {
             get { return peers; }
             set
             {
-                peers = value;
+                peers = value; 
                 RaisePropertyChanged("Peers");
             }
         }
@@ -172,6 +198,17 @@ namespace Fap.Application.ViewModels
         }
 
 
+        public ICommand OpenExternal
+        {
+            get { return openExternal; }
+            set
+            {
+                openExternal = value;
+                RaisePropertyChanged("OpenExternal");
+            }
+        }
+
+
         public ICommand Closing
         {
             get { return closing; }
@@ -259,11 +296,14 @@ namespace Fap.Application.ViewModels
 
         public void Show()
         {
+            visible = true;
             ViewCore.Show();
         }
 
         public void Close()
         {
+            visible = false;
+            AllowClose = true;
             ViewCore.Close();
         }
 

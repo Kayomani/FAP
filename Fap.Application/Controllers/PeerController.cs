@@ -178,7 +178,7 @@ namespace Fap.Application.Controllers
             {
                 foreach (var server in servers)
                 {
-                    ConnectVerb connect = new ConnectVerb(overlord.Node);
+                    ConnectVerb connect = new ConnectVerb();
                     connect.RemoteLocation = model.Node.Location;
 
                     Client c = container.Resolve<Client>();

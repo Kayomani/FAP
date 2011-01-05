@@ -32,11 +32,11 @@ namespace Fap.Application.Controllers
     {
         private readonly long ClientTimeout = 2*60*1000;//2 minutes
 
-        private Timer timer;
         private ConnectionService connectionService;
         private Model model;
         private Logger logger;
         private BufferService bufferService;
+        private Thread worker;
 
         public WatchdogController(ConnectionService cs, Model model, Logger log, BufferService bufferService)
         {
@@ -48,24 +48,27 @@ namespace Fap.Application.Controllers
 
         public void Run()
         {
-            timer = new Timer(processCheck, null, 2000, 5000);
+            ThreadPool.QueueUserWorkItem(new WaitCallback(processCheck));
         }
 
-
-        private bool isProcessing = false;
+        public void Stop()
+        {
+            if (worker != null)
+                worker.Abort();
+        }
 
 
         private void processCheck(object o)
         {
-            return;
-            if (!isProcessing)
+            worker = Thread.CurrentThread;
+            Thread.CurrentThread.IsBackground = false;
+
+             while(true)
             {
                 try
                 {
-                    lock (timer)
                     {
-                        isProcessing = true;
-                       // logger.AddInfo("Processing watchdog");
+                        // logger.AddInfo("Processing watchdog");
                         //Disconnect sessions if needed
                         DisconnectStaleSessions();
                         //Update user display info
@@ -85,7 +88,7 @@ namespace Fap.Application.Controllers
                             }
                             else
                             {
-                               // rc = model.Clients.Where(c => c.Host == session.User).FirstOrDefault();
+                                // rc = model.Clients.Where(c => c.Host == session.User).FirstOrDefault();
                                 session.Host = rc;
                             }
                         }
@@ -93,23 +96,19 @@ namespace Fap.Application.Controllers
                         bufferService.Clean();
 
                         //Check clients are still alive
-                       /* foreach (var client in model.Clients.ToList())
-                        {
-                            if (client.LastAccess + ClientTimeout < Environment.TickCount)
-                                model.Clients.Remove(client);
-                        }*/
+                        /* foreach (var client in model.Clients.ToList())
+                         {
+                             if (client.LastAccess + ClientTimeout < Environment.TickCount)
+                                 model.Clients.Remove(client);
+                         }*/
 
 
                         //Check for disconnected server connections
                     }
                 }
                 catch { }
-                finally
-                {
-                    isProcessing = false;
-                }
+                Thread.Sleep(1000);
             }
-
         }
 
       public void DisconnectStaleSessions()

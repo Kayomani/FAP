@@ -146,7 +146,7 @@ namespace Fap.Presentation
                 builder.RegisterType<WatchdogController>().SingleInstance();
 
                 //UI
-                builder.RegisterType<MainWindow2>().As<IMainWindow>();
+                builder.RegisterType<MainWindow>().As<IMainWindow>();
                 builder.RegisterType<MessageBox>().As<IMessageBoxView>();
                 builder.RegisterType<Fap.Presentation.Panels.DownloadQueue>().As<IDownloadQueue>();
                 builder.RegisterType<SettingsPanel>().As<ISettingsView>();

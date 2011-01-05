@@ -33,7 +33,7 @@ namespace Fap.Domain.Verbs
                 case "INFO":
                     return new InfoVerb(n.Node);
                 case "CONNECT":
-                    return new ConnectVerb(n.Node);
+                    return new ConnectVerb();
                 case "BROWSE":
                     return new BrowseVerb(n);
                 default:
