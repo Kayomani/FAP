@@ -62,6 +62,7 @@
     <Reference Include="System.ServiceModel">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -97,9 +98,22 @@
     <Compile Include="Sorting\MergeSort.cs" />
     <Compile Include="Sorting\QuickSort.cs" />
     <Compile Include="Sorting\TreeSort.cs" />
+    <Compile Include="SystemInfo.cs" />
     <Compile Include="Utility.cs" />
+    <Compile Include="WMI_Prototypes\Win32_BaseBoard.cs" />
+    <Compile Include="WMI_Prototypes\Win32_BIOS.cs" />
+    <Compile Include="WMI_Prototypes\Win32_LogicalDisk.cs" />
+    <Compile Include="WMI_Prototypes\Win32_NetworkAdapter.cs" />
+    <Compile Include="WMI_Prototypes\Win32_PhysicalMemory.cs" />
+    <Compile Include="WMI_Prototypes\Win32_Processor.cs" />
+    <Compile Include="WMI_Prototypes\Win32_SoundDevice.cs" />
+    <Compile Include="WMI_Prototypes\Win32_VideoController.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\libs\LinqToWmi\LinqToWmi.Core\LinqToWmi.Core.csproj">
+      <Project>{F4EC1E7F-A7F2-4D3B-B442-667BF8C6FE34}</Project>
+      <Name>LinqToWmi.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\libs\WpfApplicationFramework\WpfApplicationFramework\WpfApplicationFramework\WpfApplicationFramework.csproj">
       <Project>{27B67DFE-0BF1-4435-B036-E4C083EAEA03}</Project>
       <Name>WpfApplicationFramework</Name>
