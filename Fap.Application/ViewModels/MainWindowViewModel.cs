@@ -42,6 +42,7 @@ namespace Fap.Application.ViewModels
         private ICommand viewQueue;
         private ICommand closing;
         private ICommand openExternal;
+        private ICommand compare;
         private object logView;
         private object selectedClient;
         private byte[] avatar;
@@ -208,6 +209,15 @@ namespace Fap.Application.ViewModels
             }
         }
 
+        public ICommand Compare
+        {
+            get { return compare; }
+            set
+            {
+                compare = value;
+                RaisePropertyChanged("Compare");
+            }
+        }
 
         public ICommand Closing
         {

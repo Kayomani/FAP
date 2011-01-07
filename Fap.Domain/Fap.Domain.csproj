@@ -80,13 +80,13 @@
     <Compile Include="Commands\ICommsCommand.cs" />
     <Compile Include="Commands\UnknownCMD.cs" />
     <Compile Include="Controllers\SuperNodeController.cs" />
+    <Compile Include="Entity\CompareNode.cs" />
     <Compile Include="Entity\DownloadQueue.cs" />
     <Compile Include="Entity\DownloadRequest.cs" />
     <Compile Include="Entity\FileSystemEntity.cs" />
     <Compile Include="Entity\Model.cs" />
     <Compile Include="Entity\Network.cs" />
     <Compile Include="Entity\NodeModel.cs" />
-    <Compile Include="Entity\Token.cs" />
     <Compile Include="Entity\Share.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ConnectionService.cs" />
@@ -99,6 +99,7 @@
     <Compile Include="Verbs\BrowseVerb.cs" />
     <Compile Include="Verbs\ChatVerb.cs" />
     <Compile Include="Verbs\ClientVerb.cs" />
+    <Compile Include="Verbs\CompareVerb.cs" />
     <Compile Include="Verbs\ConnectVerb.cs" />
     <Compile Include="Verbs\HeloVerb.cs" />
     <Compile Include="Verbs\InfoVerb.cs" />

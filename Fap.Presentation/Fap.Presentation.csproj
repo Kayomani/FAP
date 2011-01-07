@@ -129,6 +129,9 @@
     <Compile Include="MessageBox.xaml.cs">
       <DependentUpon>MessageBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Panels\ComparePanel.xaml.cs">
+      <DependentUpon>ComparePanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Panels\DownloadQueue.xaml.cs">
       <DependentUpon>DownloadQueue.xaml</DependentUpon>
     </Compile>
@@ -138,6 +141,7 @@
       <DependentUpon>SettingsPanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="SortableListView.cs" />
+    <Compile Include="SpaceFormatter.cs" />
     <Compile Include="TabControl.cs" />
     <Compile Include="TabControlEx.cs" />
     <Compile Include="TabEventArgs.cs" />
@@ -210,6 +214,10 @@
       <Project>{27B67DFE-0BF1-4435-B036-E4C083EAEA03}</Project>
       <Name>WpfApplicationFramework</Name>
     </ProjectReference>
+    <ProjectReference Include="..\libs\WPFToolKit\WPFToolkit.csproj">
+      <Project>{9606A078-7135-4CE7-879E-39FCF527F1A3}</Project>
+      <Name>WPFToolkit</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="InputWindow.xaml">
@@ -225,6 +233,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Panels\BrowsePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Panels\ComparePanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -34,6 +34,7 @@ using Fap.Presentation.Panels;
 using Fap.Domain.Entity;
 using Fap.Network;
 using Fap.Network.Services;
+using Fap.Application.ViewModels;
 
 namespace Fap.Presentation
 {
@@ -156,6 +157,9 @@ namespace Fap.Presentation
                 builder.RegisterType<LogPanel>().As<ILogView>();
                 builder.RegisterType<SharesPanel>().As<ISharesView>();
                 builder.RegisterType<TrayIcon>().As<ITrayIconView>();
+                builder.RegisterType<ComparePanel>().As<ICompareView>();
+
+                
                 //Services
               //  builder.RegisterType<BroadcastClient>().SingleInstance();
               //  builder.RegisterType<BroadcastServer>().SingleInstance();

@@ -21,6 +21,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using Fap.Foundation;
 
 namespace Wpf.Controls
 {
@@ -48,4 +49,6 @@ namespace Wpf.Controls
 
         }
     }
+
+    
 }

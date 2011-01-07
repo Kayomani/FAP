@@ -23,11 +23,10 @@ using System.ComponentModel;
 
 namespace Fap.Foundation.Logging
 {
-    public class Logger: AsyncControllerBase, INotifyCollectionChanged, INotifyPropertyChanged
+    public class Logger: AsyncControllerBase, INotifyCollectionChanged
     {
         private SafeObservable<Log> collection = new SafeObservable<Log>();
         public event System.Collections.Specialized.NotifyCollectionChangedEventHandler CollectionChanged;
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public SafeObservable<Log> Logs
         {

@@ -27,7 +27,7 @@ namespace Fap.Network.Entity
     public enum ClientType {Client=0,Server=1,Overlord=2};
     public class Node : BaseEntity
     {
-        private SafeDictionary<string, string> data = new SafeDictionary<string, string>();
+        protected SafeDictionary<string, string> data = new SafeDictionary<string, string>();
         private long lastUpdate = Environment.TickCount;
 
         private object sync = new object();

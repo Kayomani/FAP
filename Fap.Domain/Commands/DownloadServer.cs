@@ -86,7 +86,7 @@ namespace Fap.Domain.Commands
                     FileInfo info = new FileInfo(filePath);
                     if (info.Exists)
                     {
-                        Fap.Domain.Services.ServerUploadLimiterService.ServerUploadToken token;
+                        //Fap.Domain.Services.ServerUploadLimiterService.ServerUploadToken token;
                         string fileName = Path.GetFileName(inc[1]);
                         logService.AddInfo("DL Server rx File " + fileName);
                        /* if (!limiterService.RequestUploadToken(out token, session.Host))

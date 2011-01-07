@@ -112,9 +112,10 @@
                     <Label Content="{Binding NetworkStatus}" Foreground="White" Margin="0" />
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                        <Button Content="Queue" Width="75" Height="30" VerticalAlignment="Bottom" Command="{Binding ViewQueue}" />
-                        <Button Content="Shares" Width="75" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding EditShares}" />
-                        <Button Content="Settings" Width="75" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding Settings}" />
+                    <Button Content="Compare" Width="75" Height="27" VerticalAlignment="Bottom" Command="{Binding Compare}" />
+                    <Button Content="Queue" Width="75" Height="27" VerticalAlignment="Bottom" Command="{Binding ViewQueue}" />
+                    <Button Content="Shares" Width="75" Height="27" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding EditShares}" />
+                        <Button Content="Settings" Width="75" Height="27" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding Settings}" />
                     </StackPanel>
                 </DockPanel>
             </StackPanel>

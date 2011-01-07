@@ -212,6 +212,7 @@ namespace Fap.Application.Controllers
                 mainWindowModel.ViewQueue = new DelegateCommand(ViewQueue);
                 mainWindowModel.Closing = new DelegateCommand(MainWindowClosing);
                 mainWindowModel.OpenExternal = new DelegateCommand(OpenExternal);
+                mainWindowModel.Compare = new DelegateCommand(Compare);
                 mainWindowModel.LogView = loggerModel.View;
                 mainWindowModel.Avatar = model.Avatar;
                 mainWindowModel.Nickname = model.Nickname;
@@ -232,6 +233,13 @@ namespace Fap.Application.Controllers
             }
         }
 
+
+        private void Compare()
+        {
+            CompareController cc = container.Resolve<CompareController>();
+            var vm = cc.Initalise();
+            popupController.AddWindow(vm.View, "Compare");
+        }
 
         private void OpenExternal(object o)
         {

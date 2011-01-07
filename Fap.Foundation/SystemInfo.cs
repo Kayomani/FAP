@@ -55,27 +55,12 @@ namespace Fap.Foundation
             //Console.WriteLine("NIC Sent: " + GetNetworkSent());
             // Console.WriteLine("NIC Received: " + GetNetworkReceived()); 
             Console.WriteLine("Sound card: " + GetSoundcardName()); //Win32_SoundDevice
-            Console.WriteLine("System score: " + GetSystemScore());
+           // Console.WriteLine("System score: " + GetSystemScore());
             Console.ReadKey();
         }
 
 
-        public long GetSystemScore()
-        {
-            long total = 0;
-            total += GetCPUSpeed() * GetCPUThreads();
-            total += GetCPUBits() * 50;
-            total += (long)((GetMemorySize() / 1000000) * 1.25);
-            total += (GetGPUCount() * 1000);
-            total += GetTotalGPUMemory() / 2000000;
-            total += ((GetTotalDisplayWidth() * GetTotalDisplayHeight()) / 10000);
-
-            long disk = GetTotalHDDSize();
-            long free = GetTotalHDDFree();
-            total += (long)((free / 1000000000) * 0.75);
-            total += ((disk - free) / 1000000000);
-            return total;
-        }
+       
 
         public int GetCPUSpeed()
         {
@@ -96,7 +81,7 @@ namespace Fap.Foundation
             {
                 using (WmiContext context = new WmiContext(@"\\localhost"))
                 {
-                    return (int)context.Source<Win32_Processor>().First().NumberOfLogicalProcessors;
+                    return (int)context.Source<Win32_Processor>().First().NumberOfCores;
                 }
             }
             catch
@@ -111,7 +96,7 @@ namespace Fap.Foundation
             {
                 using (WmiContext context = new WmiContext(@"\\localhost"))
                 {
-                    return (int)context.Source<Win32_Processor>().First().NumberOfCores;
+                    return (int)context.Source<Win32_Processor>().First().NumberOfLogicalProcessors;
                 }
             }
             catch

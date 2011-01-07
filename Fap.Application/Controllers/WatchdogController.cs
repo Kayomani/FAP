@@ -30,7 +30,7 @@ namespace Fap.Application.Controllers
 {
     public class WatchdogController
     {
-        private readonly long ClientTimeout = 2*60*1000;//2 minutes
+      //  private readonly long ClientTimeout = 2*60*1000;//2 minutes
 
         private ConnectionService connectionService;
         private Model model;

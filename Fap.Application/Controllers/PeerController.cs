@@ -35,6 +35,7 @@ using Fap.Domain.Controllers;
 using System.Net;
 using System.Net.Sockets;
 using Fap.Foundation.Services;
+using Fap.Foundation;
 
 namespace Fap.Application.Controllers
 {
@@ -47,7 +48,7 @@ namespace Fap.Application.Controllers
         private Timer timer;
         private IContainer container;
 
-        List<DetectedOverlord> overlordList = new List<DetectedOverlord>();
+        SafeObservable<DetectedOverlord> overlordList = new SafeObservable<DetectedOverlord>();
 
         private object sync = new object();
         private object connectSync = new object();
