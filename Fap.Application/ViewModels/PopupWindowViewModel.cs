@@ -30,6 +30,8 @@ namespace Fap.Application.ViewModels
         private object activeDocumentView;
         private readonly ObservableCollection<PopUpWindowTab> documentViews;
         private ICommand close;
+        private ICommand tabClose;
+
 
         public ObservableCollection<PopUpWindowTab> DocumentViews { get { return documentViews; } }
 
@@ -49,6 +51,15 @@ namespace Fap.Application.ViewModels
             }
         }
 
+        public ICommand TabClose
+        {
+            get { return tabClose; }
+            set
+            {
+                tabClose = value;
+                RaisePropertyChanged("TabClose");
+            }
+        }
 
         public ICommand Close
         {
@@ -68,6 +79,11 @@ namespace Fap.Application.ViewModels
         public void CloseWindow()
         {
             ViewCore.Close();
+        }
+
+        public void FlashIfNotActive()
+        {
+            ViewCore.FlashIfNotActive();
         }
     }
 }

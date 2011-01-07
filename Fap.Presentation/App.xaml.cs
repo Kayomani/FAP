@@ -158,7 +158,7 @@ namespace Fap.Presentation
                 builder.RegisterType<SharesPanel>().As<ISharesView>();
                 builder.RegisterType<TrayIcon>().As<ITrayIconView>();
                 builder.RegisterType<ComparePanel>().As<ICompareView>();
-
+                builder.RegisterType<Fap.Presentation.Panels.Conversation>().As<IConverstationView>();
                 
                 //Services
               //  builder.RegisterType<BroadcastClient>().SingleInstance();

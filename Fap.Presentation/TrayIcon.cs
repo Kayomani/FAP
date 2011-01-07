@@ -23,6 +23,7 @@ using System.IO;
 using Fap.Application.ViewModels;
 using System.Windows.Forms;
 using Fap.Network.Entity;
+using System.Reflection;
 
 namespace Fap.Presentation
 {
@@ -41,6 +42,14 @@ namespace Fap.Presentation
             Stream iconStream = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Fap.Presentation;component/Images/folder-yellow.ico")).Stream;
             notifyIcon.Icon = new System.Drawing.Icon(iconStream);
             contextMenu.Popup += new EventHandler(contextMenu_Popup);
+            notifyIcon.DoubleClick += new EventHandler(notifyIcon_DoubleClick);
+        }
+
+        void notifyIcon_DoubleClick(object sender, EventArgs e)
+        {
+            MethodInfo mi = typeof(NotifyIcon).GetMethod("ShowContextMenu",
+             BindingFlags.Instance | BindingFlags.NonPublic);
+            mi.Invoke(notifyIcon, null);
         }
 
         private void contextMenu_Popup(object sender, EventArgs e)
@@ -144,6 +153,12 @@ namespace Fap.Presentation
             {
                 model = value as TrayIconViewModel;
             }
+        }
+
+
+        public void Dispose()
+        {
+            notifyIcon.Dispose();
         }
     }
 }

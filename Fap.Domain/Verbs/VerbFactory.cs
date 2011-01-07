@@ -38,6 +38,8 @@ namespace Fap.Domain.Verbs
                     return new BrowseVerb(n);
                 case "COMPARE":
                     return new CompareVerb();
+                case "CONVERSATION":
+                    return new ConversationVerb(n);
                 default:
                     throw new Exception("Unknown command");
             }

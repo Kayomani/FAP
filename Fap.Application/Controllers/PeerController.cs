@@ -322,7 +322,7 @@ namespace Fap.Application.Controllers
 
 
 
-        private Session GetOverlordConnection(out string secret)
+        public Session GetOverlordConnection(out string secret)
         {
             var connected = model.Networks.Where(n => n.Connected && n.ID == "LOCAL").FirstOrDefault();
             if (null != connected)

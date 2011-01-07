@@ -47,20 +47,39 @@ namespace Fap.Presentation
 
         void TabWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            var c = (DataContext as PopupWindowViewModel);
-            if (null != c)
+            if (null != Model)
             {
-
-                c.Close.Execute(null);
-                TabItem i = new TabItem();
+                Model.Close.Execute(null);
             }
         }
 
+        private PopupWindowViewModel Model
+        {
+            get { return DataContext as PopupWindowViewModel; }
+        }
       
         private void tabControl_TabItemClosing(object sender, Wpf.Controls.TabItemCancelEventArgs e)
         {
+            PopUpWindowTab tab = e.TabItem.DataContext as PopUpWindowTab;
+            if (null != tab)
+            {
+                FrameworkElement p = tab.Content as FrameworkElement;
+                if(null!=p)
+                {
+                    Model.TabClose.Execute(p.DataContext);
+                }
+            }
+
             if (tabControl.Items.Count == 1)
                 this.Close();
+        }
+
+        public void FlashIfNotActive()
+        {
+            if (!IsActive)
+            {
+                FlashWindow.Flash(this);
+            }
         }
     }
 

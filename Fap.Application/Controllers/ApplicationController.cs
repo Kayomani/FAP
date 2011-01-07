@@ -55,6 +55,7 @@ namespace Fap.Application.Controllers
         private readonly DownloadService downloadService;
         private readonly WatchdogController watchdog;
         private readonly ServerService server;
+        private readonly ConversationController chatController;
 
         private MainWindowViewModel mainWindowModel;
 
@@ -78,6 +79,7 @@ namespace Fap.Application.Controllers
             watchdog = container.Resolve<WatchdogController>();
             trayIcon = container.Resolve<TrayIconViewModel>();
             server = container.Resolve<ServerService>();
+            chatController = container.Resolve<ConversationController>();
             logger.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(logger_CollectionChanged);
             QueueWork(new DelegateCommand(SetupAsync));
         }
@@ -180,6 +182,7 @@ namespace Fap.Application.Controllers
             //Logger
             loggerModel.Logs = logger.Logs;
             shareController.Initalise();
+            chatController.Initalise();
             node = new Node();
             
             server.Start();
@@ -213,6 +216,7 @@ namespace Fap.Application.Controllers
                 mainWindowModel.Closing = new DelegateCommand(MainWindowClosing);
                 mainWindowModel.OpenExternal = new DelegateCommand(OpenExternal);
                 mainWindowModel.Compare = new DelegateCommand(Compare);
+                mainWindowModel.Chat = new DelegateCommand(Chat);
                 mainWindowModel.LogView = loggerModel.View;
                 mainWindowModel.Avatar = model.Avatar;
                 mainWindowModel.Nickname = model.Nickname;
@@ -233,6 +237,15 @@ namespace Fap.Application.Controllers
             }
         }
 
+
+        private void Chat(object o)
+        {
+            Node peer = o as Node;
+            if (null != peer)
+            {
+                chatController.CreateConversation(peer);
+            }
+        }
 
         private void Compare()
         {
@@ -500,7 +513,9 @@ namespace Fap.Application.Controllers
                  if (null != mainWindowModel)
                  {
                      popupController.Close();
+                     chatController.Close();
                      mainWindowModel.Close();
+                     trayIcon.Dispose();
                  }
              }
             ));

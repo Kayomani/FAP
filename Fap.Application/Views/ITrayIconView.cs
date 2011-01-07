@@ -25,6 +25,6 @@ namespace Fap.Application.Views
     public interface ITrayIconView: IView
     {
         bool ShowIcon { set; get; }
-
+        void Dispose();
     }
 }

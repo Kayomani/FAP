@@ -135,5 +135,11 @@ namespace Fap.Application.ViewModels
                 return exit;
             }
         }
+
+        public void Dispose()
+        {
+            ViewCore.Dispose();
+
+        }
     }
 }

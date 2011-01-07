@@ -38,6 +38,7 @@ namespace Fap.Application.ViewModels
         private ICommand viewShare;
         private ICommand settings;
         private ICommand editShares;
+        private ICommand chat;
         private ICommand changeAvatar;
         private ICommand viewQueue;
         private ICommand closing;
@@ -198,6 +199,15 @@ namespace Fap.Application.ViewModels
             }
         }
 
+        public ICommand Chat
+        {
+            get { return chat; }
+            set
+            {
+                chat = value;
+                RaisePropertyChanged("Chat");
+            }
+        }
 
         public ICommand OpenExternal
         {

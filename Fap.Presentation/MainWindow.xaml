@@ -1,4 +1,4 @@
-﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:Fap_Domain_Entity="clr-namespace:Fap.Domain.Entity;assembly=Fap.Domain" xmlns:local="clr-namespace:Fap.Presentation" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:Microsoft_Windows_Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero"
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:Fap_Domain_Entity="clr-namespace:Fap.Domain.Entity;assembly=Fap.Domain" xmlns:local="clr-namespace:Fap.Presentation" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
 	x:Class="Fap.Presentation.MainWindow"
 	x:Name="Window"
 	Title="{Binding WindowTitle}"
@@ -7,50 +7,7 @@
     MinWidth="850" MinHeight="500"
 	Width="850" Height="698">
     <Window.Resources>
-        <local:BinaryImageConverter x:Key="imageConverter" />
         <local:SessionTypeConverter x:Key="SessionTypeConverter" />
-    	<Style x:Key="ListBoxItemStyle1" TargetType="{x:Type ListBoxItem}"> 
-    		<Setter Property="Background" Value="Transparent"/>
-    		<Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
-    		<Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
-    		<Setter Property="Padding" Value="2,0,0,0"/>
-    		<Setter Property="Template">
-    			<Setter.Value>
-    				<ControlTemplate TargetType="{x:Type ListBoxItem}">
-    					<TextBox Text="{TemplateBinding Content}"  IsReadOnly="True"  Background="{TemplateBinding Background}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" Style="{DynamicResource TextBoxStyle1}"  />
-    				</ControlTemplate>
-    			</Setter.Value>
-    		</Setter>
-    	</Style>
-    	<LinearGradientBrush x:Key="TextBoxBorder" EndPoint="0,20" MappingMode="Absolute" StartPoint="0,0">
-    		<GradientStop Color="#ABADB3" Offset="0.05"/>
-    		<GradientStop Color="#E2E3EA" Offset="0.07"/>
-    		<GradientStop Color="#E3E9EF" Offset="1"/>
-    	</LinearGradientBrush>
-    	<Style x:Key="TextBoxStyle1" BasedOn="{x:Null}" TargetType="{x:Type TextBox}">
-    		<Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-    		<Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
-    		<Setter Property="BorderBrush" Value="{StaticResource TextBoxBorder}"/>
-    		<Setter Property="BorderThickness" Value="0"/>
-    		<Setter Property="Padding" Value="1"/>
-    		<Setter Property="AllowDrop" Value="true"/>
-    		<Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-    		<Setter Property="Template">
-    			<Setter.Value>
-    				<ControlTemplate TargetType="{x:Type TextBox}">
-    					<Microsoft_Windows_Themes:ListBoxChrome x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" RenderMouseOver="{TemplateBinding IsMouseOver}" RenderFocused="{TemplateBinding IsKeyboardFocusWithin}" SnapsToDevicePixels="true">
-    						<ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-    					</Microsoft_Windows_Themes:ListBoxChrome>
-    					<ControlTemplate.Triggers>
-    						<Trigger Property="IsEnabled" Value="false">
-    							<Setter Property="Background" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
-    							<Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-    						</Trigger>
-    					</ControlTemplate.Triggers>
-    				</ControlTemplate>
-    			</Setter.Value>
-    		</Setter>
-    	</Style>
     </Window.Resources>
 	<Window.Background>
 		<LinearGradientBrush EndPoint="0.92,0.791" MappingMode="RelativeToBoundingBox" StartPoint="0.009,1.19">

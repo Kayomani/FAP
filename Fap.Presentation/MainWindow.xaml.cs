@@ -165,6 +165,8 @@ namespace Fap.Presentation
                     m = new MenuItem();
                     m.Foreground = Brushes.Black;
                     m.Header = "Send Message";
+                    m.CommandParameter = peer;
+                    m.Command = Model.Chat;
                     src.ContextMenu.Items.Add(m);
 
                     src.ContextMenu.Items.Add(new Separator());

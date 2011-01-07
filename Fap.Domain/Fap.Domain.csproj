@@ -50,6 +50,9 @@
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autofac">
       <HintPath>..\libs\Autofac\Autofac.dll</HintPath>
@@ -81,6 +84,7 @@
     <Compile Include="Commands\UnknownCMD.cs" />
     <Compile Include="Controllers\SuperNodeController.cs" />
     <Compile Include="Entity\CompareNode.cs" />
+    <Compile Include="Entity\Conversation.cs" />
     <Compile Include="Entity\DownloadQueue.cs" />
     <Compile Include="Entity\DownloadRequest.cs" />
     <Compile Include="Entity\FileSystemEntity.cs" />
@@ -101,6 +105,7 @@
     <Compile Include="Verbs\ClientVerb.cs" />
     <Compile Include="Verbs\CompareVerb.cs" />
     <Compile Include="Verbs\ConnectVerb.cs" />
+    <Compile Include="Verbs\ConversationVerb.cs" />
     <Compile Include="Verbs\HeloVerb.cs" />
     <Compile Include="Verbs\InfoVerb.cs" />
     <Compile Include="Verbs\VerbBase.cs" />
@@ -121,6 +126,9 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>;"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\sgen.exe" /f  /assembly:"$(TargetDir)$(TargetFileName)" /out:$(SolutionDir)Fap.Presentation\$(OutDir)</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

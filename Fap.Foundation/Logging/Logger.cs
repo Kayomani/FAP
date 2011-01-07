@@ -98,7 +98,7 @@ namespace Fap.Foundation.Logging
             string msg = "Exception " + e.Message;
             if (e.InnerException != null)
                 msg += " Inner Exception: " + e.InnerException.Message;
-            AddErrorAsync(msg);
+            AddError(msg);
         }
     }
 }

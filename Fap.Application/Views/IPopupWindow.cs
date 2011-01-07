@@ -24,6 +24,7 @@ namespace Fap.Application.Views
 {
     public interface IPopupWindow : IView
     {
+        void FlashIfNotActive();
         void Show();
         void Close();
     }

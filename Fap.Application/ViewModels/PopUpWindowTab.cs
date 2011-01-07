@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ComponentModel;
+using System.Windows;
 
 namespace Fap.Application.ViewModels
 {
@@ -26,6 +27,7 @@ namespace Fap.Application.ViewModels
     {
 
         private string name = string.Empty;
+        private string color = "Black";
         private object content;
 
         #region INotifyPropertyChanged Implementation
@@ -47,9 +49,16 @@ namespace Fap.Application.ViewModels
         }
         #endregion
 
-        /// <summary>
-        /// the name
-        /// </summary>
+        public string Color
+        {
+            get { return color; }
+            set
+            {
+                color = value;
+                RaisePropertyChanged("Color");
+            }
+        }
+
         public string Name
         {
             get { return name; }
@@ -67,6 +76,19 @@ namespace Fap.Application.ViewModels
             {
                 content = value;
                 RaisePropertyChanged("Content");
+            }
+        }
+
+        public object ContentViewModel
+        {
+            get
+            {
+                FrameworkElement e = content as FrameworkElement;
+                if (null != e)
+                {
+                    return e.DataContext;
+                }
+                return null;
             }
         }
     }

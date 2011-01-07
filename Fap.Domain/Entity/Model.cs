@@ -58,7 +58,19 @@ namespace Fap.Domain.Entity
         [XmlIgnore]
         private SafeObservable<Network> networks;
         [XmlIgnore]
-        private SafeObservable<string> messages;  
+        private SafeObservable<string> messages;
+        [XmlIgnore]
+        private SafeObservable<Conversation> converstations;
+
+        public delegate bool NewConversation(string id, string message);
+        public event NewConversation OnNewConverstation;
+
+        public bool ReceiveConverstation(string id, string message)
+        {
+            if (null != OnNewConverstation)
+                return OnNewConverstation(id, message);
+            return false;
+        }
 
         public Model()
         {
@@ -68,6 +80,7 @@ namespace Fap.Domain.Entity
             node = new Fap.Network.Entity.Node();
             sessions = new SafeObservable<Session>();
             messages = new SafeObservable<string>();
+            converstations = new SafeObservable<Conversation>();
             saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
             node.PropertyChanged += new PropertyChangedEventHandler(node_PropertyChanged);
         }
@@ -89,6 +102,14 @@ namespace Fap.Domain.Entity
             set { messages = value; NotifyChange("Messages"); }
             get { return messages; }
         }
+
+        [XmlIgnore]
+        public SafeObservable<Conversation> Conversations
+        {
+            set { converstations = value; NotifyChange("Conversations"); }
+            get { return converstations; }
+        }
+        
 
         [XmlIgnore]
         public SafeObservable<Network> Networks

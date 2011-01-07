@@ -38,7 +38,6 @@ namespace Fap.Application.Controllers
         private readonly Node client;
         private BrowserViewModel bvm;
         private Model model;
-        private readonly MainWindowViewModel mainWindow;
         private readonly object _dummyNode = null;
         private readonly BufferService bufferService;
         private readonly ConnectionService connectionService;
@@ -46,10 +45,9 @@ namespace Fap.Application.Controllers
 
         public BrowserViewModel ViewModel { get { return bvm; } }
 
-        public BrowserController(BrowserViewModel bvm, MainWindowViewModel mainWindow, Model model, BufferService bufferService,  ConnectionService connectionService, Node client)
+        public BrowserController(BrowserViewModel bvm,  Model model, BufferService bufferService,  ConnectionService connectionService, Node client)
         {
             this.client = client;
-            this.mainWindow = mainWindow;
             this.model = model;
             this.bufferService = bufferService;
             this.connectionService = connectionService;
@@ -141,7 +139,7 @@ namespace Fap.Application.Controllers
             {
 
                 bvm.CurrentDirectory.Clear();
-                mainWindow.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+                SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
                    new Action(
                     delegate()
                     {
@@ -198,7 +196,7 @@ namespace Fap.Application.Controllers
             bvm.CurrentDirectory.Clear();
             if (c.Execute(cmd, client))
             {
-                mainWindow.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+                SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
                   new Action(
                    delegate()
                    {
@@ -231,7 +229,7 @@ namespace Fap.Application.Controllers
             cmd.Path = req.Path.FullPath;
             if (c.Execute(cmd, client))
             {
-                mainWindow.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+                SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
                  new Action(
                   delegate()
                   {
