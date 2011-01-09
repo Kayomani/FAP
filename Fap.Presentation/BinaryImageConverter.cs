@@ -46,12 +46,16 @@ namespace Fap.Presentation
                     return null;
                 }
             }
+            else if (value is string)
+            {
+                Base64Converter c = new Base64Converter();
+                return Convert(c.Convert(value, targetType, parameter, culture), targetType, parameter, culture);
+            }
             return null;
         }
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new Exception("The method or operation is not implemented.");
         }
-
     }
 }

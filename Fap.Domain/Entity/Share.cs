@@ -30,6 +30,7 @@ namespace Fap.Domain.Entity
         private string path;
         private string name;
         private long size;
+        private long fileCount;
         [XmlIgnore]
         private object syncRoot = new object();
         private string status;
@@ -44,10 +45,17 @@ namespace Fap.Domain.Entity
             set { name = value; NotifyChange("Name"); }
             get { return name; }
         }
+
         public long Size
         {
             set { size = value; NotifyChange("Size"); NotifyChange("SizeString"); }
             get { return size; }
+        }
+
+        public long FileCount
+        {
+            set { fileCount = value; NotifyChange("FileCount"); }
+            get { return fileCount; }
         }
 
         [XmlIgnore]

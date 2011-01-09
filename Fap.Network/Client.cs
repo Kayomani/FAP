@@ -50,45 +50,46 @@ namespace Fap.Network
 
         public bool Execute(Request r, Session session, out Response response)
         {
-            byte[] data = Mediator.Serialize(r);
-            session.Socket.ReceiveBufferSize = bufferService.Buffer;
-            //transmit
-            session.Socket.Send(data);
-            //Receive
-            var arg = bufferService.GetArg();
+            try
+            {
+                byte[] data = Mediator.Serialize(r);
+                session.Socket.ReceiveBufferSize = bufferService.Buffer;
+                //transmit
+                session.Socket.Send(data);
+                //Receive
+                var arg = bufferService.GetArg();
 
-            ConnectionToken token = new ConnectionToken();
-            int wait = 1;
-            while (session.Socket.Connected)
-            {
-                if (session.Socket.Available > 0)
+                ConnectionToken token = new ConnectionToken();
+                int wait = 1;
+                while (session.Socket.Connected)
                 {
-                    int rx = session.Socket.Receive(arg.Data);
-                    arg.SetDataLocation(0, rx);
-                    token.ReceiveData(arg);
-                    if (token.ContainsCommand())
-                        break;
-                    wait = 2;
-                }
-                else
-                {
+                    if (session.Socket.Available > 0)
+                    {
+                        int rx = session.Socket.Receive(arg.Data);
+                        arg.SetDataLocation(0, rx);
+                        token.ReceiveData(arg);
+                        if (token.ContainsCommand())
+                            break;
+                        wait = 2;
+                    }
+                    else
+                    {
 
-                    Thread.Sleep(wait);
-                    if (wait < 200)
-                        wait += 10;
+                        Thread.Sleep(wait);
+                        if (wait < 200)
+                            wait += 10;
+                    }
+                }
+                Response resp = new Response();
+                connectionService.FreeClientSession(session);
+                if (Mediator.Deserialize(token.GetCommand(), out resp))
+                {
+                    response = resp;
+                    return true;
                 }
             }
-            Response resp = new Response();
-            connectionService.FreeClientSession(session);
-            if (Mediator.Deserialize(token.GetCommand(), out resp))
-            {
-                response = resp;
-                return true;
-            }
-            else
-            {
-                response = null; 
-            }
+            catch { }
+            response = null;
             return false;
         }
 

@@ -74,6 +74,7 @@ namespace Fap.Presentation
             }
             contextMenu.MenuItems.Add("-");
             //Add static items
+            contextMenu.MenuItems.Add("Compare", delegate { model.Compare.Execute(null); });
             contextMenu.MenuItems.Add("Queue", delegate { model.Queue.Execute(null); });
             contextMenu.MenuItems.Add("Shares", delegate { model.Shares.Execute(null); });
             contextMenu.MenuItems.Add("Settings", delegate { model.Settings.Execute(null); });

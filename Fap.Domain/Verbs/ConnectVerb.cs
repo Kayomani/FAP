@@ -27,12 +27,20 @@ namespace Fap.Domain.Verbs
 {
     public class ConnectVerb : VerbBase, IVerb
     {
+
+        Node node;
+
+        public ConnectVerb(Node n)
+        {
+            node = n;
+        }
+
         public Network.Entity.Request CreateRequest()
         {
             Request r = new Request();
             r.Command = "CONNECT";
             r.Param = RemoteLocation;
-            r.RequestID = IDService.CreateID();
+            r.RequestID = node.ID;
             return r;
         }
 

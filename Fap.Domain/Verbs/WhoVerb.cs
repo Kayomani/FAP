@@ -20,29 +20,26 @@ using System.Linq;
 using System.Text;
 using Fap.Network;
 using Fap.Network.Entity;
-using Fap.Domain.Entity;
 
 namespace Fap.Domain.Verbs
 {
-    public class VerbFactory
+    public class WhoVerb : IVerb
     {
-        public IVerb GetVerb(string name, Model n)
+        public Network.Entity.Request CreateRequest()
         {
-            switch (name)
-            {
-                case "INFO":
-                    return new InfoVerb(n.Node);
-                case "CONNECT":
-                    return new ConnectVerb(n.Node);
-                case "BROWSE":
-                    return new BrowseVerb(n);
-                case "COMPARE":
-                    return new CompareVerb();
-                case "CONVERSATION":
-                    return new ConversationVerb(n);
-                default:
-                    throw new Exception("Unknown command");
-            }
+            Request r = new Request();
+            r.Command = "WHO";
+            return r;
+        }
+
+        public Network.Entity.Response ProcessRequest(Network.Entity.Request r)
+        {
+            return null;
+        }
+
+        public bool ReceiveResponse(Network.Entity.Response r)
+        {
+            return false;
         }
     }
 }

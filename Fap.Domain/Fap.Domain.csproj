@@ -106,10 +106,12 @@
     <Compile Include="Verbs\CompareVerb.cs" />
     <Compile Include="Verbs\ConnectVerb.cs" />
     <Compile Include="Verbs\ConversationVerb.cs" />
+    <Compile Include="Verbs\DisconnectVerb.cs" />
     <Compile Include="Verbs\HeloVerb.cs" />
     <Compile Include="Verbs\InfoVerb.cs" />
     <Compile Include="Verbs\VerbBase.cs" />
     <Compile Include="Verbs\VerbFactory.cs" />
+    <Compile Include="Verbs\WhoVerb.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fap.Foundation\Fap.Foundation.csproj">

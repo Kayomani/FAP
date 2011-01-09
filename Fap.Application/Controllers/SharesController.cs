@@ -26,6 +26,7 @@ using Fap.Domain.Entity;
 using Fap.Foundation;
 using Autofac;
 using Fap.Foundation.Logging;
+using System.Threading;
 
 namespace Fap.Application.Controllers
 {
@@ -58,6 +59,14 @@ namespace Fap.Application.Controllers
             viewModel.RemoveCommand = new DelegateCommand(RemoveCommand);
             viewModel.RenameCommand = new DelegateCommand(RenameCommand);
             viewModel.Shares = model.Shares;
+            RefreshClientStats();
+        }
+
+
+        private void RefreshClientStats()
+        {
+            model.Node.ShareSize = model.Shares.Select(s => s.Size).Sum();
+            model.Node.FileCount = model.Shares.Select(s => s.FileCount).Sum();
         }
 
         private void AddCommand()
@@ -115,7 +124,7 @@ namespace Fap.Application.Controllers
                         s.Name = name;
                         s.Path = folder;
                         model.Shares.Add(s);
-                        QueueWork(new DelegateCommand(AsyncAdd), s, new DelegateCommand(AsyncAddEnd));
+                        ThreadPool.QueueUserWorkItem(new WaitCallback(AsyncRefresh), s);
                     }
                 }
                 catch (Exception e)
@@ -125,47 +134,54 @@ namespace Fap.Application.Controllers
             }
         }
 
-
-        private void AsyncAddEnd()
-        {
-          //  peerController.AnnounceUpdate();
-        }
-
-        private void AsyncAdd(object o)
+        private void AsyncRefresh(object o)
         {
             Share s = o as Share;
             if (null != s)
             {
                 s.Status = "Scanning..";
                 DirectoryInfo di = new DirectoryInfo(s.Path);
-                s.Size = GetDirectorySizeRecursive(di, true);
+                var state = GetDirectorySizeRecursive(di, true);
+                s.Size = state.Size;
+                s.FileCount = state.FileCount;
                 s.Status = string.Empty;
+                RefreshClientStats();
             }
         }
 
 
 
-        private long GetDirectorySizeRecursive(DirectoryInfo directory, bool includeSubdirectories)
+        private ScanInfo GetDirectorySizeRecursive(DirectoryInfo directory, bool includeSubdirectories)
         {
-            long totalSize = 0;
+            ScanInfo info = new ScanInfo();
+            iGetDirectorySizeRecursive(info, directory, includeSubdirectories);
+            return info;
+        }
+
+        private void iGetDirectorySizeRecursive(ScanInfo info, DirectoryInfo directory, bool includeSubdirectories)
+        {
             try
             {
                 // Examine all contained files.
                 FileInfo[] files = directory.GetFiles();
                 foreach (FileInfo file in files)
-                    totalSize += file.Length;
+                {
+                    info.Size += file.Length;
+                    info.FileCount++;
+                }
 
                 // Examine all contained directories.
                 if (includeSubdirectories)
                 {
                     DirectoryInfo[] dirs = directory.GetDirectories();
                     foreach (DirectoryInfo dir in dirs)
-                        totalSize += GetDirectorySizeRecursive(dir, true);
+                    {
+                        iGetDirectorySizeRecursive(info, dir, true);
+                    }
                 }
 
             }
             catch { }
-            return totalSize;
         }
 
         private void RefreshCommand()
@@ -176,8 +192,8 @@ namespace Fap.Application.Controllers
         private void AsyncRefreshCommand()
         {
             foreach (var share in model.Shares.ToList())
-                AsyncAdd(share);
-            //peerController.AnnounceUpdate();
+                AsyncRefresh(share);
+            RefreshClientStats();
         }
 
         private void RemoveCommand()
@@ -207,6 +223,12 @@ namespace Fap.Application.Controllers
                     }
                 }
             }
+        }
+
+        protected class ScanInfo
+        {
+            public long Size { set; get; }
+            public long FileCount { set; get; }
         }
     }
 

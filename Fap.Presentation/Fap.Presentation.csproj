@@ -117,6 +117,7 @@
     </Compile>
     <Compile Include="BinaryImageConverter.cs" />
     <Compile Include="Converters.cs" />
+    <Compile Include="FAPconverters.cs" />
     <Compile Include="FlashWindow.cs" />
     <Compile Include="GridViewSort.cs" />
     <Compile Include="Helper.cs" />

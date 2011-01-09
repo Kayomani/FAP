@@ -34,6 +34,7 @@ namespace Fap.Application.ViewModels
         private ICommand settings;
         private ICommand queue;
         private ICommand viewshare;
+        private ICommand compare;
 
 
         public TrayIconViewModel(ITrayIconView view)
@@ -56,6 +57,19 @@ namespace Fap.Application.ViewModels
             }
         }
 
+
+        public ICommand Compare
+        {
+            set
+            {
+                compare = value;
+                RaisePropertyChanged("Compare");
+            }
+            get
+            {
+                return compare;
+            }
+        }
 
         public ICommand ViewShare
         {

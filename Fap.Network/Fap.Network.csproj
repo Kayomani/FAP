@@ -80,6 +80,7 @@
     <Compile Include="Entity\Reponse.cs" />
     <Compile Include="Entity\Request.cs" />
     <Compile Include="Entity\Session.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="IVerb.cs" />
     <Compile Include="Mediator.cs" />
     <Compile Include="NetTest.cs" />

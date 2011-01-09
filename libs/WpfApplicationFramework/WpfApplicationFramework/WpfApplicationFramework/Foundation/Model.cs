@@ -28,7 +28,7 @@ namespace System.Waf.Foundation
         /// </summary>
         /// <param name="propertyName">The property name of the property that has changed.</param>
         [SuppressMessage("Microsoft.Design", "CA1030:UseEventsWhereAppropriate")]
-        protected void RaisePropertyChanged(string propertyName)
+        public void RaisePropertyChanged(string propertyName)
         {
             if (WafConfiguration.Debug) { CheckPropertyName(propertyName); }
             OnPropertyChanged(new PropertyChangedEventArgs(propertyName));

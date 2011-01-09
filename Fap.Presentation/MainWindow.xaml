@@ -4,8 +4,8 @@
 	Title="{Binding WindowTitle}"
     mc:Ignorable="d"
     Icon="/Fap.Presentation;component/Images/folder-yellow.ico" WindowStartupLocation="CenterScreen"
-    MinWidth="850" MinHeight="500"
-	Width="850" Height="698">
+    MinWidth="870" MinHeight="500"
+	Width="870" Height="698">
     <Window.Resources>
         <local:SessionTypeConverter x:Key="SessionTypeConverter" />
     </Window.Resources>
@@ -62,14 +62,43 @@
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="190" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition  Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Label Content="{Binding Nickname}" FontSize="24" Foreground="White" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" />
+                    <Label Content="{Binding Description}" FontSize="18" Foreground="Gray"  Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" />
+                    <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="2" >
+                        <Label Content="Status: " Foreground="White" Margin="0" />
+                        <Label Content="{Binding CurrentNetwork.State}" Margin="0" />
+                        <Label Content="{Binding OverlordStatus}" Margin="0" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="0" Grid.Row="3" Orientation="Horizontal">
+                        <Label Content="Network: " Foreground="White" Margin="0"  />
+                        <Label Content="{Binding CurrentNetwork.Name}" Foreground="White" Margin="0"/>
+                    </StackPanel>
+
+                    <Label Content="{Binding CurrentNetworkStatus}" Foreground="White" Margin="0" Grid.Column="0" Grid.Row="4"  Grid.ColumnSpan="2" />
+
+                    <Label Content="You: 0 Bytes /  0 Bytes" Foreground="White" Margin="0" Grid.Column="1" Grid.Row="2" />
+                    <Label Content="Network: 0 Bytes / 0 Bytes" Foreground="White" Margin="0" Grid.Column="1" Grid.Row="3" />
+                </Grid>
                     <StackPanel>
                         <!--  <Label Content="Your stats: 0 Bytes TX, 0 Bytes RX and 0 Bytes Shared" Foreground="White"  Margin="0"/>-->
-                        <Label Content="{Binding Nickname}" FontSize="24" Foreground="White" />
-                        <Label Content="{Binding Description}" FontSize="18" Foreground="Gray" />
-                    <Label Content="{Binding NetworkStatus}" Foreground="White" Margin="0" />
-                    </StackPanel>
+                   
+                   
+                </StackPanel>
                     <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                    <Button Content="Compare" Width="75" Height="27" VerticalAlignment="Bottom" Command="{Binding Compare}" />
+                    <!--<Button Content="Compare" Width="75" Height="27" VerticalAlignment="Bottom" Command="{Binding Compare}" />-->
                     <Button Content="Queue" Width="75" Height="27" VerticalAlignment="Bottom" Command="{Binding ViewQueue}" />
                     <Button Content="Shares" Width="75" Height="27" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding EditShares}" />
                         <Button Content="Settings" Width="75" Height="27" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding Settings}" />
@@ -132,7 +161,7 @@
                                 <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Top"  Height="35px" Source="{Binding Avatar, Converter={StaticResource imageConverter}}" Margin="0,0,5,0" />
                                 <Label Grid.Column="1" Grid.Row="0" Content="{Binding Nickname}"  Margin="10,0,10,0"  />
                                 <Label Grid.Column="1" Grid.Row="1" Content="{Binding Host}"  Margin="10,0,10,0"  />
-                                <Label Grid.Column="2" Grid.Row="0" Content="{Binding ShareSizeString}"    />
+                            <Label Grid.Column="2" Grid.Row="0" Content="{Binding ShareSize, Converter={StaticResource sizeConverter}}"    />
                                 <Label Grid.Column="2" Grid.Row="1" Content="{Binding Description}"    />
                             </Grid>
                     </DataTemplate>

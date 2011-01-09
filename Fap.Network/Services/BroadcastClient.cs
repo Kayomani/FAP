@@ -84,13 +84,18 @@ namespace Fap.Network
                         if (token.ContainsCommand())
                         {
                             Request r = new Request();
-                            string data = Encoding.Unicode.GetString(buff.Data,0,buff.DataSize);
+                            string data = Encoding.Unicode.GetString(buff.Data, 0, buff.DataSize);
                             if (Mediator.Deserialize(data, out r))
                             {
-                              //  logger.AddInfo("Brocast client rx: " + r.Command + " P:" + r.Param);
+                                //  logger.AddInfo("Brocast client rx: " + r.Command + " P:" + r.Param);
                                 if (null != OnBroadcastCommandRx)
                                     OnBroadcastCommandRx(r);
                             }
+                        }
+                        else
+                        {
+                            //We can not support multi datagrams here as data may come from different clients
+                            token.ResetInputBuffer();
                         }
                     }
                 }

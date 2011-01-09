@@ -83,6 +83,7 @@ namespace Fap.Domain.Entity
             converstations = new SafeObservable<Conversation>();
             saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
             node.PropertyChanged += new PropertyChangedEventHandler(node_PropertyChanged);
+            node = new Node();
         }
 
         void node_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -223,6 +224,21 @@ namespace Fap.Domain.Entity
             }
         }
 
+        /// <summary>
+        /// Copy of the id saved in the config file
+        /// </summary>
+        public string LocalNodeID
+        {
+            set
+            {
+                node.ID = value;
+                NotifyChange("LocalNodeID");
+            }
+            get
+            {
+                return node.ID;
+            }
+        }
 
         public int MaxUploadsPerUser
         {
@@ -237,24 +253,12 @@ namespace Fap.Domain.Entity
             }
         }
 
-        public string AvatarBase64
-        {
-            set
-            {
-                node.AvatarBase64 = value;
-            }
-            get
-            {
-                return node.AvatarBase64;
-            }
-        }
-
-        [XmlIgnore]
-        public byte[] Avatar
+        public string Avatar
         {
             set
             {
                 node.Avatar = value;
+                NotifyChange("Avatar");
             }
             get
             {
@@ -266,22 +270,13 @@ namespace Fap.Domain.Entity
         {
             get
             {
-                long total = 0;
-                lock (Shares)
-                {
-                    foreach (var share in Shares.ToList())
-                    {
-                        total += share.Size;
-                    }
-                }
-                return total;
+                return node.ShareSize;
             }
-        }
-
-        [XmlIgnore]
-        public string TotalShareSizeString
-        {
-            get { return Utility.FormatBytes(TotalShareSize); }
+            set
+            {
+                node.ShareSize = value;
+                NotifyChange("TotalShareSize");
+            }
         }
 
         public void Save()
@@ -308,7 +303,7 @@ namespace Fap.Domain.Entity
                     Model m = (Model)deserializer.Deserialize(textReader);
                     textReader.Close();
                     Shares = m.Shares;
-                    AvatarBase64 = m.AvatarBase64;
+                    Avatar = m.Avatar;
                     Description = m.Description;
                     Nickname = m.Nickname;
                     DownloadFolder = m.DownloadFolder;

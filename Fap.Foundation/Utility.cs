@@ -55,5 +55,21 @@ namespace Fap.Foundation
             }
             return "0 Bytes";
         }
+
+        public static string ConverNumberToText(long count)
+        {
+            const int scale = 1000;
+            string[] orders = new string[] { "trillion", "billion", "million", "k", "" };
+            decimal max = (decimal)Math.Pow(scale, orders.Length - 1);
+
+            foreach (string order in orders)
+            {
+                if (count > max)
+                    return string.Format("{0:##} {1}", decimal.Divide(count, max), order);
+
+                max /= scale;
+            }
+            return "0";
+        }
     }
 }

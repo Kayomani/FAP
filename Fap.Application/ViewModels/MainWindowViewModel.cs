@@ -46,7 +46,7 @@ namespace Fap.Application.ViewModels
         private ICommand compare;
         private object logView;
         private object selectedClient;
-        private byte[] avatar;
+        private string avatar;
         private string networkInfo;
         private string nickname;
         private string description;
@@ -55,6 +55,9 @@ namespace Fap.Application.ViewModels
         private SafeObservable<Node> peers;
         private bool visible = false;
         private bool allowClose = false;
+        private Fap.Domain.Entity.Network currentNetwork;
+        private string networkStats;
+        private string overlordStatus;
 
         public MainWindowViewModel(IMainWindow view)
             : base(view)
@@ -65,6 +68,45 @@ namespace Fap.Application.ViewModels
         public void DoFlashWindow()
         {
             ViewCore.Flash();
+        }
+
+
+
+        public string OverlordStatus
+        {
+            get { return overlordStatus; }
+            set
+            {
+                if (overlordStatus != value)
+                {
+                    overlordStatus = value;
+                    RaisePropertyChanged("OverlordStatus");
+                }
+            }
+        }
+
+
+        public string CurrentNetworkStatus
+        {
+            get { return networkStats; }
+            set
+            {
+                if (networkStats != value)
+                {
+                    networkStats = value;
+                    RaisePropertyChanged("CurrentNetworkStatus");
+                }
+            }
+        }
+
+        public Fap.Domain.Entity.Network CurrentNetwork
+        {
+            get { return currentNetwork; }
+            set
+            {
+                currentNetwork = value;
+                RaisePropertyChanged("CurrentNetwork");
+            }
         }
 
         public bool Visible
@@ -107,7 +149,7 @@ namespace Fap.Application.ViewModels
             }
         }
 
-        public byte[] Avatar
+        public string Avatar
         {
             get { return avatar; }
             set

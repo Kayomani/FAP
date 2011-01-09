@@ -51,6 +51,23 @@ namespace Fap.Network.Entity
             }
         }
 
+
+        public bool Online
+        {
+            get 
+            {
+                bool d = false;
+                bool.TryParse(data.SafeGet("Online"), out d);
+                return d;
+            }
+            set
+            {
+                data.Set("Online", value.ToString());
+                LastUpdate = Environment.TickCount;
+                NotifyChange("Online");
+            }
+        }
+
         public long LastUpdate
         {
             set { lastUpdate = value; NotifyChange("LastUpdate"); }
@@ -150,6 +167,7 @@ namespace Fap.Network.Entity
                 data.Set("Port", value.ToString());
                 LastUpdate = Environment.TickCount;
                 NotifyChange("Port");
+                NotifyChange("Location");
             }
         }
 
@@ -189,39 +207,33 @@ namespace Fap.Network.Entity
                 data.Set("ShareSize", value.ToString());
                 LastUpdate = Environment.TickCount;
                 NotifyChange("ShareSize");
-                NotifyChange("ShareSizeString");
             }
         }
 
-        public string ShareSizeString
+        public long FileCount
         {
-            get { return Utility.FormatBytes(ShareSize); }
-        }
-
-
-        public string AvatarBase64
-        {
-            get { return data.SafeGet("AvatarBase64"); }
+            get
+            {
+                long i = 0;
+                long.TryParse(data.SafeGet("FileCount"), out i);
+                return i;
+            }
             set
             {
-                data.Set("AvatarBase64", value);
+                data.Set("FileCount", value.ToString());
                 LastUpdate = Environment.TickCount;
-                NotifyChange("AvatarBase64");
-                NotifyChange("Avatar");
+                NotifyChange("FileCount");
             }
         }
 
-        public byte[] Avatar
+        public string Avatar
         {
-            get 
-            {
-                if (string.IsNullOrEmpty(AvatarBase64))
-                    return new byte[0];
-                return System.Convert.FromBase64String(AvatarBase64);
-            }
+            get { return data.SafeGet("Avatar"); }
             set
             {
-                AvatarBase64 = System.Convert.ToBase64String(value);
+                data.Set("Avatar", value);
+                LastUpdate = Environment.TickCount;
+                NotifyChange("Avatar");
             }
         }
 
@@ -250,8 +262,27 @@ namespace Fap.Network.Entity
             this.data.Set(key, data);
             NotifyChange(key);
 
-            if (key == "AvatarBase64")
-                NotifyChange("Avatar");
+            switch (key)
+            {
+                case "Online":
+                case "ClientVersion":
+                case "ID":
+                case "Speed":
+                case "Nickname":
+                case "Description":
+                case "ShareSize":
+                case "FileCount":
+                case "Avatar":
+                    NotifyChange(key);
+                    break;
+                case "Host":
+                case "Port":
+                case "Location":
+                    NotifyChange("Host");
+                    NotifyChange("Port");
+                    NotifyChange("Location");
+                    break;
+            }
         }
     }
 }

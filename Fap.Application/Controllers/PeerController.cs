@@ -45,24 +45,36 @@ namespace Fap.Application.Controllers
     public class PeerController
     {
         private BroadcastClient client;
-        private Timer timer;
+        private BroadcastServer server;
+
         private IContainer container;
-
-        SafeObservable<DetectedOverlord> overlordList = new SafeObservable<DetectedOverlord>();
-
         private object sync = new object();
-        private object connectSync = new object();
-        private bool running = false;
-        private long startup = 0;
 
+        //Models
+        private SafeObservable<DetectedOverlord> overlordList = new SafeObservable<DetectedOverlord>();
+        private Model model;
+        private Node transmitted = new Node();
+        private Fap.Domain.Entity.Network network;
+        private long lastConnected = Environment.TickCount;
+
+        //Workers
+        private Thread syncworker;
+        private Thread connectionHandler;
+
+        //Services
         private ConnectionService connectionService;
         private BufferService bufferService;
         private OverlordController overlord;
         private Logger logger;
 
-        private Model model;
-        private Node transmitted =new Node();
+        private readonly long OVERLORD_LASTSEEN_TIMEOUT = 60000;//ms
 
+
+
+        public bool IsOverlord
+        {
+            get { return null != overlord; }
+        }
 
         public PeerController(IContainer c)
         {
@@ -72,8 +84,127 @@ namespace Fap.Application.Controllers
             connectionService = container.Resolve<ConnectionService>();
             logger = container.Resolve<Logger>();
             model = container.Resolve<Model>();
+            server = container.Resolve<BroadcastServer>();
             bufferService = container.Resolve<BufferService>();
         }
+
+        public void Start(Fap.Domain.Entity.Network local)
+        {
+            network = local;
+            local.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(local_PropertyChanged);
+            logger.AddInfo("Attempting to connect to the local FAP network..");
+            client.StartListener();
+            //Find current servers
+            ThreadPool.QueueUserWorkItem(new WaitCallback(SendWhoAsync));
+
+            ThreadPool.QueueUserWorkItem(new WaitCallback(ConnectionHandler));
+            ThreadPool.QueueUserWorkItem(new WaitCallback(SyncWorker));
+        }
+
+        private void local_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            //Reset the start overlord timer each time the network status changes so on disconnect we dont just start a overlord straight away
+            lastConnected = Environment.TickCount;
+        }
+
+        private void ConnectionHandler(object ox)
+        {
+            int sleep = 500;
+            while (true)
+            {
+                try
+                {
+                    if (network.State != ConnectionState.Connected)
+                    {
+                        if (network.State != ConnectionState.Connecting)
+                            network.State = ConnectionState.Connecting;
+
+                        //Copy list of servers
+                        List<DetectedOverlord> servers = overlordList.ToList();
+                        servers = servers.Where(o => o.Clients < 50).OrderBy(o => o.Clients).ToList();
+
+                        //If no overlords after a time out then start our own.
+                        if (servers.Count == 0 && (Environment.TickCount - lastConnected) > 2000 && null == overlord)
+                        {
+                            logger.AddInfo("No valid overlord detected after 2 seconds, starting a local overlord.");
+                            overlord = container.Resolve<OverlordController>();
+                            overlord.Start(GetLocalAddress(), 90, "LOCAL", "Local");
+                            Thread.Sleep(15);
+                            continue;
+                        }
+
+                        foreach (var server in servers)
+                        {
+                            try
+                            {
+                                ConnectVerb connect = new ConnectVerb(model.Node);
+                                connect.RemoteLocation = model.Node.Location;
+
+                                Client c = container.Resolve<Client>();
+
+                                Node serverNode = new Node();
+                                serverNode.Location = server.Location;
+
+                                network.Secret = IDService.CreateID();
+
+                                if (c.Execute(connect, serverNode, network.Secret))
+                                {
+                                    if (connect.Status == 0)
+                                    {
+                                        if (string.IsNullOrEmpty(connect.OverlordID) || string.IsNullOrEmpty(connect.NetworkID))
+                                        {
+                                            //We didnt get back valid network info so try another server.
+                                            logger.AddWarning("Connect failed to return valid network info.");
+                                            continue;
+                                        }
+                                        var search = model.Networks.Where(n => n.ID == connect.NetworkID).FirstOrDefault();
+                                        if (null == search)
+                                        {
+                                            search = new Domain.Entity.Network();
+                                            search.ID = "LOCAL";// connect.NetworkID;
+                                            model.Networks.Add(search);
+                                        }
+                                        search.Name = connect.Name;
+                                        search.OverlordID = connect.OverlordID;
+                                        search.Secret = connect.Secret;
+                                        search.State = ConnectionState.Connected;
+                                        logger.AddInfo("Connected to the local FAP network.");
+                                        break;
+                                    }
+                                }
+                            }
+                            catch
+                            {
+                                overlordList.Lock();
+                                if (overlordList.Contains(server))
+                                    overlordList.Remove(server);
+                                overlordList.Unlock();
+                            }
+                        }
+                    }
+                }
+                catch { }
+                Thread.Sleep(sleep);
+            }
+        }
+
+        private void SyncWorker(object ox)
+        {
+            int sleep = 500;
+            while (true)
+            {
+                Thread.Sleep(sleep);
+                //Send model changes if connected
+                if (null != network && network.State == ConnectionState.Connected)
+                    CheckModelChanges();
+                //Remove overlords we haven't seen for a bit
+                overlordList.Lock();
+                foreach (var overlord in overlordList.Where(o => o.LastSeen + OVERLORD_LASTSEEN_TIMEOUT < Environment.TickCount).ToList())
+                    overlordList.Remove(overlord);
+                overlordList.Unlock();
+            }
+        }
+
 
         private void client_OnBroadcastCommandRx(Request cmd)
         {
@@ -81,6 +212,9 @@ namespace Fap.Application.Controllers
             {
                 case "HELO":
                     HandleHelo(cmd);
+                    break;
+                case "WHO":
+                    //Do nothing
                     break;
             }
         }
@@ -129,108 +263,14 @@ namespace Fap.Application.Controllers
             return a;
         }
 
-        public void Start()
+
+
+
+        private void SendWhoAsync(object o)
         {
-            logger.AddInfo("Attempting to connect to the local FAP network..");
-            startup = Environment.TickCount;
-            client.StartListener();
-            timer = new Timer(new TimerCallback(Process), null, 100, 1000);
+            WhoVerb verb = new WhoVerb();
+            server.SendCommand(verb.CreateRequest());
         }
-
-        private void Process(object oj)
-        {
-            lock (connectSync)
-            {
-                if (running)
-                {
-                    return;
-                }
-                running = true;
-            }
-
-
-            var connected = model.Networks.Where(n => n.Connected && n.ID == "LOCAL").FirstOrDefault();
-            if (null != connected)
-            {
-                CheckModelChanges();
-                running = false;
-                return;
-            }
-
-
-            //Copy list of servers
-            List<DetectedOverlord> servers = null;
-            lock (sync)
-                servers = overlordList.ToList();
-
-            servers = servers.Where(o => o.Clients < 25).OrderBy(o => o.Clients).ToList();
-
-            //If no overlords after a time out then start our own.
-            if (servers.Count == 0 && (Environment.TickCount - startup) > 5000 && null==overlord)
-            {
-                logger.AddInfo("No valid overlord detected after 5 seconds, starting a local overlord.");
-                overlord = container.Resolve<OverlordController>();
-                overlord.Start(GetLocalAddress(), 90, "LOCAL", "Local");
-                running = false;
-                return;
-            }
-
-            try
-            {
-                foreach (var server in servers)
-                {
-                    ConnectVerb connect = new ConnectVerb();
-                    connect.RemoteLocation = model.Node.Location;
-
-                    Client c = container.Resolve<Client>();
-
-                    Node serverNode = new Node();
-                    serverNode.Location = server.Location;
-
-                    string secret = IDService.CreateID();
-                    //Add network info (Acts as permission to receive info)
-                    Fap.Domain.Entity.Network nx = new Domain.Entity.Network();
-                    nx.Secret = secret;
-                    model.Networks.Add(nx);
-
-
-
-                    if (c.Execute(connect, serverNode,secret))
-                    {
-                        if (connect.Status == 0)
-                        {
-                            if(string.IsNullOrEmpty(connect.OverlordID) || string.IsNullOrEmpty(connect.NetworkID))
-                            {
-                                //We didnt get back valid network info so try another server.
-                                logger.AddWarning("Connect failed to return valid network info.");
-                                continue;
-                            }
-                            var search = model.Networks.Where(n => n.ID == connect.NetworkID).FirstOrDefault();
-                            if (null == search)
-                            {
-                                search = new Domain.Entity.Network();
-                                search.ID = "LOCAL";// connect.NetworkID;
-                                model.Networks.Add(search);
-                            }
-                            search.Name = connect.Name;
-                            search.OverlordID = connect.OverlordID;
-                            search.Secret = connect.Secret;
-                            search.Connected = true;
-                            logger.AddInfo("Connected to the local FAP network.");
-                            model.Networks.Remove(nx);
-                            break;
-                        }
-                    }
-                    model.Networks.Remove(nx);
-                }
-            }
-            finally
-            {
-                lock (connectSync)
-                    running = false;
-            }
-        }
-
 
         /// <summary>
         /// Whilst connected to a network 
@@ -274,9 +314,9 @@ namespace Fap.Application.Controllers
 
                         Client client = new Client(bufferService, connectionService);
                         Response response = null;
-                        if (!client.Execute(request, node, out response) || response.Status!=0)
+                        if (!client.Execute(request, node, out response) || response.Status != 0)
                         {
-                            network.Connected = false;
+                            network.State = ConnectionState.Disconnected;
                         }
                     }
                 }
@@ -307,7 +347,7 @@ namespace Fap.Application.Controllers
                 r.AdditionalHeaders.Add("Name", model.Node.Nickname);
 
                 Client c = new Client(bufferService, connectionService);
-                Response response = new Response(); 
+                Response response = new Response();
                 if (!c.Execute(r, overlord, out response) || response.Status != 0)
                 {
                     logger.AddError("Failed to send chat message, try again shortly.");
@@ -324,13 +364,12 @@ namespace Fap.Application.Controllers
 
         public Session GetOverlordConnection(out string secret)
         {
-            var connected = model.Networks.Where(n => n.Connected && n.ID == "LOCAL").FirstOrDefault();
-            if (null != connected)
+            if (network.State == ConnectionState.Connected)
             {
-                var overlord = model.Peers.Where(n => n.ID == connected.OverlordID).FirstOrDefault();
+                var overlord = model.Peers.Where(n => n.ID == network.OverlordID).FirstOrDefault();
                 if (null != overlord)
                 {
-                    secret = connected.Secret;
+                    secret = network.Secret;
                     return connectionService.GetClientSession(overlord);
                 }
             }
@@ -346,239 +385,5 @@ namespace Fap.Application.Controllers
             public long LastSeen { set; get; }
             public int Index { set; get; }
         }
-
-
-    /*    private Timer timer;
-        private BroadcastServer server;
-        private BroadcastClient client;
-        private Logger logger;
-        private Model model;
-        private readonly MainWindowViewModel mainWindowModel;
-        private readonly BufferService bufferService;
-        private readonly ConnectionService connectionService;
-
-        public PeerController(BroadcastServer s, BroadcastClient c, Logger l, Model m, MainWindowViewModel mw, BufferService bufferService, ConnectionService connectionService)
-        {
-            server = s;
-            client = c;
-            logger = l;
-            model = m;
-            mainWindowModel = mw;
-            this.bufferService = bufferService;
-            this.connectionService = connectionService;
-        }
-
-        public void StartBroadcast()
-        {
-#if DEBUG
-            timer = new Timer(new System.Threading.TimerCallback(processBroadcast), null, 0, 5000);
-#else
-            timer = new Timer(new System.Threading.TimerCallback(processBroadcast), null, 0, 15000);
-#endif
-        }
-
-        public void StopBroadcast()
-        {
-            if (null != timer)
-                timer.Dispose();
-            timer = null;
-        }
-
-        public void StartBroadcastClient()
-        {
-            client.StartListener();
-            client.OnBroadcastCommandRx += new BroadcastClient.BroadcastCommandRx(client_OnBroadcastCommandRx);
-        }
-
-        private void client_OnBroadcastCommandRx(ICommsCommand cmd)
-        {
-            if (cmd is Hello)
-                ProcessHello(cmd as Hello);
-            if (cmd is Chat)
-                processChat(cmd as Chat);
-            if (cmd is Quit)
-                processQuit(cmd as Quit);
-            if (cmd is Update)
-                ProcessUpdate(cmd as Update);
-        }
-
-        private void processQuit(Quit cmd)
-        {
-            try
-            {
-                foreach (var client in model.Clients.ToList())
-                {
-                    if (client.Host == cmd.Address)
-                    {
-                        model.Clients.Remove(client);
-                        client.Dispose();
-                        break;
-                    }
-                }
-            }
-            catch(Exception e)
-            {
-                logger.LogException(e);
-            }
-        }
-
-        private void processChat(Chat cmd)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(DateTime.Now.ToShortTimeString());
-            sb.Append(" ");
-            sb.Append(cmd.Message);
-            mainWindowModel.ChatMessages.Add(sb.ToString());
-        }
-
-        private void processBroadcast(object o)
-        {
-            Hello helloCMD = new Hello();
-            helloCMD.Model = model;
-            server.SendCommand(helloCMD);
-        }
-
-        public void AnnounceQuit()
-        {
-            Quit quitCMD = new Quit();
-            quitCMD.Model = model;
-            server.SendCommand(quitCMD);
-        }
-
-        public void AnnounceUpdate()
-        {
-            Update updateCMD = new Update();
-            updateCMD.Model = model;
-            server.SendCommand(updateCMD);
-        }
-
-        public void SendChatMessage(string msg)
-        {
-            Chat cmd = new Chat();
-            StringBuilder sb = new StringBuilder();
-            sb.Append(model.Nickname);
-            sb.Append(": ");
-            sb.Append(msg);
-            cmd.Message =  sb.ToString();
-            server.SendCommand(cmd);
-        }
-
-
-
-        private void ProcessHello(Hello h)
-        {
-            try
-            {
-                foreach (var client in model.Clients.ToList())
-                {
-                    if (client.Host == h.Address)
-                    {
-                        client.LastAccess = Environment.TickCount;
-                        return;
-                    }
-                }
-
-                RemoteClient r = new RemoteClient();
-
-                r.Port = int.Parse(h.Port);
-                r.Host = h.Address;
-                Console.WriteLine("Testing");
-                Client c = new Client(bufferService, connectionService);
-                ClientInfoCMD cmd = new ClientInfoCMD(model);
-                if (c.Execute(cmd, r))
-                {
-                    r.Nickname = cmd.Nickname;
-                    r.Description = cmd.Description;
-                    r.ShareSize = cmd.ShareSize;
-                    r.AvatarBase64 = cmd.AvatarBase64;
-                    r.LastAccess = Environment.TickCount;
-
-                    lock (timer)
-                    {
-                        if (model.Clients.Where(x => x.Host == r.Host).Count() == 0)
-                        {
-                            model.Clients.Add(r);
-
-                            //Scan open sessions and check info
-                            foreach (var session in model.Sessions.ToList())
-                            {
-                                if (session.Host == r)
-                                    session.User = r.Nickname;
-                            }
-                            logger.AddInfo("Found new client: " + r.Location);
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                logger.LogException(e);
-            }
-        }
-
-        private void ProcessUpdate(Update h)
-        {
-            try
-            {
-                RemoteClient rc = null;
-
-                foreach (var client in model.Clients.ToList())
-                {
-                    if (client.Host == h.Address)
-                    {
-                        client.LastAccess = Environment.TickCount;
-                        rc = client;
-                    }
-                }
-                if (null == rc)
-                {
-                    rc = new RemoteClient();
-                    rc.Port = int.Parse(h.Port);
-                    rc.Host = h.Address;
-                    rc.LastAccess = Environment.TickCount;
-                    Client c = new Client(bufferService,connectionService);
-                    ClientInfoCMD cmd = new ClientInfoCMD(model);
-                    c.Execute(cmd, rc);
-
-                    rc.Nickname = cmd.Nickname;
-                    rc.Description = cmd.Description;
-                    rc.ShareSize = cmd.ShareSize;
-                    rc.AvatarBase64 = cmd.AvatarBase64;
-                    rc.LastAccess = Environment.TickCount;
-                    model.Clients.Add(rc);
-                }
-                else
-                {
-                    Client c = new Client(bufferService,connectionService);
-                    ClientInfoCMD cmd = new ClientInfoCMD(model);
-                    c.Execute(cmd, rc);
-
-                    rc.Nickname = cmd.Nickname;
-                    rc.Description = cmd.Description;
-                    rc.ShareSize = cmd.ShareSize;
-                    rc.AvatarBase64 = cmd.AvatarBase64;
-                    rc.LastAccess = Environment.TickCount;
-                }
-
-                //Scan open sessions and check info
-                foreach (var session in model.Sessions.ToList())
-                {
-                    if (session.Host == rc)
-                        session.User = rc.Nickname;
-                }
-                logger.AddInfo("Found new client: " + rc.Location);
-            }
-            catch (Exception e)
-            {
-                logger.LogException(e);
-            }
-        }*/
     }
 }
-        
-
-
-
-
-
-

@@ -23,6 +23,9 @@ using System.Windows.Documents;
 
 namespace Fap.Presentation
 {
+    /// <summary>
+    /// This was sourced from??
+    /// </summary>
     public class GridViewSort
     {
         #region Public attached properties

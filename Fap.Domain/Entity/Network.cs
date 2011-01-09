@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ComponentModel;
+using System.Data;
 
 namespace Fap.Domain.Entity
 {
@@ -13,7 +14,14 @@ namespace Fap.Domain.Entity
         private string name;
 
         private string secret;
-        private bool connected;
+        private Fap.Network.ConnectionState state;
+
+
+        public Fap.Network.ConnectionState State
+        {
+            set { state = value; NotifyChange("State"); }
+            get { return state; }
+        }
 
         public string Secret
         {
@@ -37,12 +45,6 @@ namespace Fap.Domain.Entity
         {
             set { name = value; NotifyChange("Name"); }
             get { return name; }
-        }
-
-        public bool Connected
-        {
-            set { connected = value; NotifyChange("Connected"); }
-            get { return connected; }
         }
 
         private void NotifyChange(string path)

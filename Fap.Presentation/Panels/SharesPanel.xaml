@@ -27,6 +27,7 @@
                 <GridView>
                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200px"/>
                     <GridViewColumn Header="Size" DisplayMemberBinding="{Binding SizeString}" Width="90px"/>
+                    <GridViewColumn Header="Files" DisplayMemberBinding="{Binding FileCount, Converter={StaticResource countConverter}}" Width="90px"/>
                     <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="150"/>
                     <GridViewColumn Header="Path" DisplayMemberBinding="{Binding Path}" Width="350"/>
                 </GridView>

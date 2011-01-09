@@ -40,6 +40,7 @@ using Fap.Network.Entity;
 using System.Net.Sockets;
 using Fap.Domain.Controllers;
 using System.Diagnostics;
+using Fap.Foundation.Services;
 
 namespace Fap.Application.Controllers
 {
@@ -60,7 +61,6 @@ namespace Fap.Application.Controllers
         private MainWindowViewModel mainWindowModel;
 
         private Model model;
-        private Node node;
        
         private TrayIconViewModel trayIcon;
 
@@ -81,7 +81,6 @@ namespace Fap.Application.Controllers
             server = container.Resolve<ServerService>();
             chatController = container.Resolve<ConversationController>();
             logger.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(logger_CollectionChanged);
-            QueueWork(new DelegateCommand(SetupAsync));
         }
 
         void logger_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -112,13 +111,6 @@ namespace Fap.Application.Controllers
         }
 
 
-        private void SetupAsync()
-        {
-           // model.Server = new OldServer(20, container);
-           // model.Server.Start(85);
-        }
-
-
         public void Initalise()
         {
             try
@@ -131,13 +123,13 @@ namespace Fap.Application.Controllers
             }
 
             //If there is no avatar set then put in the default
-            if (model.Avatar.Length == 0)
+            if (string.IsNullOrEmpty(model.Avatar))
             {
 
                 var stream = System.Windows.Application.GetResourceStream(new Uri("Images/Default_Avatar.png", UriKind.Relative)).Stream;
                 byte[] img = new byte[stream.Length];
                 stream.Read(img, 0, (int)stream.Length);
-                model.Avatar = img;
+                model.Avatar = Convert.ToBase64String(img);
                 model.Save();
             }
             //Set default nick
@@ -166,6 +158,10 @@ namespace Fap.Application.Controllers
             {
                 Directory.CreateDirectory(model.DownloadFolder);
             }
+            if (string.IsNullOrEmpty(model.LocalNodeID))
+            {
+                model.LocalNodeID = IDService.CreateID();
+            }
 
             //Load download queue
             try
@@ -178,17 +174,24 @@ namespace Fap.Application.Controllers
                 logger.LogException(e);
             }
 
+            //Add local network manually
+            Fap.Domain.Entity.Network network = new Domain.Entity.Network();
+            network.ID = "LOCAL";
+            network.Name = "Local";
+            network.State = Network.ConnectionState.Disconnected;
+            model.Networks.Add(network);
+
            
             //Logger
             loggerModel.Logs = logger.Logs;
             shareController.Initalise();
             chatController.Initalise();
-            node = new Node();
             
             server.Start();
-            peerController.Start();
+            peerController.Start(network);
             model.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(model_PropertyChanged);
-
+            model.Peers.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(Peers_CollectionChanged);
+            ThreadPool.QueueUserWorkItem(new WaitCallback(MainWindowUpdater));
             //Tray icon
             trayIcon.Exit = new DelegateCommand(Exit);
             trayIcon.Model = model;
@@ -197,15 +200,64 @@ namespace Fap.Application.Controllers
             trayIcon.Settings = new DelegateCommand(Settings);
             trayIcon.Shares = new DelegateCommand(EditShares);
             trayIcon.ViewShare = new DelegateCommand(viewShare);
+            trayIcon.Compare = new DelegateCommand(Compare);
             trayIcon.ShowIcon = true;
         }
 
+        private void Peers_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+           
+        }
+
+        /// <summary>
+        /// Bulk update the main UI if updated
+        /// </summary>
+        private void MainWindowUpdater(object o)
+        {
+            while (true)
+            {
+                var window = mainWindowModel;
+                if (null != window)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("Stats: ");
+                    int count = model.Peers.Where(n => n.NodeType != ClientType.Overlord).Count();
+                    sb.Append(count);
+                    if(count==1)
+                      sb.Append(" client sharing ");
+                    else
+                      sb.Append(" clients sharing ");
+                    sb.Append(Utility.FormatBytes(model.Peers.Select(p => p.ShareSize).Sum()));
+                    sb.Append(" in ");
+                    sb.Append(Utility.ConverNumberToText(model.Peers.Select(p => p.FileCount).Sum()));
+                    sb.Append(" files.");
+                    string text = sb.ToString();
+                    if (text != mainWindowModel.CurrentNetworkStatus)
+                    {
+                        mainWindowModel.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+                           new Action(
+                            delegate()
+                            {
+                                if (null != mainWindowModel)
+                                {
+                                    mainWindowModel.CurrentNetworkStatus = text;
+                                    if (peerController.IsOverlord)
+                                        mainWindowModel.OverlordStatus = " (Overlord host)";
+                                }
+                            }
+                           ));
+                    }
+                }
+                Thread.Sleep(250);
+            }
+        }
 
         private void ShowMainWindow()
         {
             if (null == mainWindowModel)
             {
                 mainWindowModel = container.Resolve<MainWindowViewModel>();
+                mainWindowModel.CurrentNetwork = model.Networks.Where(n=>n.ID == "LOCAL").First();
                 mainWindowModel.WindowTitle = "FAP - 'Overkill' edition - Release " + Model.NetCodeVersion + "." + Model.ClientVersion;
                 mainWindowModel.SendChatMessage = new DelegateCommand(sendChatMessage);
                 mainWindowModel.ViewShare = new DelegateCommand(viewShare);
@@ -224,7 +276,8 @@ namespace Fap.Application.Controllers
                 mainWindowModel.Sessions = model.Sessions;
                 mainWindowModel.ChatMessages = model.Messages;
                 mainWindowModel.Peers = model.Peers;
-                mainWindowModel.Node = node;
+                mainWindowModel.Node = model.Node;
+
                 ClientList_CollectionChanged(null, null);
                 mainWindowModel.Show();
             }
@@ -354,7 +407,9 @@ namespace Fap.Application.Controllers
                         break;
                     case "Description":
                         mainWindowModel.Description = model.Description;
-                       // peerController.AnnounceUpdate();
+                        break;
+                    case "ID":
+                        mainWindowModel.RaisePropertyChanged("LocalNodeID");
                         break;
                 }
             }
@@ -366,15 +421,12 @@ namespace Fap.Application.Controllers
             {
                 case "Avatar":
                     mainWindowModel.Avatar = model.Avatar;
-                   // peerController.AnnounceUpdate();
                     break;
                 case "Nickname":
                     mainWindowModel.Nickname = model.Nickname;
-                  //  peerController.AnnounceUpdate();
                     break;
                 case "Description":
                     mainWindowModel.Description = model.Description;
-                  //  peerController.AnnounceUpdate();
                     break;
             }
         }
@@ -406,7 +458,7 @@ namespace Fap.Application.Controllers
 
                     ms = new MemoryStream();
                     thumbnail.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                    model.Avatar = ms.ToArray();
+                    model.Avatar = Convert.ToBase64String(ms.ToArray());
                 }
                 catch
                 {

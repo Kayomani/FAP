@@ -44,8 +44,14 @@ namespace Fap.Domain.Controllers
         private BufferService bufferService;
         private string listenLocation;
         private Logger logService;
+        
+        //Announcer
+        private Thread announcer;
+        private long lastAnnounce;
+        private long lastRequest;
+        private readonly long minAnnounceFreq = 10000;
+        private readonly long maxAnnounceFreq = 500;
 
-        System.Threading.Timer timer;
         private Overlord model;
         private string networkID;
         private string networkName;
@@ -74,7 +80,7 @@ namespace Fap.Domain.Controllers
                 bufferService = container.Resolve<BufferService>();
                 connectionService = container.Resolve<ConnectionService>();
                 bclient.OnBroadcastCommandRx += new BroadcastClient.BroadcastCommandRx(bclient_OnBroadcastCommandRx);
-                timer = new System.Threading.Timer(new TimerCallback(onTimer), null, 0, 5000);
+                ThreadPool.QueueUserWorkItem(new WaitCallback(Process_announce));
                 model.Host = ip.ToString();
                 model.Port = port;
                 model.Nickname = "Overlord";
@@ -91,11 +97,15 @@ namespace Fap.Domain.Controllers
         private void bclient_OnBroadcastCommandRx(Request cmd)
         {
             //logService.AddInfo("Overlord rx: " + cmd.Command + " P: " + cmd.Param);
-            switch(cmd.Command)
+            switch (cmd.Command)
             {
                 case "HELO":
                     HandleHelo(cmd);
-                break;
+                    break;
+                case "WHO":
+                    lock (announcer)
+                        lastRequest = Environment.TickCount;
+                    break;
             }
         }
 
@@ -223,11 +233,37 @@ namespace Fap.Domain.Controllers
             catch { }
         }
 
-        private void onTimer(object state)
+        /// <summary>
+        /// Handles announcing presence via broadcast.
+        /// </summary>
+        private void Process_announce(object o)
         {
-            HeloVerb helo = new HeloVerb(model);
-            helo.ListenLocation = listenLocation;
-            bserver.SendCommand(helo.CreateRequest());
+            announcer = Thread.CurrentThread;
+            int sleepTime = 25;
+            while (true)
+            {
+                bool doAnnounce = false;
+                lock (announcer)
+                {
+                    bool reqAnnounce = lastRequest != 0;
+                    bool timerExpired = lastAnnounce + minAnnounceFreq < Environment.TickCount;
+                    bool allowAnnounce = lastAnnounce + maxAnnounceFreq < Environment.TickCount;
+
+                    if ((reqAnnounce || timerExpired) && allowAnnounce)
+                    {
+                        doAnnounce = true;
+                        lastRequest = 0;
+                    }
+                }
+                if (doAnnounce)
+                {
+                    lastAnnounce = Environment.TickCount;
+                    HeloVerb helo = new HeloVerb(model);
+                    helo.ListenLocation = listenLocation;
+                    bserver.SendCommand(helo.CreateRequest());
+                }
+                Thread.Sleep(sleepTime);
+            }
         }
 
         private bool HandleClient(Request r, Socket s)

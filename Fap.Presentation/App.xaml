@@ -9,6 +9,10 @@ DispatcherUnhandledException="Application_DispatcherUnhandledException"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008">
 <Application.Resources>
         <local:BinaryImageConverter x:Key="imageConverter" />
+        <local:Base64Converter x:Key="base64Converter" />
+        <local:SizeConverter x:Key="sizeConverter" />
+        <local:CountConverter x:Key="countConverter" />
+    
         <LinearGradientBrush x:Key="TextBoxBorder" EndPoint="0,20" MappingMode="Absolute" StartPoint="0,0">
             <GradientStop Color="#ABADB3" Offset="0.05"/>
             <GradientStop Color="#E2E3EA" Offset="0.07"/>
