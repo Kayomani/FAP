@@ -30,6 +30,7 @@ using System.Net.Sockets;
 using Fap.Foundation.Logging;
 using System.Xml.Linq;
 using System.Xml;
+using Fap.Domain.Entity;
 
 namespace Fap.Domain.Controllers
 {
@@ -52,18 +53,27 @@ namespace Fap.Domain.Controllers
         private readonly long minAnnounceFreq = 10000;
         private readonly long maxAnnounceFreq = 500;
 
-        private Overlord model;
         private string networkID;
         private string networkName;
+        private Model model;
 
         public OverlordController(IContainer c)
         {
             container = c;
-            model = new Overlord();
             logService = c.Resolve<Logger>();
+            model = c.Resolve<Model>();
+            model.Overlord.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Overlord_PropertyChanged);
         }
 
-        public Overlord Node { get { return model; } }
+        void Overlord_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case "MaxPeers":
+                    GenerateStrength();
+                    break;
+            }
+        }
 
         public void Start(IPAddress ip, int port, string id, string name)
         {
@@ -81,14 +91,40 @@ namespace Fap.Domain.Controllers
                 connectionService = container.Resolve<ConnectionService>();
                 bclient.OnBroadcastCommandRx += new BroadcastClient.BroadcastCommandRx(bclient_OnBroadcastCommandRx);
                 ThreadPool.QueueUserWorkItem(new WaitCallback(Process_announce));
-                model.Host = ip.ToString();
-                model.Port = port;
-                model.Nickname = "Overlord";
+                model.Overlord.Host = ip.ToString();
+                model.Overlord.Port = port;
+                model.Overlord.Nickname = "Overlord";
                 bclient.StartListener();
             }
             else
                 throw new Exception("Super node alrady running.");
         }
+
+        public void Stop()
+        {
+
+        }
+
+
+        private void GenerateStrength()
+        {
+            Random r = new Random(Environment.TickCount);
+
+            switch (model.Overlord.MaxPeers)
+            {
+                case OverlordLimits.HIGH_PRIORITY:
+                    model.Overlord.Strength = r.Next(666, 1000);
+                    break;
+                case OverlordLimits.LOW_PRIORITY:
+                    model.Overlord.Strength = r.Next(0, 333);
+                    break;
+                default:
+                    model.Overlord.Strength = r.Next(333, 666);
+                    break;
+            }
+
+        }
+
 
         /// <summary>
         /// Broadcast RX
@@ -189,14 +225,14 @@ namespace Fap.Domain.Controllers
             //Check we don't know about the peer already.
             lock (model)
             {
-                HeloVerb verb = new HeloVerb(model);
+                HeloVerb verb = new HeloVerb(model.Overlord);
                 verb.ProcessRequest(cmd);
 
                 var search = model.Peers.Where(p => p.ID == verb.ID).FirstOrDefault();
                 if (null != search)
                     return;
                 //Local node
-                if (verb.ID == model.ID)
+                if (verb.ID == model.Overlord.ID)
                     return;
             }
             //Connect remote client async as it may take time to fail.
@@ -215,7 +251,7 @@ namespace Fap.Domain.Controllers
                     
                     var session = connectionService.GetClientSession(n);
                     Client client = new Client(bufferService, connectionService);
-                    InfoVerb info = new InfoVerb(model);
+                    InfoVerb info = new InfoVerb(model.Overlord);
 
                     if (client.Execute(info, n))
                     {
@@ -258,7 +294,7 @@ namespace Fap.Domain.Controllers
                 if (doAnnounce)
                 {
                     lastAnnounce = Environment.TickCount;
-                    HeloVerb helo = new HeloVerb(model);
+                    HeloVerb helo = new HeloVerb(model.Overlord);
                     helo.ListenLocation = listenLocation;
                     bserver.SendCommand(helo.CreateRequest());
                 }
@@ -374,7 +410,7 @@ namespace Fap.Domain.Controllers
             {
                 response.Status = 2;//Could not connect
             }
-            response.AdditionalHeaders.Add("Host", model.ID);
+            response.AdditionalHeaders.Add("Host", model.Overlord.ID);
             response.AdditionalHeaders.Add("ID", networkID);
             response.AdditionalHeaders.Add("Name", networkName);
             response.RequestID = r.RequestID;
@@ -405,7 +441,7 @@ namespace Fap.Domain.Controllers
                         session.Socket.Send(Mediator.Serialize(req));
                     }
                     //Send this node
-                    ClientVerb v = new ClientVerb(model, "");
+                    ClientVerb v = new ClientVerb(model.Overlord, "");
                     var request = v.CreateRequest();
                     request.RequestID = node.Secret;
                     session.Socket.Send(Mediator.Serialize(request));

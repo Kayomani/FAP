@@ -150,14 +150,18 @@ namespace Fap.Application.Controllers
 
             //Set default download folder
             if (string.IsNullOrEmpty(model.DownloadFolder) || !Directory.Exists(model.DownloadFolder))
-            {
                 model.DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\FAP Downloads";
-            }
 
             if (!Directory.Exists(model.DownloadFolder))
-            {
                 Directory.CreateDirectory(model.DownloadFolder);
-            }
+
+            //Set incomplete download folder
+            if (string.IsNullOrEmpty(model.DownloadFolder) || !Directory.Exists(model.DownloadFolder))
+                model.DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\FAP Downloads";
+
+            if (!Directory.Exists(model.DownloadFolder))
+                Directory.CreateDirectory(model.DownloadFolder);
+
             if (string.IsNullOrEmpty(model.LocalNodeID))
             {
                 model.LocalNodeID = IDService.CreateID();
@@ -174,6 +178,9 @@ namespace Fap.Application.Controllers
                 logger.LogException(e);
             }
 
+            if (model.MaxOverlordPeers == 0)
+                model.MaxOverlordPeers = 50;
+
             //Add local network manually
             Fap.Domain.Entity.Network network = new Domain.Entity.Network();
             network.ID = "LOCAL";
@@ -189,7 +196,6 @@ namespace Fap.Application.Controllers
             
             server.Start();
             peerController.Start(network);
-            model.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(model_PropertyChanged);
             model.Peers.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(Peers_CollectionChanged);
             ThreadPool.QueueUserWorkItem(new WaitCallback(MainWindowUpdater));
             //Tray icon
@@ -202,6 +208,23 @@ namespace Fap.Application.Controllers
             trayIcon.ViewShare = new DelegateCommand(viewShare);
             trayIcon.Compare = new DelegateCommand(Compare);
             trayIcon.ShowIcon = true;
+            model.Node.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Node_PropertyChanged);
+        }
+
+        void Node_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(null!=mainWindowModel)
+            {
+            switch (e.PropertyName)
+            {
+                case "Nickname":
+                mainWindowModel.Nickname = model.Nickname;
+                break;
+                case "Description":
+                mainWindowModel.Description = model.Description;
+                break;
+            }
+        }
         }
 
         private void Peers_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -277,7 +300,7 @@ namespace Fap.Application.Controllers
                 mainWindowModel.ChatMessages = model.Messages;
                 mainWindowModel.Peers = model.Peers;
                 mainWindowModel.Node = model.Node;
-
+                mainWindowModel.Model = model;
                 ClientList_CollectionChanged(null, null);
                 mainWindowModel.Show();
             }
@@ -380,6 +403,11 @@ namespace Fap.Application.Controllers
             popupController.AddWindow(o.View, "Settings");
         }
 
+        void o_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+
+        }
+
 
         private void SettingsEditDownloadDir()
         {
@@ -390,46 +418,6 @@ namespace Fap.Application.Controllers
              }
         }
 
-        /// <summary>
-        /// Copy settings changes to the main gui vm
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void o_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            Fap.Application.ViewModels.SettingsViewModel s = sender as Fap.Application.ViewModels.SettingsViewModel;
-            if (null != s)
-            {
-                switch (e.PropertyName)
-                {
-                    case "Nickname":
-                        mainWindowModel.Nickname = model.Nickname;
-                        break;
-                    case "Description":
-                        mainWindowModel.Description = model.Description;
-                        break;
-                    case "ID":
-                        mainWindowModel.RaisePropertyChanged("LocalNodeID");
-                        break;
-                }
-            }
-        }
-
-        void model_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            switch (e.PropertyName)
-            {
-                case "Avatar":
-                    mainWindowModel.Avatar = model.Avatar;
-                    break;
-                case "Nickname":
-                    mainWindowModel.Nickname = model.Nickname;
-                    break;
-                case "Description":
-                    mainWindowModel.Description = model.Description;
-                    break;
-            }
-        }
 
 
         private void ChangeAvatar()

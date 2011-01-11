@@ -25,10 +25,10 @@ namespace Fap.Domain.Verbs
 {
     public class HeloVerb : IVerb
     {
-        private Node node;
+        private Overlord node;
 
 
-        public HeloVerb(Node n)
+        public HeloVerb(Overlord n)
         {
             node = n;
         }
@@ -44,7 +44,8 @@ namespace Fap.Domain.Verbs
                 throw new Exception("Helo create failed, no local node ID");
             r.AdditionalHeaders.Add("ID", node.ID);
             r.AdditionalHeaders.Add("Clients", Clients.ToString());
-            r.AdditionalHeaders.Add("Index", Index.ToString());
+            r.AdditionalHeaders.Add("MaxClients", node.MaxPeers.ToString());
+            r.AdditionalHeaders.Add("Strength", node.Strength.ToString());
             return r;
         }
 
@@ -53,7 +54,8 @@ namespace Fap.Domain.Verbs
             ListenLocation = r.Param;
             ID = r.AdditionalHeaders["ID"];
             Clients = int.Parse(r.AdditionalHeaders["Clients"]);
-            Index = int.Parse(r.AdditionalHeaders["Index"]);
+            MaxClients = int.Parse(r.AdditionalHeaders["MaxClients"]);
+            Strength = int.Parse(r.AdditionalHeaders["Strength"]);
             return null;
         }
 
@@ -66,6 +68,7 @@ namespace Fap.Domain.Verbs
         public string ListenLocation { set; get; }
         public string ID { set; get; }
         public int Clients { set; get; }
-        public int Index { set; get; }
+        public int MaxClients { set; get; }
+        public int Strength { set; get; }
     }
 }

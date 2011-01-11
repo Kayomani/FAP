@@ -28,6 +28,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Fap.Application.Views;
+using Fap.Application.ViewModels;
+using Fap.Network;
 
 namespace Fap.Presentation.Panels
 {
@@ -36,9 +38,52 @@ namespace Fap.Presentation.Panels
     /// </summary>
     public partial class SettingsPanel : UserControl, ISettingsView
     {
+       
+
         public SettingsPanel()
         {
             InitializeComponent();
+            this.DataContextChanged += new DependencyPropertyChangedEventHandler(SettingsPanel_DataContextChanged);
+        }
+
+        private void SettingsPanel_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            SettingsViewModel setting = e.NewValue as SettingsViewModel;
+            if (null != setting)
+            {
+                switch (setting.Model.Overlord.MaxPeers)
+                {
+                    case OverlordLimits.HIGH_PRIORITY:
+                        overlordpri.SelectedIndex = 0;
+                        break;
+                    case OverlordLimits.LOW_PRIORITY:
+                        overlordpri.SelectedIndex = 2;
+                        break;
+                    default:
+                        overlordpri.SelectedIndex = 1;
+                        break;
+                }
+            }
+        }
+
+        private void overlordpri_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SettingsViewModel model = DataContext as SettingsViewModel;
+            if (null != model)
+            {
+                switch (overlordpri.SelectedIndex)
+                {
+                    case 0:
+                        model.Model.Overlord.MaxPeers = OverlordLimits.HIGH_PRIORITY;
+                        break;
+                    case 2:
+                        model.Model.Overlord.MaxPeers = OverlordLimits.LOW_PRIORITY;
+                        break;
+                    default:
+                        model.Model.Overlord.MaxPeers = OverlordLimits.NORMAL_PRIORITY;
+                        break;
+                }
+            }
         }
     }
 }

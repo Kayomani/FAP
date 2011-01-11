@@ -25,11 +25,33 @@ namespace Fap.Network.Entity
     public class Overlord: Node
     {
         private SafeObservable<Node> peers = new SafeObservable<Node>();
+        private int strength;
+        private int maxPeers;
 
         public Overlord()
             : base()
         {
             NodeType = ClientType.Overlord;
+        }
+
+        public int Strength
+        {
+            set
+            {
+                strength = value;
+                NotifyChange("Strength");
+            }
+            get { return strength; }
+        }
+
+        public int MaxPeers
+        {
+            set
+            {
+                maxPeers = value;
+                NotifyChange("MaxPeers");
+            }
+            get { return maxPeers; }
         }
 
         public SafeObservable<Node> Peers

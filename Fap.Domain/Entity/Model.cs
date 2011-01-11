@@ -45,7 +45,7 @@ namespace Fap.Domain.Entity
         private int maxUploads;
         private int maxUploadsPerUser;
         private string downloadFolder;
-
+        private bool disableCompare;
 
         [XmlIgnore]
         private SafeObservable<Session> sessions;
@@ -61,6 +61,8 @@ namespace Fap.Domain.Entity
         private SafeObservable<string> messages;
         [XmlIgnore]
         private SafeObservable<Conversation> converstations;
+        [XmlIgnore]
+        private Overlord overlord;
 
         public delegate bool NewConversation(string id, string message);
         public event NewConversation OnNewConverstation;
@@ -84,6 +86,7 @@ namespace Fap.Domain.Entity
             saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
             node.PropertyChanged += new PropertyChangedEventHandler(node_PropertyChanged);
             node = new Node();
+            overlord = new Overlord();
         }
 
         void node_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -131,6 +134,13 @@ namespace Fap.Domain.Entity
         {
             set { node = value; NotifyChange("Node"); }
             get { return node; }
+        }
+
+        [XmlIgnore]
+        public Overlord Overlord
+        {
+            set { overlord = value; NotifyChange("Overlord"); }
+            get { return overlord; }
         }
 
         [XmlIgnore]
@@ -185,6 +195,18 @@ namespace Fap.Domain.Entity
             }
         }
 
+        public bool DisableComparision
+        {
+            set
+            {
+                disableCompare = value;
+            }
+            get
+            {
+                return disableCompare;
+            }
+        }
+
         public int MaxDownloads
         {
             set
@@ -195,6 +217,20 @@ namespace Fap.Domain.Entity
             get
             {
                 return maxDownloads;
+            }
+        }
+
+
+        public int MaxOverlordPeers
+        {
+            set
+            {
+                overlord.MaxPeers = value;
+                NotifyChange("MaxOverlordPeers");
+            }
+            get
+            {
+                return overlord.MaxPeers;
             }
         }
 
@@ -311,6 +347,9 @@ namespace Fap.Domain.Entity
                     MaxDownloadsPerUser = m.MaxDownloadsPerUser;
                     MaxUploads = m.MaxUploads;
                     MaxUploadsPerUser = m.MaxUploadsPerUser;
+                    MaxOverlordPeers = m.MaxOverlordPeers;
+                    LocalNodeID = m.LocalNodeID;
+                    DisableComparision = m.DisableComparision;
                 }
             }
             catch (Exception e)

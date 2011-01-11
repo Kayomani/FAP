@@ -57,18 +57,16 @@ namespace Fap.Application.Controllers
         private Fap.Domain.Entity.Network network;
         private long lastConnected = Environment.TickCount;
 
-        //Workers
-        private Thread syncworker;
-        private Thread connectionHandler;
-
         //Services
         private ConnectionService connectionService;
         private BufferService bufferService;
         private OverlordController overlord;
         private Logger logger;
 
-        private readonly long OVERLORD_LASTSEEN_TIMEOUT = 60000;//ms
-
+        private const int OVERLORD_DETECTED_TIMEOUT = 60000;
+        private bool overlord_active = false;
+        private long overlord_creation_holdoff_timer = 0;
+        private long overlord_creation_time = 0;
 
 
         public bool IsOverlord
@@ -114,26 +112,139 @@ namespace Fap.Application.Controllers
             {
                 try
                 {
+                    overlordList.Lock();
+                    foreach (var s in overlordList.Where(o => o.LastSeen + OVERLORD_DETECTED_TIMEOUT < Environment.TickCount))
+                        overlordList.Remove(s);
+                    overlordList.Unlock();
+
+                    //Order servers by priority
+                    List<DetectedOverlord> servers = overlordList.Where(s => !s.IsBanned).OrderByDescending(s => s.Strength).ToList();
+                    List<DetectedOverlord> orderedList = new List<DetectedOverlord>();
+
+                    foreach (var server in servers.Where(s => s.Strength > 666).ToList())
+                    {
+                        orderedList.Add(server);
+                        servers.Remove(server);
+                    }
+                    foreach (var server in servers.Where(s => s.Strength > 333).ToList())
+                    {
+                        orderedList.Add(server);
+                        servers.Remove(server);
+                    }
+                    foreach (var server in servers.ToList())
+                    {
+                        orderedList.Add(server);
+                        servers.Remove(server);
+                    }
+
+
+                    int freeSlots = 0;
+                    int serverCount = 0;
+                    int peers = model.Peers.Count();
+
+                    foreach (var server in orderedList)
+                    {
+                        int free = server.MaxClients - server.Clients;
+                        if (free > 0)
+                        {
+                            freeSlots += free;
+                            serverCount++;
+                        }
+                    }
+
+                    //Does the network need an additional server?
+                    bool requireNewServer = false;
+
+                    if (peers < 10)
+                    {
+                        if (freeSlots < 2)
+                            requireNewServer = true;
+                    }
+                    else if (peers < 100)
+                    {
+                        if (freeSlots < 10 || serverCount < 2)
+                            requireNewServer = true;
+                    }
+                    else
+                    {
+                        if (freeSlots < (peers * 0.05) || serverCount<3)
+                            requireNewServer = true;
+                    }
+
+                    if (requireNewServer)
+                    {
+                        if (!overlord_active)
+                        {
+                            if (overlord_creation_holdoff_timer == 0)
+                            {
+                                Random r = new Random(Environment.TickCount);
+                                int holdoff = 0;
+                                //No timer set, set it up
+                                switch (model.MaxOverlordPeers)
+                                {
+                                    case OverlordLimits.HIGH_PRIORITY:
+                                        holdoff = r.Next(0, 1500);
+                                        break;
+                                    case OverlordLimits.LOW_PRIORITY:
+                                        holdoff = r.Next(3000, 5000);
+                                        break;
+                                    default:
+                                        holdoff = r.Next(1500, 3000);
+                                        break;
+                                }
+                                logger.AddInfo("Starting overlord with hold off " + holdoff);
+                                overlord_creation_holdoff_timer = holdoff + Environment.TickCount;
+                            }
+                            else if (overlord_creation_holdoff_timer < Environment.TickCount)
+                            {
+                                overlord_creation_holdoff_timer = 0;
+                                overlord_active = true;
+                                logger.AddInfo("Starting a local overlord..");
+                                overlord = container.Resolve<OverlordController>();
+                                overlord.Start(GetLocalAddress(), 90, "LOCAL", "Local");
+                                Thread.Sleep(15);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        overlord_creation_holdoff_timer = 0;
+                        //Does the local server need removing because there are too many overlords on the local network?
+                        if (overlord_active && model.Overlord.Peers.Count < 3)
+                        {
+                            bool requireRemoval = false;
+
+                            if (peers < 10)
+                            {
+                                if (serverCount > 3 && freeSlots>5)
+                                    requireRemoval = true;
+                            }
+                            else if (peers < 100)
+                            {
+                                if (serverCount > 5 && freeSlots > 10)
+                                    requireRemoval = true;
+                            }
+                            else
+                            {
+                                if (freeSlots > (peers * 0.25))
+                                    requireRemoval = true;
+                            }
+
+                            if (requireRemoval)
+                            {
+                                overlord_active = false;
+                                overlord.Stop();
+                            }
+                        }
+                    }
+                    
+                    //Handle connection to the network
                     if (network.State != ConnectionState.Connected)
                     {
                         if (network.State != ConnectionState.Connecting)
                             network.State = ConnectionState.Connecting;
 
-                        //Copy list of servers
-                        List<DetectedOverlord> servers = overlordList.ToList();
-                        servers = servers.Where(o => o.Clients < 50).OrderBy(o => o.Clients).ToList();
-
-                        //If no overlords after a time out then start our own.
-                        if (servers.Count == 0 && (Environment.TickCount - lastConnected) > 2000 && null == overlord)
-                        {
-                            logger.AddInfo("No valid overlord detected after 2 seconds, starting a local overlord.");
-                            overlord = container.Resolve<OverlordController>();
-                            overlord.Start(GetLocalAddress(), 90, "LOCAL", "Local");
-                            Thread.Sleep(15);
-                            continue;
-                        }
-
-                        foreach (var server in servers)
+                        foreach (var server in orderedList)
                         {
                             try
                             {
@@ -141,10 +252,8 @@ namespace Fap.Application.Controllers
                                 connect.RemoteLocation = model.Node.Location;
 
                                 Client c = container.Resolve<Client>();
-
                                 Node serverNode = new Node();
                                 serverNode.Location = server.Location;
-
                                 network.Secret = IDService.CreateID();
 
                                 if (c.Execute(connect, serverNode, network.Secret))
@@ -175,10 +284,7 @@ namespace Fap.Application.Controllers
                             }
                             catch
                             {
-                                overlordList.Lock();
-                                if (overlordList.Contains(server))
-                                    overlordList.Remove(server);
-                                overlordList.Unlock();
+                                server.IsBanned = true;
                             }
                         }
                     }
@@ -199,7 +305,7 @@ namespace Fap.Application.Controllers
                     CheckModelChanges();
                 //Remove overlords we haven't seen for a bit
                 overlordList.Lock();
-                foreach (var overlord in overlordList.Where(o => o.LastSeen + OVERLORD_LASTSEEN_TIMEOUT < Environment.TickCount).ToList())
+                foreach (var overlord in overlordList.Where(o => o.LastSeen + OVERLORD_DETECTED_TIMEOUT < Environment.TickCount).ToList())
                     overlordList.Remove(overlord);
                 overlordList.Unlock();
             }
@@ -231,7 +337,9 @@ namespace Fap.Application.Controllers
                     overlordList.Add(new DetectedOverlord()
                     {
                         Clients = hello.Clients,
-                        Index = hello.Index,
+                        ID = hello.ID,
+                        MaxClients = hello.MaxClients,
+                        Strength = hello.Strength,
                         LastSeen = Environment.TickCount,
                         Location = hello.ListenLocation
                     });
@@ -239,7 +347,9 @@ namespace Fap.Application.Controllers
                 else
                 {
                     search.Clients = hello.Clients;
-                    search.Index = hello.Index;
+                    search.ID = hello.ID;
+                    search.MaxClients = hello.MaxClients;
+                    search.Strength = hello.Strength;
                     search.LastSeen = Environment.TickCount;
                     search.Location = hello.ListenLocation;
                 }
@@ -380,10 +490,29 @@ namespace Fap.Application.Controllers
 
         public class DetectedOverlord
         {
+            private long bantime;
+
+            public bool IsBanned
+            {
+                get
+                {
+                    return (bantime + OVERLORD_DETECTED_TIMEOUT) > Environment.TickCount;
+                }
+                set
+                {
+                    if (value)
+                        bantime = Environment.TickCount;
+                    else
+                        bantime = 0;
+                }
+            }
+
             public string Location { set; get; }
+            public string ID { set; get; }
+            public int MaxClients { set; get; }
             public int Clients { set; get; }
+            public int Strength { set; get; }
             public long LastSeen { set; get; }
-            public int Index { set; get; }
         }
     }
 }

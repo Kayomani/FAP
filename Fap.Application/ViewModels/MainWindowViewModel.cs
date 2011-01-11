@@ -58,11 +58,23 @@ namespace Fap.Application.ViewModels
         private Fap.Domain.Entity.Network currentNetwork;
         private string networkStats;
         private string overlordStatus;
+        private Model model;
 
         public MainWindowViewModel(IMainWindow view)
             : base(view)
         {
 
+        }
+
+
+        public Model Model
+        {
+            get { return model; }
+            set
+            {
+                model = value;
+                RaisePropertyChanged("Model");
+            }
         }
 
         public void DoFlashWindow()
