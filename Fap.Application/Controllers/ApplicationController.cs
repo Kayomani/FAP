@@ -50,7 +50,7 @@ namespace Fap.Application.Controllers
         private readonly LoggerViewModel loggerModel;
         private readonly PopupWindowController popupController;
         private readonly QueryViewModel browser;
-        private readonly PeerController peerController;
+        private readonly LANPeerConnectionService peerController;
         private readonly SharesController shareController;
         private readonly Logger logger;
         private readonly DownloadService downloadService;
@@ -68,7 +68,7 @@ namespace Fap.Application.Controllers
         {
             if (container == null) { throw new ArgumentNullException("container"); }
             this.container = container;
-            peerController = container.Resolve<PeerController>();
+            peerController = container.Resolve<LANPeerConnectionService>();
             shareController = container.Resolve<SharesController>();
             loggerModel = container.Resolve<LoggerViewModel>();
             logger = container.Resolve<Logger>();
@@ -556,6 +556,7 @@ namespace Fap.Application.Controllers
                      chatController.Close();
                      mainWindowModel.Close();
                      trayIcon.Dispose();
+                     peerController.Stop();
                  }
              }
             ));

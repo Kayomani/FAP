@@ -1,0 +1,14 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:odc="clr-namespace:Odyssey.Controls" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="RibbonChromeStyle" TargetType="{x:Type odc:RibbonChrome}">
+        <Setter Property="MouseOverBackground"
+                Value="{DynamicResource {ComponentResourceKey odc:Skins, HighlightedMouseOverBtnBrush}}" />
+        <Setter Property="MousePressedBackground"
+                Value="{DynamicResource {ComponentResourceKey odc:Skins, HighlightedPressedBtnBrush}}" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="BorderBrush"
+                Value="{DynamicResource {ComponentResourceKey odc:Skins, HighlightedRibbonBorderBrush}}" />
+    </Style>
+
+</ResourceDictionary>

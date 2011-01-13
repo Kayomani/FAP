@@ -28,6 +28,7 @@ using Fap.Network.Entity;
 using Fap.Foundation;
 using System.Threading;
 using Fap.Domain.Entity;
+using Fap.Domain.Controllers;
 
 namespace Fap.Domain.Services
 {
@@ -35,11 +36,13 @@ namespace Fap.Domain.Services
     {
         private FAPListener listener;
         private Model model;
+        private LANPeerConnectionService peerController;
 
         public ServerService(IContainer c)
         {
             model = c.Resolve<Model>();
             listener = c.Resolve<FAPListener>();
+            peerController = c.Resolve<LANPeerConnectionService>();
             listener.OnReceiveRequest += new FAPListener.ReceiveRequest(listener_OnReceiveRequest);
         }
 
@@ -53,6 +56,8 @@ namespace Fap.Domain.Services
                 case "CHAT":
                     HandleChat(r, s);
                     break;
+                case "DISCONNECT":
+                    return HandleDisconnect(r, s);
                 default:
                     VerbFactory factory = new VerbFactory();
                     var verb = factory.GetVerb(r.Command, model);
@@ -63,22 +68,38 @@ namespace Fap.Domain.Services
         }
 
 
+
         private bool IsOverlordKey(string key)
         {
             foreach (var network in model.Networks.ToList())
             {
                 if (network.Secret == key)
                     return true;
-
-                var node = model.Peers.Where(p => p.Secret == key).FirstOrDefault();
-                if (null != node)
-                    return true;
             }
             return false;
         }
 
 
+        private bool HandleDisconnect(Request r, Socket s)
+        {
+            if (IsOverlordKey(r.RequestID))
+            {
+                var localNet = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
+                if (null != localNet)
+                {
+                    if (localNet.OverlordID == r.Param)
+                        peerController.Disconnect();
 
+                    model.Peers.Lock();
+                    var peer = model.Peers.Where(p => p.ID == r.Param).FirstOrDefault();
+                    if (null != peer)
+                        model.Peers.Remove(peer);
+                    model.Peers.Unlock();
+                }
+
+            }
+            return false;
+        }
 
 
         private void HandleChat(Request r, Socket s)

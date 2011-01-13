@@ -119,6 +119,7 @@
     <Compile Include="Converters.cs" />
     <Compile Include="FAPconverters.cs" />
     <Compile Include="FlashWindow.cs" />
+    <Compile Include="FolderItem.cs" />
     <Compile Include="GridViewSort.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="InputWindow.xaml.cs">
@@ -213,6 +214,10 @@
     <ProjectReference Include="..\Fap.Network\Fap.Network.csproj">
       <Project>{9F0CE65A-C35B-4BCB-B8DA-4ACF2CC53B9C}</Project>
       <Name>Fap.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\libs\Odyssey\Odyssey.csproj">
+      <Project>{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}</Project>
+      <Name>Odyssey</Name>
     </ProjectReference>
     <ProjectReference Include="..\libs\WpfApplicationFramework\WpfApplicationFramework\WpfApplicationFramework\WpfApplicationFramework.csproj">
       <Project>{27B67DFE-0BF1-4435-B036-E4C083EAEA03}</Project>

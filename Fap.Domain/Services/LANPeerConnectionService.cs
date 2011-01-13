@@ -1,48 +1,24 @@
-﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
-/**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or any 
-    later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * */
-#endregion
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Fap.Domain.Services;
-using Fap.Domain.Entity;
-using Fap.Application.ViewModels;
-using Fap.Domain;
-using Fap.Domain.Commands;
-using System.Windows.Threading;
-using System.Threading;
-using Fap.Network.Services;
-using Fap.Foundation.Logging;
-using Fap.Network.Entity;
-using Fap.Network;
-using Autofac;
 using Fap.Domain.Verbs;
-using Fap.Domain.Controllers;
 using System.Net;
 using System.Net.Sockets;
-using Fap.Foundation.Services;
+using Fap.Network.Entity;
+using Fap.Network;
+using System.Threading;
+using Autofac;
 using Fap.Foundation;
+using Fap.Domain.Entity;
+using Fap.Network.Services;
+using Fap.Domain.Controllers;
+using Fap.Foundation.Logging;
+using Fap.Foundation.Services;
 
-namespace Fap.Application.Controllers
+namespace Fap.Domain.Services
 {
-    /// <summary>
-    /// Manages node to overlord communications,
-    /// </summary>
-    public class PeerController
+    public class LANPeerConnectionService
     {
         private BroadcastClient client;
         private BroadcastServer server;
@@ -66,7 +42,6 @@ namespace Fap.Application.Controllers
         private const int OVERLORD_DETECTED_TIMEOUT = 60000;
         private bool overlord_active = false;
         private long overlord_creation_holdoff_timer = 0;
-        private long overlord_creation_time = 0;
 
 
         public bool IsOverlord
@@ -74,7 +49,7 @@ namespace Fap.Application.Controllers
             get { return null != overlord; }
         }
 
-        public PeerController(IContainer c)
+        public LANPeerConnectionService(IContainer c)
         {
             container = c;
             client = container.Resolve<BroadcastClient>();
@@ -97,6 +72,28 @@ namespace Fap.Application.Controllers
 
             ThreadPool.QueueUserWorkItem(new WaitCallback(ConnectionHandler));
             ThreadPool.QueueUserWorkItem(new WaitCallback(SyncWorker));
+        }
+
+        public void Stop()
+        {
+            if (network.State == ConnectionState.Connected)
+            {
+                //Notify network of disconnect
+                DisconnectVerb disconnect = new DisconnectVerb(model.Node);
+                string secret = string.Empty;
+                Session overlord = GetOverlordConnection(out secret);
+                if (null != overlord)
+                {
+                    Request request = disconnect.CreateRequest();
+                    request.RequestID = secret;
+                    Client c = new Client(bufferService, connectionService);
+                    Response response = new Response();
+                    if (!c.Execute(request, overlord, out response) || response.Status != 0)
+                    {
+                        logger.AddWarning("Failed to log off correctly.");
+                    }
+                }
+            }
         }
 
         private void local_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -192,7 +189,7 @@ namespace Fap.Application.Controllers
                                         holdoff = r.Next(1500, 3000);
                                         break;
                                 }
-                                logger.AddInfo("Starting overlord with hold off " + holdoff);
+                                logger.AddInfo("Overlord hold off " + holdoff);
                                 overlord_creation_holdoff_timer = holdoff + Environment.TickCount;
                             }
                             else if (overlord_creation_holdoff_timer < Environment.TickCount)
@@ -469,7 +466,24 @@ namespace Fap.Application.Controllers
             }
         }
 
+        public void Disconnect()
+        {
+            var local = model.Networks.Where(n=>n.ID == "LOCAL").FirstOrDefault();
+            if(null!=local)
+            {
+                if (local.State == ConnectionState.Connected)
+                {
+                    logger.AddInfo("Disconnected from local network");
 
+                    var currentOverlord = overlordList.Where(o => o.ID == local.ID).FirstOrDefault();
+                    if (null != currentOverlord)
+                    {
+                        currentOverlord.Ban(4000);
+                    }
+                    local.State = ConnectionState.Disconnected;
+                }
+            }
+        }
 
 
         public Session GetOverlordConnection(out string secret)
@@ -505,6 +519,11 @@ namespace Fap.Application.Controllers
                     else
                         bantime = 0;
                 }
+            }
+
+            public void Ban(long time)
+            {
+                bantime = Environment.TickCount + (OVERLORD_DETECTED_TIMEOUT - time);
             }
 
             public string Location { set; get; }

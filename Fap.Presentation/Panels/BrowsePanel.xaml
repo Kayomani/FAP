@@ -2,6 +2,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="clr-namespace:Fap.Presentation"
+    xmlns:odc="clr-namespace:Odyssey.Controls;assembly=Odyssey"
     xmlns:local="clr-namespace:Fap.Presentation.Panels" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Fap.Presentation.Panels.BrowsePanel"
     ClipToBounds="True" d:DesignWidth="901" d:DesignHeight="427.96" >
     <UserControl.Resources>
@@ -29,10 +30,31 @@
             <ColumnDefinition Width="*"  />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="35" />
             <RowDefinition Height="*" />
             <RowDefinition Height="35" />
         </Grid.RowDefinitions>
-        <TreeView Grid.Column="0" x:Name="foldersTree" ItemsSource="{Binding Folders}" ClipToBounds="True" SelectedItemChanged="foldersTree_SelectedItemChanged" Style="{DynamicResource TreeViewStyle1}">
+        <odc:BreadcrumbBar Grid.Row="0" Grid.ColumnSpan="3" x:Name="bar"    Focusable="True"
+                           
+                           Path=""
+                           PopulateItems="BreadcrumbBar_PopulateItems"    
+                           BreadcrumbItemDropDownOpened="bar_BreadcrumbItemDropDownOpened"
+                           TraceBinding="{Binding Folder}"
+                           ImageBinding="{Binding Image}"
+                           PathConversion="BreadcrumbBar_PathConversion">
+            <!--<odc:BreadcrumbBar.Buttons>
+                <Button Click="Button_Click">Refresh</Button>
+            </odc:BreadcrumbBar.Buttons>
+            <odc:BreadcrumbBar.DropDownItems>
+                <TextBlock Text="C:\Windows"/>
+                <TextBlock Text="C:\Windows\System32"/>
+                <TextBlock Text="C:\Users"/>
+            </odc:BreadcrumbBar.DropDownItems>-->
+            <odc:BreadcrumbItem Header="Root">
+            </odc:BreadcrumbItem>
+        </odc:BreadcrumbBar>
+        
+        <TreeView Grid.Column="0"  Grid.Row="1" x:Name="foldersTree" ItemsSource="{Binding Folders}" ClipToBounds="True" SelectedItemChanged="foldersTree_SelectedItemChanged" Style="{DynamicResource TreeViewStyle1}">
             <TreeView.Resources>
                 <Style TargetType="{x:Type TreeViewItem}">
                     <Setter Property="HeaderTemplate">
@@ -53,7 +75,7 @@
             ResizeDirection="Columns" 
             Grid.Column="1" 
             Grid.ColumnSpan="1" 
-            Grid.Row="0" 
+            Grid.Row="1" 
             Grid.RowSpan="1"
             Width="3" 
             Height="Auto" 
@@ -61,7 +83,7 @@
             VerticalAlignment="Stretch" 
             Margin="0"/>
 
-        <base:SortableListView  Grid.Column="2"  
+        <base:SortableListView  Grid.Column="2"  Grid.Row="1"
  VirtualizingStackPanel.IsVirtualizing="True"
                                 VirtualizingStackPanel.VirtualizationMode="Recycling"
   x:Name="listView2" BorderBrush="Black" ItemsSource="{Binding CurrentDirectory}" ClipToBounds="True"  MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" SelectionChanged="listView2_SelectionChanged" MouseDoubleClick="listView2_MouseDoubleClick">
@@ -81,7 +103,7 @@
             </base:SortableListView.View>
         </base:SortableListView>
         
-        <DockPanel Grid.Row="1" Grid.ColumnSpan="3">
+        <DockPanel Grid.Row="2" Grid.ColumnSpan="3">
             <StatusBar>
                 <StatusBar.Background>
                     <LinearGradientBrush EndPoint="0.92,0.791" MappingMode="RelativeToBoundingBox" StartPoint="0.009,1.19">

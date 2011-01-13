@@ -1,0 +1,38 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:odc="clr-namespace:Odyssey.Controls" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/Brushes.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <ControlTemplate TargetType="{x:Type odc:BreadcrumbItem}" x:Key="BreadcrumbItemTemplate">
+        <Border Background="Transparent" Focusable="False" BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}">
+            <DockPanel>
+                <odc:BreadcrumbButton x:Name="PART_Header" DataContext="{Binding}"
+                        IsImageVisible="{TemplateBinding IsRoot}" IsButtonVisible="{TemplateBinding IsButtonVisible}"
+                        ItemTemplate="{TemplateBinding OverflowItemTemplate}" Foreground="Black"
+                        ItemTemplateSelector="{TemplateBinding OverflowItemTemplateSelector}"
+                        IsDropDownPressed="{Binding IsDropDownPressed, RelativeSource={RelativeSource TemplatedParent},Mode=TwoWay}"
+                        SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource TemplatedParent},Mode=TwoWay}"
+                        Image="{TemplateBinding Image}" Header="{TemplateBinding Header}"
+                        ItemsSource="{Binding Items, RelativeSource={RelativeSource TemplatedParent}}">
+                </odc:BreadcrumbButton>
+                <ContentControl x:Name="PART_Selected" Focusable="False" Content="{TemplateBinding SelectedBreadcrumb}" />
+            </DockPanel>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsRoot" Value="True">
+                <Setter Property="EnableVisualButtonStyle" Value="False" TargetName="PART_Header" />
+            </Trigger>
+
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!--BreadcrumbItem-->
+    <Style TargetType="{x:Type odc:BreadcrumbItem}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="BorderBrush" Value="{StaticResource borderBrush}" />
+        <Setter Property="Template" Value="{StaticResource BreadcrumbItemTemplate}" />
+    </Style>
+
+</ResourceDictionary>

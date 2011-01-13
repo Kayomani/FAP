@@ -1,0 +1,57 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:odc="clr-namespace:Odyssey.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Skins/Ribbon/Window7Skin.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <SolidColorBrush x:Key="{ComponentResourceKey odc:Skins, ActiveTitleBrush}" Color="Black" />
+    <SolidColorBrush x:Key="{ComponentResourceKey odc:Skins, InactiveTitleBrush}" Color="#A0000000" />
+    <SolidColorBrush x:Key="{ComponentResourceKey odc:Skins, MouseOverRibbonBorderBrush}" Color="#607DA2CE" />
+    <SolidColorBrush x:Key="{ComponentResourceKey odc:Skins, HighlightedRibbonBorderBrush}" Color="#FF7DA2CE"/>
+
+    <SolidColorBrush x:Key="{ComponentResourceKey odc:Skins, RibbonButtonGroupBgBrush}" Color="#FFD0E0EC"/>
+
+
+    <LinearGradientBrush x:Key="{ComponentResourceKey odc:Skins, HighlightedPressedBtnBrush}" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFC2E4F6" Offset="0"/>
+        <GradientStop Color="#FFC2E4F6" Offset="0.5"/>
+        <GradientStop Color="#FFA9D9F2" Offset="0.5"/>
+        <GradientStop Color="#FF90CBEB" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="{ComponentResourceKey odc:Skins, HighlightedMouseOverBtnBrush}" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFEAF6FD" Offset="0"/>
+        <GradientStop Color="#FFD7EFFC" Offset="0.5"/>
+        <GradientStop Color="#FFBDE6FD" Offset="0.5"/>
+        <GradientStop Color="#FFA6D9F4" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="{ComponentResourceKey odc:Skins, TransparentMouseOverBtnBrush}" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#70EAF6FD" Offset="0"/>
+        <GradientStop Color="#70D7EFFC" Offset="0.5"/>
+        <GradientStop Color="#70BDE6FD" Offset="0.5"/>
+        <GradientStop Color="#70A6D9F4" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="{ComponentResourceKey odc:Skins, HighlightedDropDownBg}"  StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFEAF6FD" Offset="0"/>
+        <GradientStop Color="#FFD7EFFC" Offset="0.5"/>
+        <GradientStop Color="#FFBDE6FD" Offset="0.5"/>
+        <GradientStop Color="#FFA6D9F4" Offset="1"/>
+    </LinearGradientBrush>
+
+    <RadialGradientBrush x:Key="{ComponentResourceKey odc:Skins, HighlightedRadialDropDownBtnBrush}"  Center="0.5,0.9">
+        <GradientStop Color="#FFEAF6FD"  Offset="0"/>
+        <GradientStop Color="#FFD7EFFC" Offset="0.7"/>
+        <GradientStop Color="#FFBDE6FD"  Offset="1"/>
+        <GradientStop Color="#FFA6D9F4" Offset="2"/>
+    </RadialGradientBrush>
+
+    <RadialGradientBrush x:Key="{ComponentResourceKey odc:Skins, HighlightedRadialDropDownPressedBtnBrush}"  Center="0.5,0.9">
+        <GradientStop Color="#FFEAF6FD" Offset="0.0"/>
+        <GradientStop Color="#FFD7EFFC" Offset="0.8"/>
+        <GradientStop Color="#FFBDE6FD"  Offset="1.1"/>
+        <GradientStop Color="#FFA6D9F4"  Offset="2"/>
+    </RadialGradientBrush>
+</ResourceDictionary>

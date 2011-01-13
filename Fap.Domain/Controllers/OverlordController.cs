@@ -102,8 +102,29 @@ namespace Fap.Domain.Controllers
 
         public void Stop()
         {
+            DisconnectVerb verb = new DisconnectVerb(model.Overlord);
+            Request r = verb.CreateRequest();
 
+            Session session = null;
+            {
+                var clients = model.Peers.ToList();
+                foreach (var client in clients)
+                {
+                    try
+                    {
+                        session = connectionService.GetClientSession(client);
+                        r.RequestID = client.Secret;
+                        session.Socket.Send(Mediator.Serialize(r));
+                    }
+                    finally
+                    {
+                        connectionService.FreeClientSession(session);
+                    }
+                }
+
+            }
         }
+        
 
 
         private void GenerateStrength()
@@ -161,6 +182,8 @@ namespace Fap.Domain.Controllers
                     return HandleClient(r, s);
                 case "CHAT":
                     return HandleChat(r, s);
+                case "DISCONNECT":
+                    return HandleDisconnect(r, s);
                 /* default:
                      VerbFactory factory = new VerbFactory();
                      var verb = factory.GetVerb(r.Command, model);
@@ -171,13 +194,34 @@ namespace Fap.Domain.Controllers
             return false;
         }
 
+        private bool HandleDisconnect(Request r, Socket s)
+        {
+            var search = model.Peers.Where(p => p.Secret == r.RequestID && p.ID == r.Param).FirstOrDefault();
+            Response response = new Response();
+            response.RequestID = r.RequestID;
 
+
+            if (null != search)
+            {
+                model.Peers.Remove(search);
+                ThreadPool.QueueUserWorkItem(new WaitCallback(SendRequestToAll), r);
+                response.Status = 0;
+            }
+            else
+            {
+                response.Status = 1;
+            }
+            s.Send(Mediator.Serialize(response));
+            return false;
+        }
+
+       
         private bool HandleChat(Request r, Socket s)
         {
             var search = model.Peers.Where(p => p.Secret == r.RequestID && p.ID == r.Param).FirstOrDefault();
             if (null != search)
             {
-                ThreadPool.QueueUserWorkItem(HandleChatAsync, r);
+                ThreadPool.QueueUserWorkItem(SendRequestToAll, r);
                 Response response = new Response();
                 response.RequestID = r.RequestID;
                 response.Status = 0;
@@ -194,7 +238,7 @@ namespace Fap.Domain.Controllers
         }
 
 
-        private void HandleChatAsync(object o)
+        private void SendRequestToAll(object o)
         {
             Request r = o as Request;
             if (null != r)
@@ -586,6 +630,66 @@ namespace Fap.Domain.Controllers
                         }
                     }
 
+                }
+            }
+        }
+
+        public class PeerStream
+        {
+            private SafeObservable<Request> pendingRequests = new SafeObservable<Request>();
+            private Node node;
+            private bool running = true;
+            private Session session;
+            private Thread worker;
+
+            public PeerStream(Node n, Session s)
+            {
+                node = n;
+                session = s;
+                ThreadPool.QueueUserWorkItem(new WaitCallback(Process));
+            }
+
+            public bool AddMessage(Request r)
+            {
+                if (running)
+                {
+                    pendingRequests.Add(r);
+                }
+                return running;
+            }
+
+            public void Kill()
+            {
+                running = false;
+            }
+
+
+            private void Process(object o)
+            {
+                int sleep = 25;
+                worker = Thread.CurrentThread;
+                try
+                {
+                    while (running)
+                    {
+                        if (pendingRequests.Count > 0)
+                        {
+                            sleep = 25;
+                            Request r = pendingRequests[0];
+                            pendingRequests.RemoveAt(0);
+                            session.Socket.Send(Mediator.Serialize(r));
+                        }
+                        else
+                        {
+                            if (sleep < 350)
+                                sleep += 20;
+                            Thread.Sleep(sleep);
+                        }
+                    }
+                }
+                catch
+                {
+                   //Disconnect
                 }
             }
         }

@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToWmi.Core", "libs\Linq
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFToolkit", "libs\WPFToolKit\WPFToolkit.csproj", "{9606A078-7135-4CE7-879E-39FCF527F1A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Odyssey", "libs\Odyssey\Odyssey.csproj", "{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,6 +116,17 @@ Global
 		{9606A078-7135-4CE7-879E-39FCF527F1A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9606A078-7135-4CE7-879E-39FCF527F1A3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9606A078-7135-4CE7-879E-39FCF527F1A3}.Release|x86.ActiveCfg = Release|Any CPU
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Debug|x86.ActiveCfg = Debug|x86
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Debug|x86.Build.0 = Debug|x86
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Release with Code Analysis|Any CPU.ActiveCfg = Release|x86
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Release with Code Analysis|x86.ActiveCfg = Release|x86
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Release with Code Analysis|x86.Build.0 = Release|x86
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Release|x86.ActiveCfg = Release|x86
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -122,5 +135,6 @@ Global
 		{27B67DFE-0BF1-4435-B036-E4C083EAEA03} = {2F6CDA9C-ADC1-4440-A1F3-8114DB6A9C28}
 		{F4EC1E7F-A7F2-4D3B-B442-667BF8C6FE34} = {2F6CDA9C-ADC1-4440-A1F3-8114DB6A9C28}
 		{9606A078-7135-4CE7-879E-39FCF527F1A3} = {2F6CDA9C-ADC1-4440-A1F3-8114DB6A9C28}
+		{333FDC55-6B47-4A64-A2DF-A4C5823FAC74} = {2F6CDA9C-ADC1-4440-A1F3-8114DB6A9C28}
 	EndGlobalSection
 EndGlobal

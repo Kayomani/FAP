@@ -1,0 +1,33 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:odc="clr-namespace:Odyssey.Controls">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Expander/Classic.ExpandHeader.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    <Style TargetType="{x:Type odc:ExplorerBar}">
+        <Setter Property="Background" Value="{x:Static SystemColors.ControlBrush}" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Background" Value="{x:Static SystemColors.WindowBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </Border>
+                    <ControlTemplate.Resources>
+                        <Style TargetType="{x:Type odc:OdcExpander}">
+                            <Setter Property="HeaderBackground" Value="{x:Static SystemColors.ControlBrush}" />
+                            <Setter Property="Background" Value="{x:Static SystemColors.WindowBrush}" />
+                            <Setter Property="MouseOverHeaderBackground" Value="{x:Static SystemColors.ControlBrush}" />
+                            <Setter Property="BorderBrush" Value="{x:Static SystemColors.ControlBrush}" />
+                            <Setter Property="MouseOverHeaderForeground"
+                                    Value="{x:Static SystemColors.ControlTextBrush}" />
+                            <Setter Property="ShowEllipse" Value="False" />
+                        </Style>
+                    </ControlTemplate.Resources>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

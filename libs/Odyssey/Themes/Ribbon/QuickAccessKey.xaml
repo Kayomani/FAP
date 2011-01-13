@@ -1,0 +1,24 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mwt="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero" xmlns:odc="clr-namespace:Odyssey.Controls">
+
+    <LinearGradientBrush x:Key="{ComponentResourceKey odc:Skins, QAKBg}" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFF" Offset="0" />
+        <GradientStop Color="#FFC9D9EF" Offset="1" />
+    </LinearGradientBrush>
+
+    <ControlTemplate x:Key="QuickAccessKeyTemplate" TargetType="{x:Type odc:KeyTip}">
+        <mwt:SystemDropShadowChrome Margin="0,0,2,2" Color="#41000000"  CornerRadius="3">
+            <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" Background="{TemplateBinding Background}">
+                <TextBlock Text="{TemplateBinding Text}" Margin="2" FontWeight="Normal" FontSize="11" />
+            </Border>
+        </mwt:SystemDropShadowChrome>
+    </ControlTemplate>
+
+    <Style TargetType="{x:Type odc:KeyTip}">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {ComponentResourceKey odc:Skins, DefaultBorderBrush}}" />
+        <Setter Property="Template" Value="{StaticResource QuickAccessKeyTemplate}" />
+        <Setter Property="Background" Value="{DynamicResource {ComponentResourceKey odc:Skins, QAKBg}}" />
+    </Style>
+
+</ResourceDictionary>

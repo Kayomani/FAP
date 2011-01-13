@@ -11,6 +11,7 @@ using Fap.Network;
 using Fap.Domain.Verbs;
 using System.Threading;
 using Fap.Foundation;
+using Fap.Domain.Services;
 
 namespace Fap.Application.Controllers
 {
@@ -18,7 +19,7 @@ namespace Fap.Application.Controllers
     {
         private readonly PopupWindowController windowController;
         private readonly Model model;
-        private readonly PeerController peerController;
+        private readonly LANPeerConnectionService peerController;
         private IContainer container;
         private SafeObservable<ConversationViewModel> viewModels = new SafeObservable<ConversationViewModel>();
 
@@ -26,7 +27,7 @@ namespace Fap.Application.Controllers
         {
             windowController = container.Resolve<PopupWindowController>();
             model = container.Resolve<Model>();
-            peerController = container.Resolve<PeerController>();
+            peerController = container.Resolve<LANPeerConnectionService>();
             this.container = container;
         }
 

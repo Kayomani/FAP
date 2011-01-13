@@ -82,7 +82,7 @@
     <Compile Include="Commands\DownloadServer.cs" />
     <Compile Include="Commands\ICommsCommand.cs" />
     <Compile Include="Commands\UnknownCMD.cs" />
-    <Compile Include="Controllers\SuperNodeController.cs" />
+    <Compile Include="Controllers\OverlordController.cs" />
     <Compile Include="Entity\CompareNode.cs" />
     <Compile Include="Entity\Conversation.cs" />
     <Compile Include="Entity\DownloadQueue.cs" />
@@ -96,6 +96,7 @@
     <Compile Include="Services\ConnectionService.cs" />
     <Compile Include="Services\DownloadService.cs" />
     <Compile Include="Services\IconService.cs" />
+    <Compile Include="Services\LANPeerConnectionService.cs" />
     <Compile Include="Services\ServerService.cs" />
     <Compile Include="Services\ServerUploadLimiterService.cs" />
     <Compile Include="Services\SocketHelper.cs" />
@@ -129,7 +130,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>;"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\sgen.exe" /f  /assembly:"$(TargetDir)$(TargetFileName)" /out:$(SolutionDir)Fap.Presentation\$(OutDir)</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

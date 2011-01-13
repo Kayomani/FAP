@@ -142,7 +142,7 @@ namespace Fap.Presentation
                 builder.RegisterType<BufferService>().SingleInstance();
                 builder.RegisterType<ApplicationController>().SingleInstance();
                 builder.RegisterType<DownloadQueueController>().SingleInstance();
-                builder.RegisterType<PeerController>().SingleInstance();
+                builder.RegisterType<LANPeerConnectionService>().SingleInstance();
                 builder.RegisterType<SharesController>().SingleInstance();
                 builder.RegisterType<WatchdogController>().SingleInstance();
 

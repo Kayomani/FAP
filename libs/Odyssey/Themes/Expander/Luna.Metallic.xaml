@@ -1,0 +1,47 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:odc="clr-namespace:Odyssey.Controls">
+    <SolidColorBrush x:Key="ExpanderBg">
+        <SolidColorBrush.Color>
+            <Color  R="247" G="243" B="247" A="255"/>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
+    <SolidColorBrush x:Key="HeaderTextBrush" Color="#FF3F3D3D"/>
+    <SolidColorBrush x:Key="HighlightHeaderTextBrush" Color="#FF7E7C7C"/>
+    <Color x:Key="ExpanderHeaderColor"  R="214" G="215" B="231" A="255"/>
+    <LinearGradientBrush x:Key="HeaderBackgroundBrush" StartPoint="0,0" EndPoint="1,0">
+        <LinearGradientBrush.GradientStops>
+            <GradientStop Offset="0" Color="White"/>
+            <GradientStop Offset="1" Color="{StaticResource ExpanderHeaderColor}"/>
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+
+    <Style TargetType="{x:Type odc:ExplorerBar}">
+        <Setter Property="Background" Value="#FFBDBAD6"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter/>
+                        </ScrollViewer>
+                    </Border>
+                    <ControlTemplate.Resources>
+                        <Style TargetType="{x:Type odc:OdcExpander}">
+                            <Setter Property="HeaderBorderThickness" Value="0"/>
+                            <Setter Property="HeaderBackground" Value="{StaticResource HeaderBackgroundBrush}"/>
+                            <Setter Property="Background" Value="{StaticResource ExpanderBg}"/>
+                            <Setter Property="MouseOverHeaderBackground" Value="{StaticResource HeaderBackgroundBrush}"/>
+                            <Setter Property="BorderBrush" Value="White"/>
+                            <Setter Property="MouseOverHeaderForeground" Value="{StaticResource HighlightHeaderTextBrush}"/>
+                            <Setter Property="CornerRadius" Value="6,6,0,0"/>
+                            <Setter Property="ShowEllipse" Value="True"/>
+                        </Style>
+                    </ControlTemplate.Resources>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

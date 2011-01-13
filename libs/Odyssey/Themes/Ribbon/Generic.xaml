@@ -1,0 +1,33 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Skins/Ribbon/OfficeBlueSkin.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/HighlightedBackgrounds.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonChrome.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonWindow.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonImages.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonButton.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonButtonGroup.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonGroup.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonFlowGroup.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonTabItem.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonDropDownButton.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonSplitButton.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonToggleButton.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonBar.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonTabScroller.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonMenuItem.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonApplicationMenu.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonAppMenuItem.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonComboBox.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonTextBox.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonComboBoxItem.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonContextualTabSet.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonQAToolBar.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonGallery.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonThumbnail.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonSeparator.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/RibbonToolTip.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/QuickAccessKey.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

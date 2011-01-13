@@ -1,0 +1,47 @@
+﻿- New attached properties odc:ImageRenderOptions.LargeImageScalingMode and odc:ImageRenderOptions.SmallImageScalingMode:
+  Specify render options for either LargeImages or SmallImages. These properties are inheritable, so any child inherits the attached value from it's parent.
+  For instance. you can set <odc:RibbonBar odc:ImageRenderOptions.LargeImageScalingMode="Fant" .. > to apply this option to all controls inside.
+  
+
+- fixed bug in RibbonWindow:
+  MeasureOverride is required to adjust the correct size, otherwhise controls inside the window do not correctly measure the size. 
+  For instance, adding a <Grid> to a RibbonWindow caused any row with RowDefinition.Height="*" to appear with a gap.
+  
+- modified OdcExpander to show a vertical scrollbar when it is inside a control which does not allow it's height to be infinite.
+
+- modified OdcExdpander to correctly measure the available width. ínstead of an infinite width. this has caused controls inside an expander for instance
+  not to enable word wrap.
+  
+- RibbonBar: switiching Visibility property of a RibbonTabItem now causes the RibbonBar to render again and ensure that only a visible
+  TabItem is set as SelectedTabItem.
+  
+  - added new  RoutedEventHandler SelectedTabChanged.
+  
+  -added style and theme for TreeViewItem and ListViewItem to appear in the chosen skin.
+  - TreeViewItems are animated while expanding/collapsing.
+  
+  -changed duration for animations in BreadcrumbBar to smaller duration that is more eye friendly.
+  
+  - new dependency property BreadcrumbBar.PathBinding: This property is supposed to be used to bind a path to the breadcrumb instead of using
+    BreadcrumbBar.Path for binding. Since this value can be changed manually, the bindig would get lost.
+    
+ - new OdcTextBox control: A Textbox with optional inline buttons on the right and a style equal to the BreadcrumbBar.
+ - new ImageButton control: A Button control with Image property of type ImageSource to render a 16x16 button, intendet do be used with BreadcrumbBar or OdcTextBox.
+ 
+ - improved handling of popups: nested popups are no longer accidenty closed. This is archived by deriving RibbonDropDownButton from MenuBase insed of MenuItem
+   as well as a modified handling for closing a Popup.
+ 
+ -new Controls: SelectableTreeView and SelectableTreeViewItem. SelectableTreevVewItem adds a Click event and Command to a TreeViewItem as well as a IsPressed property.
+ - the overlay button of the application menu is now a Rectangle with a VisualBrush that renderes the original (orb) application menu button. It is now inside a Canvas and code changes
+   the Canvas.Left and Canvas.Top properties to be exactly over the original application menu button.
+   
+   - the blur effect of the outer elipse of the orb button caused the clone image not to be exact shape, so I removed the blur effect.
+   - binding to controls that are on a RibbonTab that was not the initial visible RibbonTab did not execute, so added ApplyTemplate() on EndInit() to make this work.
+   - RibbonBar is now derived from Selector instead of Control.
+   - RibbonTab is now derived from ItemsControl instead of Control.
+   - Optimized Disabled style: Images are now rendered in grayscale by Odyssey.Effects.Grayscale, and the text is also translucent.
+   - Commands for RibbonDropDownbutton and RibbonSplitButton now recognize Command.CanExecute.
+   - Improved positioning of window title in ribbon.
+   - RibbonBar.Title property has been removed, since the xaml now uses Window.Title to present the window title.
+   - New RibbonToolTip control
+ 

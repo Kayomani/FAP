@@ -1,0 +1,81 @@
+﻿<!-- Copyright (c) 2008 Thomas Gerber
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
+ to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:odc="clr-namespace:Odyssey.Controls" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style TargetType="{x:Type odc:OdcExpanderHeader}">
+        <Setter Property="CollapseGeometry" Value="M0.5,0.5 L4.0,4.0 7.5,0.5 M0.5,4.5 L4.0,8.0 7.5,4.5" />
+        <Setter Property="CornerRadius" Value="8,8,0,0" />
+        <Setter Property="BorderBrush" Value="#80FFFFFF" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="Black" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="Background" Value="#60808080" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type odc:OdcExpanderHeader}">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="20" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="6,0,6,0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Image RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        RenderOptions.EdgeMode="Aliased" Source="{TemplateBinding Image}"
+                                        VerticalAlignment="Center" ClipToBounds="True" Stretch="Fill" MaxWidth="16"
+                                        MaxHeight="16" />
+                                <ContentPresenter Grid.Column="0" Content="{TemplateBinding Content}" x:Name="content"
+                                        VerticalAlignment="Center" TextElement.FontWeight="Bold"
+                                        ContentTemplate="{TemplateBinding ContentTemplate}" Margin="4,0,0,0" />
+                            </StackPanel>
+                            <Grid Grid.Column="1" Margin="0,0,4,0" x:Name="circleButton" VerticalAlignment="Center">
+                                <Canvas x:Name="border" Margin="0,1,0,1" Width="16" Height="16" Visibility="Hidden">
+                                    <Border BorderBrush="{x:Static SystemColors.ControlLightLightBrush}"
+                                            BorderThickness="1,1,0,0" Width="16" Height="16" />
+                                    <Border BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
+                                            BorderThickness="0,0,1,1" Width="16" Height="16" />
+                                </Canvas>
+                                <Path x:Name="path" SnapsToDevicePixels="False" StrokeThickness="1.1"
+                                        Data="{TemplateBinding CollapseGeometry}" Stroke="{TemplateBinding Foreground}"
+                                        VerticalAlignment="Center" HorizontalAlignment="Center" Stretch="None" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsChecked" Value="True" />
+                                <Condition Property="HasExpandGeometry" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="path" Property="Data"
+                                    Value="{Binding RelativeSource={RelativeSource TemplatedParent},Path=ExpandGeometry}" />
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsChecked" Value="True" />
+                                <Condition Property="HasExpandGeometry" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="path" Property="LayoutTransform">
+                                <Setter.Value>
+                                    <RotateTransform Angle="180" />
+                                </Setter.Value>
+                            </Setter>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

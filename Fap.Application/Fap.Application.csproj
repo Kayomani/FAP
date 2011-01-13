@@ -85,7 +85,6 @@
     <Compile Include="Controllers\ConversationController.cs" />
     <Compile Include="Controllers\CompareController.cs" />
     <Compile Include="Controllers\DownloadQueueController.cs" />
-    <Compile Include="Controllers\PeerController.cs" />
     <Compile Include="Controllers\PopupWindowController.cs" />
     <Compile Include="Controllers\SharesController.cs" />
     <Compile Include="Controllers\WatchdogController.cs" />
@@ -136,8 +135,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>;"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\sgen.exe" /f  /assembly:"$(TargetDir)$(TargetFileName)" /out:$(SolutionDir)Fap.Presentation\$(OutDir)
-</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

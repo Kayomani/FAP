@@ -37,12 +37,12 @@ namespace Fap.Application.Controllers
         private readonly Logger logger;
         private readonly Model model;
         private QueryViewModel queryModel;
-        private PeerController peerController;
+        private LANPeerConnectionService peerController;
         private IContainer container;
 
         public SharesViewModel ViewModel { get { return viewModel; } }
 
-        public SharesController(IContainer c, SharesViewModel vm, QueryViewModel b, Logger log, Model m, QueryViewModel q, PeerController p)
+        public SharesController(IContainer c, SharesViewModel vm, QueryViewModel b, Logger log, Model m, QueryViewModel q, LANPeerConnectionService p)
         {
             viewModel = vm;
             browser = b;
