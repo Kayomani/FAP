@@ -75,6 +75,11 @@ namespace Fap.Network.Services
             return port;
         }
 
+        public void Stop()
+        {
+            listener.Stop();
+        }
+
         private void handleClient(IAsyncResult result)
         {
             Socket socket = null;

@@ -56,12 +56,14 @@ namespace Fap.Domain.Controllers
         private string networkID;
         private string networkName;
         private Model model;
+        private Overlord omodel;
 
         public OverlordController(IContainer c)
         {
             container = c;
             logService = c.Resolve<Logger>();
             model = c.Resolve<Model>();
+            omodel = model.Overlord;
             model.Overlord.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Overlord_PropertyChanged);
         }
 
@@ -102,27 +104,16 @@ namespace Fap.Domain.Controllers
 
         public void Stop()
         {
+            announcer.Abort();
+            listener.Stop();
             DisconnectVerb verb = new DisconnectVerb(model.Overlord);
-            Request r = verb.CreateRequest();
+            TransmitToAll(verb.CreateRequest());
 
-            Session session = null;
-            {
-                var clients = model.Peers.ToList();
-                foreach (var client in clients)
-                {
-                    try
-                    {
-                        session = connectionService.GetClientSession(client);
-                        r.RequestID = client.Secret;
-                        session.Socket.Send(Mediator.Serialize(r));
-                    }
-                    finally
-                    {
-                        connectionService.FreeClientSession(session);
-                    }
-                }
+            int startTime = Environment.TickCount;
 
-            }
+            //Wait for outstanding streams to empty for up to 4 seconds.
+            while (omodel.Peers.Where(p => p.Running).Select(p => p.PendingRequests).Sum() > 0 && Environment.TickCount-startTime<4000)
+                Thread.Sleep(25);
         }
         
 
@@ -146,6 +137,11 @@ namespace Fap.Domain.Controllers
 
         }
 
+        private void TransmitToAll(Request r)
+        {
+            foreach (var peer in omodel.Peers.ToList())
+                peer.AddMessage(r);
+        }
 
         /// <summary>
         /// Broadcast RX
@@ -156,8 +152,8 @@ namespace Fap.Domain.Controllers
             //logService.AddInfo("Overlord rx: " + cmd.Command + " P: " + cmd.Param);
             switch (cmd.Command)
             {
-                case "HELO":
-                    HandleHelo(cmd);
+                case "HELLO":
+                    HandleHello(cmd);
                     break;
                 case "WHO":
                     lock (announcer)
@@ -184,6 +180,8 @@ namespace Fap.Domain.Controllers
                     return HandleChat(r, s);
                 case "DISCONNECT":
                     return HandleDisconnect(r, s);
+                case "INFO":
+                    return HandleInfo(r, s);
                 /* default:
                      VerbFactory factory = new VerbFactory();
                      var verb = factory.GetVerb(r.Command, model);
@@ -194,17 +192,32 @@ namespace Fap.Domain.Controllers
             return false;
         }
 
+
+
+        private bool HandleInfo(Request r, Socket s)
+        {
+            InfoVerb info = new InfoVerb(omodel);
+            s.Send(Mediator.Serialize(info.ProcessRequest(r)));
+            return false;
+        }
+
+        /// <summary>
+        /// Incoming disconnect from a peer, remove and alert other peers
+        /// </summary>
+        /// <param name="r"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
         private bool HandleDisconnect(Request r, Socket s)
         {
-            var search = model.Peers.Where(p => p.Secret == r.RequestID && p.ID == r.Param).FirstOrDefault();
+            var search = model.Overlord.Peers.Where(p => p.Node.Secret == r.RequestID && p.Node.ID == r.Param).FirstOrDefault();
             Response response = new Response();
             response.RequestID = r.RequestID;
 
-
             if (null != search)
             {
-                model.Peers.Remove(search);
-                ThreadPool.QueueUserWorkItem(new WaitCallback(SendRequestToAll), r);
+                omodel.Peers.Remove(search);
+                search.OnDisconnect -= new PeerStream.Disconnect(peer_OnDisconnect);
+                TransmitToAll(r);
                 response.Status = 0;
             }
             else
@@ -215,13 +228,18 @@ namespace Fap.Domain.Controllers
             return false;
         }
 
-       
+       /// <summary>
+       /// Receive a chat message, if from a valid peer then forward onto all other peers
+       /// </summary>
+       /// <param name="r"></param>
+       /// <param name="s"></param>
+       /// <returns></returns>
         private bool HandleChat(Request r, Socket s)
         {
-            var search = model.Peers.Where(p => p.Secret == r.RequestID && p.ID == r.Param).FirstOrDefault();
+            var search = omodel.Peers.Where(p => p.Node.Secret == r.RequestID && p.Node.ID == r.Param).FirstOrDefault();
             if (null != search)
             {
-                ThreadPool.QueueUserWorkItem(SendRequestToAll, r);
+                TransmitToAll(r);
                 Response response = new Response();
                 response.RequestID = r.RequestID;
                 response.Status = 0;
@@ -237,48 +255,20 @@ namespace Fap.Domain.Controllers
             return false;
         }
 
-
-        private void SendRequestToAll(object o)
-        {
-            Request r = o as Request;
-            if (null != r)
-            {
-                Session session = null;
-                {
-                    var clients = model.Peers.ToList();
-                    foreach (var client in clients)
-                    {
-                        try
-                        {
-                            session = connectionService.GetClientSession(client);
-                            r.RequestID = client.Secret;
-                            session.Socket.Send(Mediator.Serialize(r));
-                        }
-                        finally
-                        {
-                            connectionService.FreeClientSession(session);
-                        }
-                    }
-
-                }
-            }
-        }
-
-        private void HandleHelo(Request cmd)
+        /// <summary>
+        /// Receive a broadcast hello request.  These should only be received from other overlord peers.
+        /// </summary>
+        /// <param name="cmd"></param>
+        private void HandleHello(Request cmd)
         {
             //Check we don't know about the peer already.
-            lock (model)
-            {
-                HeloVerb verb = new HeloVerb(model.Overlord);
-                verb.ProcessRequest(cmd);
-
-                var search = model.Peers.Where(p => p.ID == verb.ID).FirstOrDefault();
-                if (null != search)
-                    return;
-                //Local node
-                if (verb.ID == model.Overlord.ID)
-                    return;
-            }
+            HelloVerb verb = new HelloVerb(model.Overlord);
+            verb.ProcessRequest(cmd);
+            var search = omodel.Peers.Where(p => p.Node.ID == verb.ID).FirstOrDefault();
+            if (null != search)
+                return;
+            if (omodel.ID == verb.ID)
+                return;
             //Connect remote client async as it may take time to fail.
             ThreadPool.QueueUserWorkItem(HandleHeloAsync, cmd);
         }
@@ -299,18 +289,37 @@ namespace Fap.Domain.Controllers
 
                     if (client.Execute(info, n))
                     {
-                        lock (model)
+                        var search = omodel.Peers.Where(p => p.Node.ID == n.ID).FirstOrDefault();
+                        if (null == search)
                         {
-                            var search = model.Peers.Where(p => p.ID == n.ID).FirstOrDefault();
-                            if (null == search)
-                            {
-                                model.Peers.Add(n);
-                            }
+                            PeerStream peer = new PeerStream(n, session);
+                            peer.OnDisconnect += new PeerStream.Disconnect(peer_OnDisconnect);
+                            omodel.Peers.Add(peer);
                         }
                     }
                 }
             }
             catch { }
+        }
+
+        private void peer_OnDisconnect(PeerStream s)
+        {
+            if (omodel.Peers.Contains(s))
+                omodel.Peers.Remove(s);
+            //Try to send disconnect notification
+            try
+            {
+                DisconnectVerb verb = new DisconnectVerb(omodel);
+                var session = connectionService.GetClientSession(s.Node);
+                var req = verb.CreateRequest();
+                req.RequestID = s.Node.Secret;
+                session.Socket.Send(Mediator.Serialize(req));
+            }
+            catch
+            {
+
+            }
+            s.OnDisconnect -= new PeerStream.Disconnect(peer_OnDisconnect);
         }
 
         /// <summary>
@@ -338,7 +347,7 @@ namespace Fap.Domain.Controllers
                 if (doAnnounce)
                 {
                     lastAnnounce = Environment.TickCount;
-                    HeloVerb helo = new HeloVerb(model.Overlord);
+                    HelloVerb helo = new HelloVerb(model.Overlord);
                     helo.ListenLocation = listenLocation;
                     bserver.SendCommand(helo.CreateRequest());
                 }
@@ -346,9 +355,15 @@ namespace Fap.Domain.Controllers
             }
         }
 
+        /// <summary>
+        /// Receive a request containing updated client record information, if a valid client store and forward on.
+        /// </summary>
+        /// <param name="r"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
         private bool HandleClient(Request r, Socket s)
         {
-            var client = model.Peers.Where(p => p.ID == r.Param && r.RequestID == p.Secret).FirstOrDefault();
+            var client = omodel.Peers.Where(p => p.Node.ID == r.Param && r.RequestID == p.Node.Secret).FirstOrDefault();
             if (null == client)
             {
                 //Unregisted client or invalid info.
@@ -356,17 +371,14 @@ namespace Fap.Domain.Controllers
                 response.RequestID = r.RequestID;
                 response.Status = 1;
                 s.Send(Mediator.Serialize(response));
-                return true;
+                return false;
             }
             //Client is ok, replicate new info.
             if (r.AdditionalHeaders.Count > 0)
             {
                 foreach (var info in r.AdditionalHeaders)
-                {
-                    client.SetData(info.Key, info.Value);
-                }
-                //Transmit on a background thread as it may take some time if there are many clients.
-                ThreadPool.QueueUserWorkItem(new WaitCallback(HandleClientAsync), r);
+                    client.Node.SetData(info.Key, info.Value);
+                TransmitToAll(r);
                 Response response = new Response();
                 response.RequestID = r.RequestID;
                 response.Status = 0;
@@ -375,46 +387,12 @@ namespace Fap.Domain.Controllers
             return false;
         }
 
-        private void HandleClientAsync(object o)
-        {
-            Request req = o as Request;
-            if (null != req)
-            {
-                Session session = null;
-                try
-                {
-                    var clients = model.Peers.ToList();
-                    foreach (var client in clients)
-                    {
-                        try
-                        {
-                            Request response = new Request();
-                            response.RequestID = client.Secret;
-                            response.Command = "CLIENT";
-                            response.Param = req.Param;
-                            foreach (var data in req.AdditionalHeaders)
-                            {
-                                response.AdditionalHeaders.Add(data.Key, data.Value);
-                            }
-                            session = connectionService.GetClientSession(client);
-                            session.Socket.Send(Mediator.Serialize(response));
-                            connectionService.FreeClientSession(session);
-                        }
-                        catch
-                        {
-                            connectionService.FreeClientSession(session);
-                        }
-                    }
-                }
-                finally
-                {
-                    connectionService.FreeClientSession(session);
-                }
-            }
-        }
-
-
-        private object sync = new object();
+        /// <summary>
+        /// Receive a logon request from node 
+        /// </summary>
+        /// <param name="r"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
         private bool HandleConnect(Request r, Socket s)
         {
             Response response = new Response();
@@ -428,20 +406,43 @@ namespace Fap.Domain.Controllers
             {
                 if (info.Status == 0)
                 {
-                    lock (sync)
+                    bool reconnect = false;
+                    var search = omodel.Peers.ToList().Where(p => p.Node.ID == clientNode.ID).FirstOrDefault();
+                    //Remove old stream if there is one
+                    if (search != null)
                     {
-                        var search = model.Peers.ToList().Where(p => p.ID == clientNode.ID).FirstOrDefault();
-                        if (search == null)
-                        {
-                            response.Status = 0;//ok
-                            model.Peers.Add(clientNode);
-                            ThreadPool.QueueUserWorkItem(HandleWelcomeAsyncClient, clientNode);
-                            ThreadPool.QueueUserWorkItem(HandleWelcomeAsyncGlobal, clientNode);
-                        }
-                        else
-                        {
-                            response.Status = 1;//Already registered
-                        }
+                        search.Kill();
+                        omodel.Peers.Remove(search);
+                        search.OnDisconnect -= new PeerStream.Disconnect(peer_OnDisconnect);
+                        reconnect = true;
+                    }
+
+                    search = new PeerStream(clientNode, connectionService.GetClientSession(clientNode));
+                    omodel.Peers.Add(search);
+                   
+                    response.Status = 0;//ok
+                  
+                    //Transmit client info to other clients
+
+                    //If the client is reconnecting then clear out old info by sending a disconnect first.
+                    if (reconnect)
+                    {
+                        DisconnectVerb disconnect = new DisconnectVerb(clientNode);
+                        TransmitToAll(disconnect.CreateRequest());
+                    }
+
+                    ClientVerb verb = new ClientVerb(clientNode, "");
+                    TransmitToAll(verb.CreateRequest());
+
+
+                    //Transmit all known clients to the connecting node
+                    verb = new ClientVerb(omodel, "");
+                    search.AddMessage(verb.CreateRequest());
+
+                    foreach (var client in omodel.Peers.ToList())
+                    {
+                        verb = new ClientVerb(client.Node, "");
+                        search.AddMessage(verb.CreateRequest());
                     }
                 }
                 else
@@ -460,44 +461,6 @@ namespace Fap.Domain.Controllers
             response.RequestID = r.RequestID;
             s.Send(Mediator.Serialize(response));
             return false;
-        }
-
-        /// <summary>
-        /// This is called when the client signs on, it sends the current peer list.
-        /// </summary>
-        /// <param name="o"></param>
-        private void HandleWelcomeAsyncClient(object o)
-        {
-            Node node = o as Node;
-            if (null != node)
-            {
-                Session session = null;
-                try
-                {
-                    session = connectionService.GetClientSession(node);
-
-                    var clients = model.Peers.ToList();
-                    foreach (var client in clients)
-                    {
-                        ClientVerb verb = new ClientVerb(client, "");
-                        var req = verb.CreateRequest();
-                        req.RequestID = node.Secret;
-                        session.Socket.Send(Mediator.Serialize(req));
-                    }
-                    //Send this node
-                    ClientVerb v = new ClientVerb(model.Overlord, "");
-                    var request = v.CreateRequest();
-                    request.RequestID = node.Secret;
-                    session.Socket.Send(Mediator.Serialize(request));
-
-                }
-                finally
-                {
-                    connectionService.FreeClientSession(session);
-                }
-                ScanClient(node);
-            }
-
         }
 
         /// <summary>
@@ -596,101 +559,7 @@ namespace Fap.Domain.Controllers
                 r.AdditionalHeaders.Add("HTTP", webTitle);
                 r.AdditionalHeaders.Add("FTP", ftp);
                 r.AdditionalHeaders.Add("Shares", samba);
-                HandleClientAsync(r);
-            }
-        }
-
-        /// <summary>
-        /// Sends the new client to all the other clients
-        /// </summary>
-        /// <param name="o"></param>
-        private void HandleWelcomeAsyncGlobal(object o)
-        {
-            Node node = o as Node;
-            if (null != node)
-            {
-                Session session = null;
-                {
-                    var clients = model.Peers.ToList();
-                    foreach (var client in clients)
-                    {
-                        if (client == node)
-                            continue;
-                        try
-                        {
-                            session = connectionService.GetClientSession(client);
-                            ClientVerb verb = new ClientVerb(node, "");
-                            var req = verb.CreateRequest();
-                            req.RequestID = client.Secret;
-                            session.Socket.Send(Mediator.Serialize(req));
-                        }
-                        finally
-                        {
-                            connectionService.FreeClientSession(session);
-                        }
-                    }
-
-                }
-            }
-        }
-
-        public class PeerStream
-        {
-            private SafeObservable<Request> pendingRequests = new SafeObservable<Request>();
-            private Node node;
-            private bool running = true;
-            private Session session;
-            private Thread worker;
-
-            public PeerStream(Node n, Session s)
-            {
-                node = n;
-                session = s;
-                ThreadPool.QueueUserWorkItem(new WaitCallback(Process));
-            }
-
-            public bool AddMessage(Request r)
-            {
-                if (running)
-                {
-                    pendingRequests.Add(r);
-                }
-                return running;
-            }
-
-            public void Kill()
-            {
-                running = false;
-            }
-
-
-            private void Process(object o)
-            {
-                int sleep = 25;
-                worker = Thread.CurrentThread;
-                try
-                {
-                    while (running)
-                    {
-                        if (pendingRequests.Count > 0)
-                        {
-                            sleep = 25;
-                            Request r = pendingRequests[0];
-                            pendingRequests.RemoveAt(0);
-                            session.Socket.Send(Mediator.Serialize(r));
-                        }
-                        else
-                        {
-                            if (sleep < 350)
-                                sleep += 20;
-                            Thread.Sleep(sleep);
-                        }
-                    }
-                }
-                catch
-                {
-                   //Disconnect
-                }
+               TransmitToAll(r);
             }
         }
     }

@@ -23,12 +23,12 @@ using Fap.Network.Entity;
 
 namespace Fap.Domain.Verbs
 {
-    public class HeloVerb : IVerb
+    public class HelloVerb : IVerb
     {
         private Overlord node;
 
 
-        public HeloVerb(Overlord n)
+        public HelloVerb(Overlord n)
         {
             node = n;
         }
@@ -36,7 +36,7 @@ namespace Fap.Domain.Verbs
         public Network.Entity.Request CreateRequest()
         {
             Request r = new Request();
-            r.Command = "HELO";
+            r.Command = "HELLO";
             if (string.IsNullOrEmpty(ListenLocation) || -1 == ListenLocation.IndexOf(':'))
                 throw new Exception("Tried to create helo without a listen address set");
             r.Param = ListenLocation;

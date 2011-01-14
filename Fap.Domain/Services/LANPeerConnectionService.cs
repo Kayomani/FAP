@@ -313,7 +313,7 @@ namespace Fap.Domain.Services
         {
             switch (cmd.Command)
             {
-                case "HELO":
+                case "HELLO":
                     HandleHelo(cmd);
                     break;
                 case "WHO":
@@ -324,7 +324,7 @@ namespace Fap.Domain.Services
 
         private void HandleHelo(Request r)
         {
-            HeloVerb hello = new HeloVerb(null);
+            HelloVerb hello = new HelloVerb(null);
             hello.ProcessRequest(r);
             lock (sync)
             {
