@@ -44,6 +44,7 @@ namespace Fap.Application.ViewModels
         private ICommand closing;
         private ICommand openExternal;
         private ICommand compare;
+        private ICommand userinfo;
         private object logView;
         private object selectedClient;
         private string avatar;
@@ -55,7 +56,7 @@ namespace Fap.Application.ViewModels
         private SafeObservable<Node> peers;
         private bool visible = false;
         private bool allowClose = false;
-        private Fap.Domain.Entity.Network currentNetwork;
+        private Fap.Network.Entity.Network currentNetwork;
         private string networkStats;
         private string overlordStatus;
         private Model model;
@@ -111,7 +112,7 @@ namespace Fap.Application.ViewModels
             }
         }
 
-        public Fap.Domain.Entity.Network CurrentNetwork
+        public Fap.Network.Entity.Network CurrentNetwork
         {
             get { return currentNetwork; }
             set
@@ -280,6 +281,17 @@ namespace Fap.Application.ViewModels
             {
                 compare = value;
                 RaisePropertyChanged("Compare");
+            }
+        }
+
+
+        public ICommand UserInfo
+        {
+            get { return userinfo; }
+            set
+            {
+                userinfo = value;
+                RaisePropertyChanged("UserInfo");
             }
         }
 

@@ -89,7 +89,6 @@
     <Compile Include="Entity\DownloadRequest.cs" />
     <Compile Include="Entity\FileSystemEntity.cs" />
     <Compile Include="Entity\Model.cs" />
-    <Compile Include="Entity\Network.cs" />
     <Compile Include="Entity\NodeModel.cs" />
     <Compile Include="Entity\Share.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -110,6 +109,7 @@
     <Compile Include="Verbs\DisconnectVerb.cs" />
     <Compile Include="Verbs\HeloVerb.cs" />
     <Compile Include="Verbs\InfoVerb.cs" />
+    <Compile Include="Verbs\PingVerb.cs" />
     <Compile Include="Verbs\VerbBase.cs" />
     <Compile Include="Verbs\VerbFactory.cs" />
     <Compile Include="Verbs\WhoVerb.cs" />

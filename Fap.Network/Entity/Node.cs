@@ -34,11 +34,7 @@ namespace Fap.Network.Entity
         private string secret;
 
 
-        public Node()
-        {
-            data.Set("ID", IDService.CreateID());
-        }
-
+        public Fap.Network.Entity.Network Network { get; set; }
 
         public string Secret
         {
@@ -70,8 +66,17 @@ namespace Fap.Network.Entity
 
         public long LastUpdate
         {
-            set { lastUpdate = value; NotifyChange("LastUpdate"); }
-            get { return lastUpdate; }
+            set
+            {
+                lock (sync)
+                    lastUpdate = value;
+                NotifyChange("LastUpdate");
+            }
+            get
+            {
+                lock (sync)
+                    return lastUpdate;
+            }
         }
 
         public string ClientVersion
@@ -261,6 +266,10 @@ namespace Fap.Network.Entity
         {
             this.data.Set(key, data);
             NotifyChange(key);
+
+            if (data == "B260A9D0941348968A2427F82D234A5A")
+            {
+            }
 
             switch (key)
             {

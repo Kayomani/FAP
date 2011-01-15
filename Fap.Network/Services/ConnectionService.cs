@@ -49,6 +49,12 @@ namespace Fap.Network.Services
                 s.InUse = false;
         }
 
+        public void RemoveClientSession(Session s)
+        {
+            if (sessions.Contains(s))
+                sessions.Remove(s);
+        }
+
      
 
         public void RemoveServerSession(MemoryBuffer arg)

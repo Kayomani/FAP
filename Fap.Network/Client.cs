@@ -61,6 +61,9 @@ namespace Fap.Network
 
                 ConnectionToken token = new ConnectionToken();
                 int wait = 1;
+
+                int startTime = Environment.TickCount;
+
                 while (session.Socket.Connected)
                 {
                     if (session.Socket.Available > 0)
@@ -74,7 +77,14 @@ namespace Fap.Network
                     }
                     else
                     {
-
+                        //Time out
+                        if (Environment.TickCount - startTime > 10000)
+                        {
+                            response = null;
+                            session.Socket.Close();
+                            connectionService.RemoveClientSession(session);
+                            return false;
+                        }
                         Thread.Sleep(wait);
                         if (wait < 200)
                             wait += 10;

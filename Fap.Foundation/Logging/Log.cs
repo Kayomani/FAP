@@ -35,7 +35,11 @@ namespace Fap.Foundation.Logging
             get
             {
                 StringBuilder sb = new StringBuilder();
-                sb.Append(When.ToShortTimeString());
+                sb.Append(When.Hour);
+                sb.Append(":");
+                sb.Append(When.Minute);
+                sb.Append(":");
+                sb.Append(When.Second);
                 sb.Append(" ");
                 sb.Append(Message);
                 return sb.ToString();

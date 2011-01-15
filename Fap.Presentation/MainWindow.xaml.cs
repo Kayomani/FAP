@@ -231,6 +231,8 @@ namespace Fap.Presentation
                     m = new MenuItem();
                     m.Foreground = Brushes.Black;
                     m.Header = "View Information";
+                    m.CommandParameter = peer;
+                    m.Command = Model.UserInfo;
                     src.ContextMenu.Items.Add(m);
                     return;
                 }

@@ -37,13 +37,15 @@ namespace Fap.Application.Controllers
         private Logger logger;
         private BufferService bufferService;
         private Thread worker;
+        private LANPeerConnectionService peerService;
 
-        public WatchdogController(ConnectionService cs, Model model, Logger log, BufferService bufferService)
+        public WatchdogController(ConnectionService cs, Model model, Logger log, BufferService bufferService, LANPeerConnectionService ps)
         {
             connectionService = cs;
             this.model = model;
             logger = log;
             this.bufferService = bufferService;
+            peerService = ps;
         }
 
         public void Run()
@@ -63,7 +65,7 @@ namespace Fap.Application.Controllers
             worker = Thread.CurrentThread;
             Thread.CurrentThread.IsBackground = false;
 
-             while(true)
+            while(true)
             {
                 try
                 {
@@ -95,6 +97,8 @@ namespace Fap.Application.Controllers
                         //Clean up excess buffers
                         bufferService.Clean();
 
+
+                       // peerService.SendPing();
                         //Check clients are still alive
                         /* foreach (var client in model.Clients.ToList())
                          {

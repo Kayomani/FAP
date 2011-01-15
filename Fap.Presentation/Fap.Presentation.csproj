@@ -141,6 +141,9 @@
       <DependentUpon>DownloadQueue.xaml</DependentUpon>
     </Compile>
     <Compile Include="Panels\IsNullConverter.cs" />
+    <Compile Include="Panels\UserInfoPanel.xaml.cs">
+      <DependentUpon>UserInfoPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SessionTypeConverter.cs" />
     <Compile Include="Panels\SettingsPanel.xaml.cs">
       <DependentUpon>SettingsPanel.xaml</DependentUpon>
@@ -266,6 +269,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Panels\SharesPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Panels\UserInfoPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -30,7 +30,7 @@ namespace Fap.Domain.Services
         private SafeObservable<DetectedOverlord> overlordList = new SafeObservable<DetectedOverlord>();
         private Model model;
         private Node transmitted = new Node();
-        private Fap.Domain.Entity.Network network;
+        private Fap.Network.Entity.Network network;
         private long lastConnected = Environment.TickCount;
 
         //Services
@@ -61,7 +61,7 @@ namespace Fap.Domain.Services
             bufferService = container.Resolve<BufferService>();
         }
 
-        public void Start(Fap.Domain.Entity.Network local)
+        public void Start(Fap.Network.Entity.Network local)
         {
             network = local;
             local.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(local_PropertyChanged);
@@ -81,19 +81,21 @@ namespace Fap.Domain.Services
                 //Notify network of disconnect
                 DisconnectVerb disconnect = new DisconnectVerb(model.Node);
                 string secret = string.Empty;
-                Session overlord = GetOverlordConnection(out secret);
-                if (null != overlord)
+                Session session = GetOverlordConnection(out secret);
+                if (null != session)
                 {
                     Request request = disconnect.CreateRequest();
                     request.RequestID = secret;
                     Client c = new Client(bufferService, connectionService);
                     Response response = new Response();
-                    if (!c.Execute(request, overlord, out response) || response.Status != 0)
+                    if (!c.Execute(request, session, out response) || response.Status != 0)
                     {
                         logger.AddWarning("Failed to log off correctly.");
                     }
                 }
             }
+            if (IsOverlord)
+                overlord.Stop();
         }
 
         private void local_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -166,6 +168,11 @@ namespace Fap.Domain.Services
                     {
                         if (freeSlots < (peers * 0.05) || serverCount<3)
                             requireNewServer = true;
+                    }
+
+                    if (!requireNewServer)
+                    {
+                        requireNewServer = orderedList.Count == 0;
                     }
 
                     if (requireNewServer)
@@ -266,7 +273,7 @@ namespace Fap.Domain.Services
                                         var search = model.Networks.Where(n => n.ID == connect.NetworkID).FirstOrDefault();
                                         if (null == search)
                                         {
-                                            search = new Domain.Entity.Network();
+                                            search = new Fap.Network.Entity.Network();
                                             search.ID = "LOCAL";// connect.NetworkID;
                                             model.Networks.Add(search);
                                         }
@@ -274,9 +281,14 @@ namespace Fap.Domain.Services
                                         search.OverlordID = connect.OverlordID;
                                         search.Secret = connect.Secret;
                                         search.State = ConnectionState.Connected;
-                                        logger.AddInfo("Connected to the local FAP network.");
+                                        logger.AddInfo("Connected to local overlord on " + serverNode.Host + " (" + search.OverlordID + ")");
                                         break;
                                     }
+                                }
+                                else
+                                {
+                                    logger.AddInfo("Connection to  " + serverNode.Host + " timed out");
+                                    server.IsBanned = true;
                                 }
                             }
                             catch
@@ -439,6 +451,33 @@ namespace Fap.Domain.Services
         }
 
 
+        public void SendPing()
+        {
+            if (network.State == ConnectionState.Connected)
+                ThreadPool.QueueUserWorkItem(new WaitCallback(SendPingAsync));
+        }
+
+
+        private void SendPingAsync(object o)
+        {
+            PingVerb ping = new PingVerb(model.Node);
+            string secret = string.Empty;
+            Session overlord = GetOverlordConnection(out secret);
+            var request = ping.CreateRequest();
+            request.RequestID = secret;
+            Client c = new Client(bufferService, connectionService);
+            Response response = new Response();
+            if (!c.Execute(request, overlord, out response) || response.Status != 0)
+            {
+                logger.AddError("Failed to send chat message, try again shortly.");
+            }
+            else
+            {
+                ping.ReceiveResponse(response);
+                logger.AddError("Ping time " + ping.Time);
+            }
+        }
+
         private void SendChatMessageAsync(object o)
         {
             string message = o as string;
@@ -475,7 +514,7 @@ namespace Fap.Domain.Services
                 {
                     logger.AddInfo("Disconnected from local network");
 
-                    var currentOverlord = overlordList.Where(o => o.ID == local.ID).FirstOrDefault();
+                    var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
                     if (null != currentOverlord)
                     {
                         currentOverlord.Ban(4000);
@@ -504,26 +543,26 @@ namespace Fap.Domain.Services
 
         public class DetectedOverlord
         {
-            private long bantime;
+            private long banExpire;
 
             public bool IsBanned
             {
                 get
                 {
-                    return (bantime + OVERLORD_DETECTED_TIMEOUT) > Environment.TickCount;
+                    return banExpire > Environment.TickCount;
                 }
                 set
                 {
                     if (value)
-                        bantime = Environment.TickCount;
+                        banExpire = Environment.TickCount + OVERLORD_DETECTED_TIMEOUT;
                     else
-                        bantime = 0;
+                        banExpire = 0;
                 }
             }
 
             public void Ban(long time)
             {
-                bantime = Environment.TickCount + (OVERLORD_DETECTED_TIMEOUT - time);
+                banExpire = Environment.TickCount  +time;
             }
 
             public string Location { set; get; }

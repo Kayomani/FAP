@@ -56,7 +56,7 @@ namespace Fap.Domain.Entity
         [XmlIgnore]
         private SafeObservable<Share> shares;
         [XmlIgnore]
-        private SafeObservable<Network> networks;
+        private SafeObservable<Fap.Network.Entity.Network> networks;
         [XmlIgnore]
         private SafeObservable<string> messages;
         [XmlIgnore]
@@ -78,7 +78,7 @@ namespace Fap.Domain.Entity
         {
             peers = new SafeObservable<Node>();
             shares = new SafeObservable<Share>();
-            networks = new SafeObservable<Network>();
+            networks = new SafeObservable<Fap.Network.Entity.Network>();
             node = new Fap.Network.Entity.Node();
             sessions = new SafeObservable<Session>();
             messages = new SafeObservable<string>();
@@ -116,7 +116,7 @@ namespace Fap.Domain.Entity
         
 
         [XmlIgnore]
-        public SafeObservable<Network> Networks
+        public SafeObservable<Fap.Network.Entity.Network> Networks
         {
             set { networks = value; NotifyChange("Networks"); }
             get { return networks; }

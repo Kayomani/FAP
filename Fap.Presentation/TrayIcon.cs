@@ -88,7 +88,7 @@ namespace Fap.Presentation
             MenuItem src = sender as MenuItem;
             if (null != src)
             {
-                Domain.Entity.Network network = src.Tag as Domain.Entity.Network;
+                Fap.Network.Entity.Network network = src.Tag as Fap.Network.Entity.Network;
                 if (null != network)
                 {
                     var peers = model.Model.Peers.ToList().OrderBy(p=>p.Nickname).ToList();

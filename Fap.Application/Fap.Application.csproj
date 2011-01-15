@@ -102,6 +102,7 @@
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="ViewModels\SharesViewModel.cs" />
     <Compile Include="ViewModels\TrayIconViewModel.cs" />
+    <Compile Include="ViewModels\UserInfoViewModel.cs" />
     <Compile Include="Views\IBrowserView.cs" />
     <Compile Include="Views\IConverstationView.cs" />
     <Compile Include="Views\ICompareView.cs" />
@@ -114,6 +115,7 @@
     <Compile Include="Views\ISettingsView.cs" />
     <Compile Include="Views\ISharesView.cs" />
     <Compile Include="Views\ITrayIconView.cs" />
+    <Compile Include="Views\IUserInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fap.Domain\Fap.Domain.csproj">

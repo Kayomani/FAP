@@ -29,6 +29,7 @@ using Fap.Foundation;
 using System.Threading;
 using Fap.Domain.Entity;
 using Fap.Domain.Controllers;
+using Fap.Foundation.Logging;
 
 namespace Fap.Domain.Services
 {
@@ -37,6 +38,7 @@ namespace Fap.Domain.Services
         private FAPListener listener;
         private Model model;
         private LANPeerConnectionService peerController;
+        private Logger logger;
 
         public ServerService(IContainer c)
         {
@@ -44,10 +46,12 @@ namespace Fap.Domain.Services
             listener = c.Resolve<FAPListener>();
             peerController = c.Resolve<LANPeerConnectionService>();
             listener.OnReceiveRequest += new FAPListener.ReceiveRequest(listener_OnReceiveRequest);
+            logger = c.Resolve<Logger>();
         }
 
         private bool listener_OnReceiveRequest(Request r, Socket s)
         {
+            logger.AddInfo("RX " + r.Command + " " + r.Param);
             switch (r.Command)
             {
                 case "CLIENT":
@@ -87,16 +91,19 @@ namespace Fap.Domain.Services
                 var localNet = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
                 if (null != localNet)
                 {
+                    var peers = model.Peers.Where(p => p.Network == localNet).ToList();
+                    foreach (var p in peers)
+                        model.Peers.Remove(p);
+
                     if (localNet.OverlordID == r.Param)
                         peerController.Disconnect();
 
-                    model.Peers.Lock();
                     var peer = model.Peers.Where(p => p.ID == r.Param).FirstOrDefault();
                     if (null != peer)
                         model.Peers.Remove(peer);
-                    model.Peers.Unlock();
-                }
 
+                   
+                }
             }
             return false;
         }
@@ -144,6 +151,7 @@ namespace Fap.Domain.Services
                 if (search == null)
                 {
                     search = new Node();
+                    search.Network =  model.Networks.Where(n=>n.ID == "LOCAL").FirstOrDefault();
                     foreach (var param in r.AdditionalHeaders)
                         search.SetData(param.Key, param.Value);
                     model.Peers.Add(search);
@@ -160,9 +168,8 @@ namespace Fap.Domain.Services
         public void Start()
         {
             var address = GetLocalAddress();
-            listener.Start(address, 95);
+            model.Node.Port =listener.Start(address, 95);
             model.Node.Host = address.ToString();
-            model.Node.Port = 95;
         }
 
         private IPAddress GetLocalAddress()

@@ -182,7 +182,7 @@ namespace Fap.Application.Controllers
                 model.MaxOverlordPeers = 50;
 
             //Add local network manually
-            Fap.Domain.Entity.Network network = new Domain.Entity.Network();
+            Fap.Network.Entity.Network network = new Network.Entity.Network();
             network.ID = "LOCAL";
             network.Name = "Local";
             network.State = Network.ConnectionState.Disconnected;
@@ -275,6 +275,18 @@ namespace Fap.Application.Controllers
             }
         }
 
+        private void showUserInfo(object obj)
+        {
+            Node n = obj as Node;
+            if (null != n)
+            {
+                var o = container.Resolve<UserInfoViewModel>();
+                o.Node = n;
+                popupController.AddWindow(o.View, "User info (" + n.Nickname + ")");
+            }
+        }
+
+
         private void ShowMainWindow()
         {
             if (null == mainWindowModel)
@@ -292,6 +304,7 @@ namespace Fap.Application.Controllers
                 mainWindowModel.OpenExternal = new DelegateCommand(OpenExternal);
                 mainWindowModel.Compare = new DelegateCommand(Compare);
                 mainWindowModel.Chat = new DelegateCommand(Chat);
+                mainWindowModel.UserInfo = new DelegateCommand(showUserInfo);
                 mainWindowModel.LogView = loggerModel.View;
                 mainWindowModel.Avatar = model.Avatar;
                 mainWindowModel.Nickname = model.Nickname;
@@ -362,7 +375,7 @@ namespace Fap.Application.Controllers
 
         private void Exit()
         {
-            QueueWork(new DelegateCommand(ShutDown));
+            ThreadPool.QueueUserWorkItem(new WaitCallback(ShutDownAsync));
         }
 
         void ClientList_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -515,11 +528,15 @@ namespace Fap.Application.Controllers
             ShowMainWindow();
         }
 
-        public void ShutDown()
+        public void ShutDownAsync(object param)
         {
-           // model.Server.Stop();
-          //  peerController.StopBroadcast();
-          //  peerController.AnnounceQuit();
+            
+            model.Save();
+            model.DownloadQueue.Save();
+
+            //Do not do this on the dispatcher thread!
+            peerController.Stop();
+
             //Try to kill off existing connections (Dangerous)
             foreach (var session in model.Sessions.ToList())
             {
@@ -533,9 +550,8 @@ namespace Fap.Application.Controllers
                 }
                 catch { }
             }
-
             long start = Environment.TickCount;
-            while (model.Sessions.ToList().Where(s=>!s.IsUpload  && s.InUse).Count() > 0)
+            while (model.Sessions.ToList().Where(s => !s.IsUpload && s.InUse).Count() > 0)
             {
                 //Wait for sessions to close
                 Thread.Sleep(20);
@@ -543,10 +559,9 @@ namespace Fap.Application.Controllers
                 if (Environment.TickCount - start > 10000)
                     break;
             }
-            model.Save();
-            model.DownloadQueue.Save();
 
-            mainWindowModel.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+            //Kill UI
+            SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
             new Action(
              delegate()
              {
@@ -556,7 +571,6 @@ namespace Fap.Application.Controllers
                      chatController.Close();
                      mainWindowModel.Close();
                      trayIcon.Dispose();
-                     peerController.Stop();
                  }
              }
             ));

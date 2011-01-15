@@ -74,11 +74,11 @@ namespace Fap.Network.Entity
                     else
                     {
                         //Check for client timeout
-                        if (Environment.TickCount - node.LastUpdate > 60000)
+                        if (Environment.TickCount - node.LastUpdate > 10000)
                         {
-                          //  Kill();
-                           // if (null != OnDisconnect)
-                           //     OnDisconnect(this);
+                            Kill();
+                            if (null != OnDisconnect)
+                                OnDisconnect(this);
                         }
                         if (sleep < 350)
                             sleep += 20;

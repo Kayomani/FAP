@@ -74,6 +74,7 @@
     <Compile Include="Client.cs" />
     <Compile Include="ConnectionToken.cs" />
     <Compile Include="Entity\Address.cs" />
+    <Compile Include="Entity\Network.cs" />
     <Compile Include="Entity\Node.cs" />
     <Compile Include="Entity\Overlord.cs" />
     <Compile Include="Entity\PeerStream.cs" />
