@@ -35,6 +35,11 @@ using Fap.Foundation.Services;
 
 namespace Fap.Domain.Controllers
 {
+    /// <summary>
+    /// TODO:
+    /// Netsplit handling
+    /// Node timeout
+    /// </summary>
     public class OverlordController : AsyncControllerBase
     {
         private bool running = false;
@@ -46,7 +51,7 @@ namespace Fap.Domain.Controllers
         private BufferService bufferService;
         private string listenLocation;
         private Logger logService;
-        
+
         //Announcer
         private Thread announcer;
         private long lastAnnounce;
@@ -57,6 +62,9 @@ namespace Fap.Domain.Controllers
         private string networkID;
         private string networkName;
         private Model model;
+
+
+        private SafeObservable<Node> externalNodes = new SafeObservable<Node>();
 
         public OverlordController(IContainer c)
         {
@@ -91,12 +99,12 @@ namespace Fap.Domain.Controllers
                 bufferService = container.Resolve<BufferService>();
                 connectionService = container.Resolve<ConnectionService>();
                 bclient.OnBroadcastCommandRx += new BroadcastClient.BroadcastCommandRx(bclient_OnBroadcastCommandRx);
-                ThreadPool.QueueUserWorkItem(new WaitCallback(Process_announce));
                 model.Overlord.Host = ip.ToString();
                 model.Overlord.Port = port;
                 model.Overlord.Nickname = "Overlord";
                 model.Overlord.ID = IDService.CreateID();
                 bclient.StartListener();
+                ThreadPool.QueueUserWorkItem(new WaitCallback(Process_announce));
             }
             else
                 throw new Exception("Super node alrady running.");
@@ -112,10 +120,10 @@ namespace Fap.Domain.Controllers
             int startTime = Environment.TickCount;
 
             //Wait for outstanding streams to empty for up to 4 seconds.
-            while (model.Overlord.Peers.Where(p => p.Running).Select(p => p.PendingRequests).Sum() > 0 && Environment.TickCount-startTime<4000)
+            while (model.Overlord.Peers.Where(p => p.Running).Select(p => p.PendingRequests).Sum() > 0 && Environment.TickCount - startTime < 4000)
                 Thread.Sleep(25);
         }
-        
+
 
 
         private void GenerateStrength()
@@ -140,6 +148,13 @@ namespace Fap.Domain.Controllers
         private void TransmitToAll(Request r)
         {
             foreach (var peer in model.Overlord.Peers.ToList())
+                peer.AddMessage(r);
+
+        }
+
+        private void TransmitToAllNonOverlords(Request r)
+        {
+            foreach (var peer in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType != ClientType.Overlord && p.Node.NodeType != ClientType.Unknown))
                 peer.AddMessage(r);
         }
 
@@ -170,6 +185,7 @@ namespace Fap.Domain.Controllers
         /// <returns></returns>
         private bool listener_OnReceiveRequest(Request r, Socket s)
         {
+            logService.AddInfo("Overlord RX " + r.Command + " " + r.Param);
             switch (r.Command)
             {
                 case "CONNECT":
@@ -187,7 +203,7 @@ namespace Fap.Domain.Controllers
                 default:
 #if DEBUG
                     throw new Exception("Unknown command");
-                    
+
 #else
                     s.Close();
                     break;
@@ -240,18 +256,29 @@ namespace Fap.Domain.Controllers
             }
             else
             {
-                response.Status = 1;
+                //Is it a peer from another overlord?
+                var osearch = externalNodes.Where(n => n.Secret == r.RequestID && r.Param == n.ID).FirstOrDefault();
+                if (null != osearch)
+                {
+                    externalNodes.Remove(osearch);
+                    TransmitToAllNonOverlords(r);
+                    response.Status = 0;
+                }
+                else
+                {
+                    response.Status = 1;
+                }
             }
             s.Send(Mediator.Serialize(response));
             return false;
         }
 
-       /// <summary>
-       /// Receive a chat message, if from a valid peer then forward onto all other peers
-       /// </summary>
-       /// <param name="r"></param>
-       /// <param name="s"></param>
-       /// <returns></returns>
+        /// <summary>
+        /// Receive a chat message, if from a valid peer then forward onto all other peers
+        /// </summary>
+        /// <param name="r"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
         private bool HandleChat(Request r, Socket s)
         {
             var search = model.Overlord.Peers.Where(p => p.Node.Secret == r.RequestID && p.Node.ID == r.Param).FirstOrDefault();
@@ -288,38 +315,68 @@ namespace Fap.Domain.Controllers
                 return;
             if (model.Overlord.ID == verb.ID)
                 return;
+            if (connectingIDs.Contains(verb.ID))
+                return;
+            connectingIDs.Add(verb.ID);
+
             //Connect remote client async as it may take time to fail.
-            ThreadPool.QueueUserWorkItem(HandleHeloAsync, cmd);
+            ThreadPool.QueueUserWorkItem(HandleHeloAsync, verb);
         }
+
+        private SafeObservable<string> connectingIDs = new SafeObservable<string>();
 
         private void HandleHeloAsync(object o)
         {
+            HelloVerb hello = o as HelloVerb;
+            if (null == hello)
+                return;
             try
             {
-                Request cmd = o as Request;
-                if (null != cmd)
+                Client c = new Client(bufferService, connectionService);
+                Node node = new Node();
+                node.ID = hello.ID;
+                //Unknown clients are not transmitted
+                node.NodeType = ClientType.Unknown;
+                PeerStream peer = null;
+                node.Location = hello.ListenLocation;
+                ConnectVerb connect = new ConnectVerb(model.Overlord);
+                connect.RemoteLocation = model.Overlord.Location;
+                var request = connect.CreateRequest();
+                request.RequestID = IDService.CreateID();
+                node.Secret = request.RequestID;
+
+                var session = connectionService.GetClientSession(node);
+                if (session != null)
                 {
-                    Node n = new Node();
-                    n.Location  =cmd.Param;
-                    
-                    var session = connectionService.GetClientSession(n);
-                    Client client = new Client(bufferService, connectionService);
-                    InfoVerb info = new InfoVerb(model.Overlord);
-                    info.Model = n;
-                    if (client.Execute(info, n))
+                    peer = new PeerStream(node, session);
+                    peer.OnDisconnect += new PeerStream.Disconnect(peer_OnDisconnect);
+                    model.Overlord.Peers.Add(peer);
+                }
+                Response response = new Response();
+                if (c.Execute(request, node, out response) && response.Status == 0)
+                {
+                    //Registered ok, announce
+                    ClientVerb info = new ClientVerb(node);
+                    TransmitToAllNonOverlords(info.CreateRequest());
+
+                    //Transmit all clients to the new overlord
+                    foreach (var client in model.Overlord.Peers.ToList().Where(p => p.Node.ID != node.ID))
                     {
-                        var search = model.Overlord.Peers.Where(p => p.Node.ID == n.ID).FirstOrDefault();
-                        if (null == search)
-                        {
-                           
-                            PeerStream peer = new PeerStream(n, session);
-                            peer.OnDisconnect += new PeerStream.Disconnect(peer_OnDisconnect);
-                            model.Overlord.Peers.Add(peer);
-                        }
+                        info = new ClientVerb(client.Node);
+                        peer.AddMessage(info.CreateRequest());
                     }
+                }
+                else
+                {
+                    //Something went wrong
+                    model.Overlord.Peers.Remove(peer);
                 }
             }
             catch { }
+            finally
+            {
+                connectingIDs.Remove(hello.ID);
+            }
         }
 
         private void peer_OnDisconnect(PeerStream s)
@@ -330,6 +387,16 @@ namespace Fap.Domain.Controllers
             //Notify other peers
             DisconnectVerb verb = new DisconnectVerb(s.Node);
             TransmitToAll(verb.CreateRequest());
+
+            //Onos netsplit!
+            if (s.Node.NodeType == ClientType.Overlord)
+            {
+                var items = externalNodes.Where(n => n.Secret == s.Node.Secret).ToList();
+                foreach (var node in items)
+                {
+
+                }
+            }
 
             //Try to send disconnect notification
             try
@@ -382,6 +449,7 @@ namespace Fap.Domain.Controllers
 
         /// <summary>
         /// Receive a request containing updated client record information, if a valid client store and forward on.
+        /// Alternatively this might a forwarded request from another overlord
         /// </summary>
         /// <param name="r"></param>
         /// <param name="s"></param>
@@ -389,28 +457,62 @@ namespace Fap.Domain.Controllers
         private bool HandleClient(Request r, Socket s)
         {
             var client = model.Overlord.Peers.Where(p => p.Node.ID == r.Param && r.RequestID == p.Node.Secret).FirstOrDefault();
-            if (null == client)
+            if (null != client)
             {
-                //Unregisted client or invalid info.
-                Response response = new Response();
-                response.RequestID = r.RequestID;
-                response.Status = 1;
-                s.Send(Mediator.Serialize(response));
-                return false;
+                logService.AddInfo("Overlord RX d client " + r.Param);
+                client.Node.LastUpdate = Environment.TickCount;
+                //Client is ok, replicate new info.
+                if (r.AdditionalHeaders.Count > 0)
+                {
+                    foreach (var info in r.AdditionalHeaders)
+                        client.Node.SetData(info.Key, info.Value);
+                    TransmitToAll(r);
+                    Response response = new Response();
+                    response.RequestID = r.RequestID;
+                    response.Status = 0;
+                    s.Send(Mediator.Serialize(response));
+                }
+            }
+            else
+            {
+                var overlord = model.Overlord.Peers.Where(p => p.Node.NodeType == ClientType.Overlord && r.RequestID == p.Node.Secret).FirstOrDefault();
+                if (null != overlord)
+                {
+                    //Received relayed information from a registered overlord, forward on again
+                    overlord.Node.LastUpdate = Environment.TickCount;
+                    logService.AddInfo("Overlord foward client " + r.Param + " from " + overlord.Node.ID);
+                    var search = externalNodes.Where(n => n.ID == r.Param).FirstOrDefault();
+                    if (search != null)
+                    {
+                        foreach (var kn in r.AdditionalHeaders)
+                            search.SetData(kn.Key, kn.Value);
+                    }
+                    else
+                    {
+                        Node n = new Node();
+                        n.ID = r.Param;
+                        externalNodes.Add(n);
+                        foreach (var kn in r.AdditionalHeaders)
+                            n.SetData(kn.Key, kn.Value);
+                    }
+
+                    TransmitToAllNonOverlords(r);
+                    Response response = new Response();
+                    response.RequestID = r.RequestID;
+                    response.Status = 0;
+                    s.Send(Mediator.Serialize(response));
+                }
+                else
+                {
+                    logService.AddInfo("Overlord unreg client " + r.Param);
+                    //Unregisted client or invalid info.
+                    Response response = new Response();
+                    response.RequestID = r.RequestID;
+                    response.Status = 1;
+                    s.Send(Mediator.Serialize(response));
+                }
             }
 
-            client.Node.LastUpdate = Environment.TickCount;
-            //Client is ok, replicate new info.
-            if (r.AdditionalHeaders.Count > 0)
-            {
-                foreach (var info in r.AdditionalHeaders)
-                    client.Node.SetData(info.Key, info.Value);
-                TransmitToAll(r);
-                Response response = new Response();
-                response.RequestID = r.RequestID;
-                response.Status = 0;
-                s.Send(Mediator.Serialize(response));
-            }
             return false;
         }
 
@@ -423,68 +525,81 @@ namespace Fap.Domain.Controllers
         private bool HandleConnect(Request r, Socket s)
         {
             Response response = new Response();
-            Client c = new Client(bufferService, connectionService);
-            Node clientNode = new Node();
-            InfoVerb info = new InfoVerb(clientNode);
-
-            clientNode.Location = r.Param;
-            clientNode.Secret = r.RequestID;
-            if (c.Execute(info, clientNode))
+            try
             {
-                if (info.Status == 0)
+                Client c = new Client(bufferService, connectionService);
+                Node clientNode = new Node();
+                InfoVerb info = new InfoVerb(clientNode);
+
+                clientNode.Location = r.Param;
+                clientNode.Secret = r.RequestID;
+                if (c.Execute(info, clientNode))
                 {
-                    bool reconnect = false;
-                    var search = model.Overlord.Peers.ToList().Where(p => p.Node.ID == clientNode.ID).FirstOrDefault();
-                    //Remove old stream if there is one
-                    if (search != null)
+                    if (info.Status == 0)
                     {
-                        search.Kill();
-                        model.Overlord.Peers.Remove(search);
-                        search.OnDisconnect -= new PeerStream.Disconnect(peer_OnDisconnect);
-                        reconnect = true;
-                    }
+                        bool reconnect = false;
+                        var search = model.Overlord.Peers.ToList().Where(p => p.Node.ID == clientNode.ID).FirstOrDefault();
+                        //Remove old stream if there is one
+                        if (search != null)
+                        {
+                            search.Kill();
+                            model.Overlord.Peers.Remove(search);
+                            search.OnDisconnect -= new PeerStream.Disconnect(peer_OnDisconnect);
+                            reconnect = true;
+                        }
 
-                    clientNode.LastUpdate = Environment.TickCount;
-                    search = new PeerStream(clientNode, connectionService.GetClientSession(clientNode));
-                    search.OnDisconnect += new PeerStream.Disconnect(peer_OnDisconnect);
-                   
-                   
-                    response.Status = 0;//ok
-                  
-                    //Transmit client info to other clients
-
-                    //If the client is reconnecting then clear out old info by sending a disconnect first.
-                    if (reconnect)
-                    {
-                        DisconnectVerb disconnect = new DisconnectVerb(clientNode);
-                        TransmitToAll(disconnect.CreateRequest());
-                    }
-
-                    model.Overlord.Peers.Add(search);
-
-                    ClientVerb verb = new ClientVerb(clientNode, "");
-                    TransmitToAll(verb.CreateRequest());
+                        clientNode.LastUpdate = Environment.TickCount;
+                        search = new PeerStream(clientNode, connectionService.GetClientSession(clientNode));
+                        search.OnDisconnect += new PeerStream.Disconnect(peer_OnDisconnect);
 
 
-                    //Transmit all known clients to the connecting node
-                    verb = new ClientVerb(model.Overlord, "");
-                    search.AddMessage(verb.CreateRequest());
+                        response.Status = 0;//ok
 
-                    foreach (var client in model.Overlord.Peers.ToList())
-                    {
-                        verb = new ClientVerb(client.Node, "");
+                        //Transmit client info to other clients
+
+                        //If the client is reconnecting then clear out old info by sending a disconnect first.
+                        if (reconnect)
+                        {
+                            DisconnectVerb disconnect = new DisconnectVerb(clientNode);
+                            TransmitToAll(disconnect.CreateRequest());
+                        }
+
+                        model.Overlord.Peers.Add(search);
+
+                        ClientVerb verb = new ClientVerb(clientNode);
+                        TransmitToAll(verb.CreateRequest());
+
+
+                        //Transmit all known clients to the connecting node
+                        verb = new ClientVerb(model.Overlord);
                         search.AddMessage(verb.CreateRequest());
+
+                        foreach (var client in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType != ClientType.Unknown))
+                        {
+                            verb = new ClientVerb(client.Node);
+                            search.AddMessage(verb.CreateRequest());
+                        }
+
+                        foreach (var client in externalNodes.ToList())
+                        {
+                            verb = new ClientVerb(client);
+                            search.AddMessage(verb.CreateRequest());
+                        }
                     }
+                    else
+                    {
+                        response.Status = 3;//Other error
+                    }
+
                 }
                 else
                 {
-                    response.Status = 3;//Other error
+                    response.Status = 2;//Could not connect
                 }
-
             }
-            else
+            catch
             {
-                response.Status = 2;//Could not connect
+                response.Status = 4;
             }
             response.AdditionalHeaders.Add("Host", model.Overlord.ID);
             response.AdditionalHeaders.Add("ID", networkID);
@@ -523,7 +638,7 @@ namespace Fap.Domain.Controllers
                 client.Connect(n.Host, 21);
                 ftp = "FTP";
                 StringBuilder sb = new StringBuilder();
-                long start = Environment.TickCount+3000;
+                long start = Environment.TickCount + 3000;
                 byte[] data = new byte[20000];
                 client.ReceiveBufferSize = data.Length;
 
@@ -560,12 +675,12 @@ namespace Fap.Domain.Controllers
                     {
                         try
                         {
-                            if(sb.Length>0)
+                            if (sb.Length > 0)
                                 sb.Append("|");
                             //Make sure its readable
                             System.IO.DirectoryInfo[] Flds = share.Root.GetDirectories();
                             sb.Append(share.NetName);
-                           
+
                         }
                         catch { }
                     }
@@ -590,7 +705,7 @@ namespace Fap.Domain.Controllers
                 r.AdditionalHeaders.Add("HTTP", webTitle);
                 r.AdditionalHeaders.Add("FTP", ftp);
                 r.AdditionalHeaders.Add("Shares", samba);
-               TransmitToAll(r);
+                TransmitToAll(r);
             }
         }
     }

@@ -78,7 +78,7 @@ namespace Fap.Network
                     else
                     {
                         //Time out
-                        if (Environment.TickCount - startTime > 10000)
+                        if (Environment.TickCount - startTime > 30000)
                         {
                             response = null;
                             session.Socket.Close();

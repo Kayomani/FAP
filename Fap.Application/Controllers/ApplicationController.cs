@@ -117,9 +117,9 @@ namespace Fap.Application.Controllers
             {
                 model.Load();
             }
-            catch (Exception e)
+            catch
             {
-                logger.LogException(e);
+                logger.AddInfo("Failed to read config file, using defaults");
             }
 
             //If there is no avatar set then put in the default
@@ -173,9 +173,9 @@ namespace Fap.Application.Controllers
                 model.DownloadQueue = new DownloadQueue();
                 model.DownloadQueue.Load();
             }
-            catch (Exception e)
+            catch
             {
-                logger.LogException(e);
+                logger.AddInfo("Failed to read download queue");
             }
 
             if (model.MaxOverlordPeers == 0)

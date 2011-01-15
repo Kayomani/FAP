@@ -26,18 +26,16 @@ namespace Fap.Domain.Verbs
     public class ClientVerb : IVerb
     {
          Node model;
-         private string id;
 
-        public ClientVerb(Node m, string id)
+        public ClientVerb(Node m)
         {
             model = m;
-            this.id = id;
         }
 
         public Network.Entity.Request CreateRequest()
         {
             Request response = new Request();
-            response.RequestID = id;
+            response.RequestID = model.ID;
             response.Command = "CLIENT";
             response.Param = model.ID;
             foreach (var data in model.Data)

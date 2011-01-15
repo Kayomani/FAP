@@ -51,7 +51,7 @@ namespace Fap.Domain.Services
 
         private bool listener_OnReceiveRequest(Request r, Socket s)
         {
-            logger.AddInfo("RX " + r.Command + " " + r.Param);
+            logger.AddInfo("Client RX " + r.Command + " " + r.Param);
             switch (r.Command)
             {
                 case "CLIENT":
@@ -91,18 +91,22 @@ namespace Fap.Domain.Services
                 var localNet = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
                 if (null != localNet)
                 {
-                    var peers = model.Peers.Where(p => p.Network == localNet).ToList();
-                    foreach (var p in peers)
-                        model.Peers.Remove(p);
-
-                    if (localNet.OverlordID == r.Param)
-                        peerController.Disconnect();
-
-                    var peer = model.Peers.Where(p => p.ID == r.Param).FirstOrDefault();
-                    if (null != peer)
-                        model.Peers.Remove(peer);
-
-                   
+                    if (localNet.State == ConnectionState.Connected)
+                    {
+                        if (localNet.OverlordID == r.Param)
+                        {
+                            peerController.Disconnect();
+                            var peers = model.Peers.Where(p => p.Network == localNet).ToList();
+                            foreach (var p in peers)
+                                model.Peers.Remove(p);
+                        }
+                        else
+                        {
+                            var search = model.Peers.Where(p => p.ID == r.Param).FirstOrDefault();
+                            if (null != search)
+                                model.Peers.Remove(search);
+                        }
+                    }
                 }
             }
             return false;

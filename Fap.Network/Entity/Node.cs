@@ -24,7 +24,7 @@ using Fap.Foundation.Services;
 
 namespace Fap.Network.Entity
 {
-    public enum ClientType {Client=0,Server=1,Overlord=2};
+    public enum ClientType {Client=0,Server=1,Overlord=2,Unknown=3};
     public class Node : BaseEntity
     {
         protected SafeDictionary<string, string> data = new SafeDictionary<string, string>();
@@ -33,6 +33,11 @@ namespace Fap.Network.Entity
         private object sync = new object();
         private string secret;
 
+
+        public Node()
+        {
+            LastUpdate = Environment.TickCount;
+        }
 
         public Fap.Network.Entity.Network Network { get; set; }
 

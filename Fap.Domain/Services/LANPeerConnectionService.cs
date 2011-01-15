@@ -313,10 +313,8 @@ namespace Fap.Domain.Services
                 if (null != network && network.State == ConnectionState.Connected)
                     CheckModelChanges();
                 //Remove overlords we haven't seen for a bit
-                overlordList.Lock();
                 foreach (var overlord in overlordList.Where(o => o.LastSeen + OVERLORD_DETECTED_TIMEOUT < Environment.TickCount).ToList())
                     overlordList.Remove(overlord);
-                overlordList.Unlock();
             }
         }
 
@@ -460,6 +458,7 @@ namespace Fap.Domain.Services
 
         private void SendPingAsync(object o)
         {
+            model.Node.LastUpdate = Environment.TickCount;
             PingVerb ping = new PingVerb(model.Node);
             string secret = string.Empty;
             Session overlord = GetOverlordConnection(out secret);
@@ -513,6 +512,7 @@ namespace Fap.Domain.Services
                 if (local.State == ConnectionState.Connected)
                 {
                     logger.AddInfo("Disconnected from local network");
+                    local.Secret = IDService.CreateID();
 
                     var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
                     if (null != currentOverlord)

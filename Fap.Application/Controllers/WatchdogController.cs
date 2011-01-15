@@ -97,8 +97,11 @@ namespace Fap.Application.Controllers
                         //Clean up excess buffers
                         bufferService.Clean();
 
-
-                       // peerService.SendPing();
+                        if (Environment.TickCount - model.Node.LastUpdate > 45000)
+                        {
+                            peerService.SendPing();
+                        }
+                       // 
                         //Check clients are still alive
                         /* foreach (var client in model.Clients.ToList())
                          {

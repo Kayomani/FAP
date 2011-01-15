@@ -74,7 +74,7 @@ namespace Fap.Network.Entity
                     else
                     {
                         //Check for client timeout
-                        if (Environment.TickCount - node.LastUpdate > 10000)
+                        if (Environment.TickCount - node.LastUpdate > 60000 && node.NodeType != ClientType.Overlord)
                         {
                             Kill();
                             if (null != OnDisconnect)
