@@ -35,12 +35,11 @@
             <RowDefinition Height="35" />
         </Grid.RowDefinitions>
         <odc:BreadcrumbBar Grid.Row="0" Grid.ColumnSpan="3" x:Name="bar"    Focusable="True"
-                           
-                           Path=""
+                           HideRootNode="True"
                            PopulateItems="BreadcrumbBar_PopulateItems"    
                            BreadcrumbItemDropDownOpened="bar_BreadcrumbItemDropDownOpened"
-                           TraceBinding="{Binding Folder}"
-                           ImageBinding="{Binding Image}"
+                           TraceBinding="{Binding Name}"
+                           
                            PathConversion="BreadcrumbBar_PathConversion">
             <!--<odc:BreadcrumbBar.Buttons>
                 <Button Click="Button_Click">Refresh</Button>
@@ -50,26 +49,21 @@
                 <TextBlock Text="C:\Windows\System32"/>
                 <TextBlock Text="C:\Users"/>
             </odc:BreadcrumbBar.DropDownItems>-->
-            <odc:BreadcrumbItem Header="Root">
-            </odc:BreadcrumbItem>
+          
         </odc:BreadcrumbBar>
         
-        <TreeView Grid.Column="0"  Grid.Row="1" x:Name="foldersTree" ItemsSource="{Binding Folders}" ClipToBounds="True" SelectedItemChanged="foldersTree_SelectedItemChanged" Style="{DynamicResource TreeViewStyle1}">
+        <TreeView Grid.Column="0"  Grid.Row="1" x:Name="foldersTree" ItemsSource="{Binding Root}" ClipToBounds="True" SelectedItemChanged="foldersTree_SelectedItemChanged" Style="{DynamicResource TreeViewStyle1}">
             <TreeView.Resources>
-                <Style TargetType="{x:Type TreeViewItem}">
-                    <Setter Property="HeaderTemplate">
-                        <Setter.Value>
-                            <DataTemplate DataType="ContentPresenter">
-                                <StackPanel Orientation="Horizontal">
-                                    <Image  x:Name="img"  Width="20" Height="20"  Stretch="Fill" Source="/Fap.Presentation;component/Images/folder.png"   />
-                                    <TextBlock Text="{Binding}" Margin="5,0" />
-                                </StackPanel>
-
-                            </DataTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </TreeView.Resources>
+                    <HierarchicalDataTemplate 
+          DataType="{x:Type local:RegionViewModel}" 
+          ItemsSource="{Binding Children}"
+          >
+                        <StackPanel Orientation="Horizontal">
+                            <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" />
+                            <TextBlock Text="{Binding RegionName}" />
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.Resources>
         </TreeView>
        <GridSplitter 
             ResizeDirection="Columns" 
@@ -86,7 +80,7 @@
         <base:SortableListView  Grid.Column="2"  Grid.Row="1"
  VirtualizingStackPanel.IsVirtualizing="True"
                                 VirtualizingStackPanel.VirtualizationMode="Recycling"
-  x:Name="listView2" BorderBrush="Black" ItemsSource="{Binding CurrentDirectory}" ClipToBounds="True"  MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" SelectionChanged="listView2_SelectionChanged" MouseDoubleClick="listView2_MouseDoubleClick">
+  x:Name="listView2" BorderBrush="Black" ItemsSource="{Binding CurrentItem.Items}" ClipToBounds="True"  MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" SelectionChanged="listView2_SelectionChanged" MouseDoubleClick="listView2_MouseDoubleClick">
             <base:SortableListView.View>
                 <GridView>
                     <GridViewColumn Header="" Width="30px">

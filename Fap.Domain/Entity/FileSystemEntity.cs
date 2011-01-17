@@ -20,11 +20,20 @@ using System.Linq;
 using System.Text;
 using Fap.Foundation;
 using Fap.Network.Entity;
+using System.ComponentModel;
 
 namespace Fap.Domain.Entity
 {
-    public class FileSystemEntity
+    public class FileSystemEntity : INotifyPropertyChanged
     {
+        private SafeObservable<FileSystemEntity> subItems = new SafeObservable<FileSystemEntity>();
+
+        public SafeObservable<FileSystemEntity> Items
+        {
+            get { return subItems; }
+        }
+
+        public bool IsPopulated { set; get; }
         public bool IsFolder { set; get; }
         public string Name { set; get; }
         public long Size { set; get; }
@@ -42,7 +51,19 @@ namespace Fap.Domain.Entity
                 sb.Append(Name);
                 return sb.ToString();
             }
-
+            set
+            {
+                if (value.Contains("\\"))
+                {
+                    int split = value.LastIndexOf("\\");
+                    Path = value.Substring(0, split);
+                    Name = value.Substring(split+1, value.Length - (split+1));
+                }
+                else
+                {
+                    Name = value;
+                }
+            }
         }
 
         public string Path { set; get; }
@@ -51,8 +72,15 @@ namespace Fap.Domain.Entity
         {
             get
             {
-               return Utility.FormatBytes(Size);
+                return Utility.FormatBytes(Size);
             }
         }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

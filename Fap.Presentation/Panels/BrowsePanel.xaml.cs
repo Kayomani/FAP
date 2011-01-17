@@ -44,32 +44,53 @@ namespace Fap.Presentation.Panels
             InitializeComponent();
             this.DataContextChanged += new DependencyPropertyChangedEventHandler(BrowsePanel_DataContextChanged);
         }
+        private BrowserViewModel Model
+        {
+            get { return DataContext as BrowserViewModel; }
+        }
 
         private void BrowsePanel_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-             BrowserViewModel vm = DataContext as BrowserViewModel;
-             if (listView2.SelectedItems != null)
+
+            if (Model != null)
              {
-                 vm.Folders.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(Folders_CollectionChanged);
+                 bar.PathChanged += new RoutedPropertyChangedEventHandler<string>(bar_PathChanged);
+                 Model.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Model_PropertyChanged);
+
+                 rootB.DataContext = Model.Root;
+                 rootB.Header = "ROOT";
+                 rootB.Items.Add(fake);
+                 bar.AddChild(rootB);
              }
         }
 
+        BreadcrumbItem rootB = new BreadcrumbItem();
+
+
+        private void bar_PathChanged(object sender, RoutedPropertyChangedEventArgs<string> e)
+        {
+            if (bar.Path != Model.CurrentPath)
+            {
+                Model.CurrentPath = bar.Path;
+            }
+        }
+
+
         private void Folders_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-        /*    return;
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            return;
+            /*bar.DropDownItems.Clear();
+           .. foreach (var folder in Model.Folders)
             {
-               
-                      BreadcrumbItem root = new BreadcrumbItem();
-                      foreach (TreeViewItem item in e.NewItems)
-                      {
-                          FolderItem i = new FolderItem();
-                          i.Folder = item.Header.ToString();
-                          root.Items.Add(i);
-                      }
-                      bar.AddChild(root);
-                 
-                
+                BreadcrumbItem bitem = new BreadcrumbItem();
+                bitem.Header = "Root";
+                foreach (TreeViewItem item in e.NewItems)
+                {
+                    FolderItem i = new FolderItem();
+                    i.Folder = item.Header.ToString();
+                    bitem.Items.Add(i);
+                }
+                bar.AddChild(bitem);
             }*/
         }
 
@@ -101,23 +122,41 @@ namespace Fap.Presentation.Panels
         private void listView2_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             Fap.Domain.Entity.FileSystemEntity item = listView2.SelectedItem as Fap.Domain.Entity.FileSystemEntity;
-            BrowserViewModel vm = DataContext as BrowserViewModel;
-            if (null != item)
+
+            if (null != item && null != Model)
             {
                 if (item.IsFolder)
                 {
                     //Open the sub folder
-                    vm.BrowseFolder.Execute(item.FullPath);
+                   
+                    Model.CurrentPath = item.FullPath;
                 }
                 else
                 {
 
-                    vm.LastSelectedEntity = new List<FileSystemEntity>();
-                    vm.LastSelectedEntity.Add(item);
-                    vm.Download.Execute(null);
+                    Model.LastSelectedEntity = new List<FileSystemEntity>();
+                    Model.LastSelectedEntity.Add(item);
+                    Model.Download.Execute(null);
                 }
             }
         }
+
+        void Model_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "CurrentPath")
+            {
+                if (Model.CurrentItem != null && Model.CurrentPath != bar.Path)
+                {
+                    bar.PathChanged -= new RoutedPropertyChangedEventHandler<string>(bar_PathChanged);
+                    rootB.Items.Clear();
+                    bar.Path = Model.CurrentPath;
+                    bar.PathChanged += new RoutedPropertyChangedEventHandler<string>(bar_PathChanged);
+
+                }
+            }
+        }
+
+        private FileSystemEntity fake = new FileSystemEntity();
 
         /// <summary>
         /// A BreadcrumbItem needs to populate it's Items. This can be due to the fact that a new BreadcrumbItem is selected, and thus
@@ -127,12 +166,41 @@ namespace Fap.Presentation.Panels
         private void BreadcrumbBar_PopulateItems(object sender, Odyssey.Controls.BreadcrumbItemEventArgs e)
         {
             BreadcrumbItem item = e.Item;
-            if (item.Items.Count == 0)
+            FileSystemEntity fse = item.Data as FileSystemEntity;
+
+            if (item.Items.Contains(fake) || item.Items.Count==0)
             {
-                PopulateFolders(item);
-                e.Handled = true;
+                if (fse == Model.Root)
+                {
+                    if (fse.IsPopulated)
+                    {
+                        item.Items.Clear();
+                        foreach (var i in Model.Root.Items)
+                            item.Items.Add(i);
+                    }
+                    else
+                    {
+                        //Add a fake one so we get the selection image
+                        item.Items.Add(fake);
+                    }
+                }
+                else
+                {
+                    if (fse.IsPopulated)
+                    {
+                        item.Items.Clear();
+                        foreach (var i in fse.Items)
+                            item.Items.Add(i);
+                    }
+                    else
+                    {
+                        //Add a fake one so we get the selection image
+                        item.Items.Add(fake);
+                    }
+                }
             }
         }
+
 
         /// <summary>
         /// Populate the Items of the specified BreadcrumbItem with the sub folders if necassary.
@@ -140,6 +208,7 @@ namespace Fap.Presentation.Panels
         /// <param name="item"></param>
         private static void PopulateFolders(BreadcrumbItem item)
         {
+
            /* BreadcrumbBar bar = item.BreadcrumbBar;
             string path = bar.PathFromBreadcrumbItem(item);
             string trace = item.TraceValue;
@@ -207,8 +276,22 @@ namespace Fap.Presentation.Panels
         /// </summary>
         private void bar_BreadcrumbItemDropDownOpened(object sender, BreadcrumbItemEventArgs e)
         {
-           /* BreadcrumbItem item = e.Item;
+           BreadcrumbItem item = e.Item;
 
+            FileSystemEntity ent = item.Data as FileSystemEntity;
+            if (null != ent)
+            {
+                item.Items.Clear();
+                if (ent.IsPopulated)
+                {
+                    foreach (var i in ent.Items)
+                    {
+                        if (i.IsFolder)
+                            item.Items.Add(i);
+                    }
+                }
+            }
+            /* 
             // only repopulate, if the BreadcrumbItem is dynamically generated which means, item.Data is a  pointer to itself:
             if (!(item.Data is BreadcrumbItem))
             {

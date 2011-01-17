@@ -71,7 +71,14 @@
                             ItemsSource="{Binding DropDownItems,RelativeSource={RelativeSource TemplatedParent}}" BorderThickness="0"
                             Grid.Column="0"
                             SelectedIndex="{Binding SelectedDropDownIndex,RelativeSource={RelativeSource TemplatedParent},Mode=TwoWay}"
-                            Grid.ColumnSpan="3" />
+                            Grid.ColumnSpan="3"
+                               VirtualizingStackPanel.IsVirtualizing="True">
+                        <ComboBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ComboBox.ItemsPanel>
+                    </ComboBox>
                     <ItemsControl x:Name="buttons" Grid.Column="3" Margin="1,0,-1,0"
                             ItemsSource="{Binding Buttons,RelativeSource={RelativeSource TemplatedParent} }" Focusable="False">
                         <ItemsControl.ItemsPanel>

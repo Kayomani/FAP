@@ -30,6 +30,7 @@ using Fap.Network.Entity;
 using Fap.Network.Services;
 using Fap.Network;
 using Fap.Domain.Verbs;
+using System.Threading;
 
 namespace Fap.Application.Controllers
 {
@@ -59,16 +60,90 @@ namespace Fap.Application.Controllers
             bvm.Download = new DelegateCommand(Download);
             bvm.Refresh = new DelegateCommand(Refresh);
             bvm.BrowseFolder = new DelegateCommand(BrowseFolder);
-
+            bvm.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(bvm_PropertyChanged);
             //Pull down the inital listing
             bvm.Status = "Getting initial share list..";
+            bvm.Name = "Kayomani";
             QueueWork(new DelegateCommand(Browse));
         }
 
+        void bvm_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "CurrentPath")
+            {
+                Populate(bvm.CurrentPath);
+            }
+        }
+
+        private void Populate(string ent)
+        {
+            string[] items = ent.Split('\\');
+            FileSystemEntity parent = bvm.Root;
+
+            if (string.IsNullOrEmpty(ent))
+            {
+                //Just the root
+                bvm.CurrentItem = parent;
+            }
+            else
+            {
+                for (int i = 0; i < items.Length; i++)
+                {
+                    var search = parent.Items.Where(n => n.Name == items[i]).FirstOrDefault();
+                    if (null == search)
+                    {
+                        FileSystemEntity fse = new FileSystemEntity();
+                        fse.FullPath = ent;
+                        parent.Items.Add(fse);
+                        parent = fse;
+                    }
+                    else
+                    {
+                        parent = search;
+                    }
+                }
+            }
+
+            parent.Items.Clear();
+            parent.IsPopulated = false;
+
+            ThreadPool.QueueUserWorkItem(new WaitCallback(PopulateAsync), parent);
+        }
+
+
+        private void PopulateAsync(object o)
+        {
+            FileSystemEntity fse = o as FileSystemEntity;
+            if (null != fse)
+            {
+                Client c = new Client(bufferService, connectionService);
+                BrowseVerb cmd = new BrowseVerb(model);
+                    cmd.Path = fse.FullPath;
+
+               //  bvm.CurrentDirectory.Clear();
+                  if (c.Execute(cmd, client))
+                  {
+                     
+                      SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+                        new Action(
+                         delegate()
+                         {
+                             bvm.Status = "Download complete (" + cmd.Results.Count + ").";
+                             fse.IsPopulated = true;
+                             fse.Items.Clear();
+                             foreach (var result in cmd.Results)
+                                 fse.Items.Add(result);
+                             bvm.CurrentItem = fse;
+                         }
+                        ));
+                  }
+
+            }
+        }
 
         private void BrowseFolder(object o )
         {
-            string[] path = ((string)o).Split('\\');
+           /* string[] path = ((string)o).Split('\\');
             System.Windows.Controls.TreeViewItem root = bvm.Folders[0] as System.Windows.Controls.TreeViewItem;
 
             if (path.Length > 0)
@@ -103,7 +178,7 @@ namespace Fap.Application.Controllers
                     root.IsSelected = true;
                     root.IsExpanded = true;
                 }
-            }
+            }*/
         }
 
         private void Download()
@@ -132,35 +207,7 @@ namespace Fap.Application.Controllers
 
         private void Browse()
         {
-            Client c = new Client(bufferService, connectionService);
-            BrowseVerb cmd = new BrowseVerb(model);
-
-            if (c.Execute(cmd, client))
-            {
-
-                bvm.CurrentDirectory.Clear();
-                SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
-                   new Action(
-                    delegate()
-                    {
-                        bvm.Status = "Root folder(s) downloaded.";
-                        foreach (var i in cmd.Results)
-                        {
-                            TreeViewItem item = new TreeViewItem();
-                            item.Header = i.Name;
-                            item.Tag = i;
-                            item.Items.Add(_dummyNode);
-                            item.Expanded += new System.Windows.RoutedEventHandler(item_Expanded);
-                            item.Selected += new System.Windows.RoutedEventHandler(item_Selected);
-                            bvm.Folders.Add(item);
-                        }
-                    }
-                   ));
-            }
-            else
-            {
-                bvm.Status = "Download failed!";
-            }
+            Populate("");
         }
 
         void item_Selected(object sender, System.Windows.RoutedEventArgs e)
@@ -193,7 +240,7 @@ namespace Fap.Application.Controllers
             if (null != ent)
                 cmd.Path = ent.FullPath;
 
-            bvm.CurrentDirectory.Clear();
+          /*  bvm.CurrentDirectory.Clear();
             if (c.Execute(cmd, client))
             {
                 SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -207,7 +254,7 @@ namespace Fap.Application.Controllers
                        }
                    }
                   ));
-            }
+            }*/
         }
 
         private void item_Expanded(object sender, System.Windows.RoutedEventArgs e)
@@ -229,12 +276,12 @@ namespace Fap.Application.Controllers
             cmd.Path = req.Path.FullPath;
             if (c.Execute(cmd, client))
             {
-                SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+                /*  SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
                  new Action(
                   delegate()
                   {
                       bvm.Status = "Download complete (" + cmd.Results.Count + " items).";
-                      bvm.CurrentDirectory.Clear();
+                    bvm.CurrentDirectory.Clear();
                       foreach (var result in cmd.Results)
                       {
                           if (result.IsFolder)
@@ -250,7 +297,7 @@ namespace Fap.Application.Controllers
                           bvm.CurrentDirectory.Add(result);
                       }
                   }
-                 ));
+                 ));*/
             }
         }
 

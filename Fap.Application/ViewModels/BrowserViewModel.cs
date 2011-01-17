@@ -29,15 +29,16 @@ namespace Fap.Application.ViewModels
 {
     public class BrowserViewModel: ViewModel<IBrowserView>
     {
-        private ObservableCollectionEx<FileSystemEntity> currentDirectory = new ObservableCollectionEx<FileSystemEntity>();
-        private ObservableCollectionEx<string> chatList = new ObservableCollectionEx<string>();
-        private ObservableCollectionEx<TreeViewItem> folders = new ObservableCollectionEx<TreeViewItem>();
+        private FileSystemEntity root = new FileSystemEntity();
+        private FileSystemEntity currentItem;
+        private string currentPath;
 
         private string status;
         private ICommand download;
         private ICommand refresh;
         private ICommand browseFolder;
         private List<FileSystemEntity> lastSelectedEntity;
+        private string name;
 
         public BrowserViewModel(IBrowserView view)
             : base(view)
@@ -46,6 +47,31 @@ namespace Fap.Application.ViewModels
         }
 
 
+        public string Name
+        {
+            set
+            {
+                name = value;
+                RaisePropertyChanged("Name");
+            }
+            get
+            {
+                return name;
+            }
+        } 
+
+        public FileSystemEntity Root
+        {
+            set
+            {
+                root = value;
+                RaisePropertyChanged("Root");
+            }
+            get
+            {
+                return root;
+            }
+        }
 
         public ICommand BrowseFolder
         {
@@ -109,25 +135,24 @@ namespace Fap.Application.ViewModels
             }
         }
 
-        public ObservableCollectionEx<FileSystemEntity> CurrentDirectory
+        public FileSystemEntity CurrentItem
         {
-            get { return currentDirectory; }
+            get { return currentItem; }
             set
             {
-                currentDirectory = value;
-                RaisePropertyChanged("CurrentDirectory");
+                currentItem = value;
+                RaisePropertyChanged("CurrentItem");
             }
         }
 
-        public ObservableCollectionEx<TreeViewItem> Folders
+        public string CurrentPath
         {
-            get { return folders; }
+            get { return currentPath; }
             set
             {
-                folders = value;
-                RaisePropertyChanged("Folders");
+                currentPath = value;
+                RaisePropertyChanged("CurrentPath");
             }
         }
-    
     }
 }

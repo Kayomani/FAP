@@ -88,6 +88,7 @@
     <Compile Include="Entity\DownloadQueue.cs" />
     <Compile Include="Entity\DownloadRequest.cs" />
     <Compile Include="Entity\FileSystemEntity.cs" />
+    <Compile Include="Entity\FolderItem.cs" />
     <Compile Include="Entity\Model.cs" />
     <Compile Include="Entity\NodeModel.cs" />
     <Compile Include="Entity\Share.cs" />
