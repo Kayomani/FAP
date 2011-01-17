@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockMonitorDemo", "StockMonitorDemo\StockMonitorDemo.csproj", "{EC2BACEE-5CB4-4017-A994-B259983D7064}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContinuousLinq", "..\ContinuousLinq\ContinuousLinq.csproj", "{735E869D-D965-4E2B-825D-35D05743F7EA}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 3
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs06.codeplex.com/
+		SccProjectUniqueName0 = ..\\ContinuousLinq\\ContinuousLinq.csproj
+		SccProjectName0 = ../ContinuousLinq
+		SccLocalPath0 = ..\\ContinuousLinq
+		SccLocalPath1 = .
+		SccProjectUniqueName2 = StockMonitorDemo\\StockMonitorDemo.csproj
+		SccProjectName2 = StockMonitorDemo
+		SccLocalPath2 = StockMonitorDemo
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EC2BACEE-5CB4-4017-A994-B259983D7064}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC2BACEE-5CB4-4017-A994-B259983D7064}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC2BACEE-5CB4-4017-A994-B259983D7064}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC2BACEE-5CB4-4017-A994-B259983D7064}.Release|Any CPU.Build.0 = Release|Any CPU
+		{735E869D-D965-4E2B-825D-35D05743F7EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{735E869D-D965-4E2B-825D-35D05743F7EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{735E869D-D965-4E2B-825D-35D05743F7EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{735E869D-D965-4E2B-825D-35D05743F7EA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

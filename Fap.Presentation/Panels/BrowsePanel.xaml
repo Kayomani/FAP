@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="clr-namespace:Fap.Presentation"
     xmlns:odc="clr-namespace:Odyssey.Controls;assembly=Odyssey"
+    xmlns:domain="clr-namespace:Fap.Domain.Entity;assembly=Fap.Domain"
     xmlns:local="clr-namespace:Fap.Presentation.Panels" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Fap.Presentation.Panels.BrowsePanel"
     ClipToBounds="True" d:DesignWidth="901" d:DesignHeight="427.96" >
     <UserControl.Resources>
@@ -25,12 +26,12 @@
     </UserControl.Resources>
     <Grid ClipToBounds="True">
         <Grid.ColumnDefinitions >
-            <ColumnDefinition Width="300" MinWidth="200px" />
+            <ColumnDefinition Width="330" MinWidth="200px" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*"  />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="35" />
+            <RowDefinition Height="30" />
             <RowDefinition Height="*" />
             <RowDefinition Height="35" />
         </Grid.RowDefinitions>
@@ -43,26 +44,34 @@
                            PathConversion="BreadcrumbBar_PathConversion">
             <!--<odc:BreadcrumbBar.Buttons>
                 <Button Click="Button_Click">Refresh</Button>
-            </odc:BreadcrumbBar.Buttons>
-            <odc:BreadcrumbBar.DropDownItems>
-                <TextBlock Text="C:\Windows"/>
-                <TextBlock Text="C:\Windows\System32"/>
-                <TextBlock Text="C:\Users"/>
-            </odc:BreadcrumbBar.DropDownItems>-->
-          
+            </odc:BreadcrumbBar.Buttons>-->
         </odc:BreadcrumbBar>
-        
-        <TreeView Grid.Column="0"  Grid.Row="1" x:Name="foldersTree" ItemsSource="{Binding Root}" ClipToBounds="True" SelectedItemChanged="foldersTree_SelectedItemChanged" Style="{DynamicResource TreeViewStyle1}">
+
+        <TreeView Grid.Column="0"  TreeViewItem.Expanded="TreeViewItem_Expanded"
+  Grid.Row="1" x:Name="foldersTree" ItemsSource="{Binding Root}" ClipToBounds="True"  SelectedItemChanged="foldersTree_SelectedItemChanged" Style="{DynamicResource TreeViewStyle1}">
+            <TreeView.ItemContainerStyle>
+                <!-- 
+        This Style binds a TreeViewItem to a TreeViewItemViewModel. 
+        -->
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="FontWeight" Value="Normal" />
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="FontWeight" Value="Bold" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </TreeView.ItemContainerStyle>
+
             <TreeView.Resources>
-                    <HierarchicalDataTemplate 
-          DataType="{x:Type local:RegionViewModel}" 
-          ItemsSource="{Binding Children}"
-          >
-                        <StackPanel Orientation="Horizontal">
-                            <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" />
-                            <TextBlock Text="{Binding RegionName}" />
-                        </StackPanel>
-                    </HierarchicalDataTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type domain:FileSystemEntity}" ItemsSource="{Binding Folders}" >
+                    <StackPanel Orientation="Horizontal">
+                        <Image  x:Name="img"  Width="20" Height="20"  Stretch="Fill" Source="/Fap.Presentation;component/Images/folder.png"   />
+                        <TextBlock Text="{Binding Name}" Margin="5,0" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
                 </TreeView.Resources>
         </TreeView>
        <GridSplitter 

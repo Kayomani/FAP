@@ -21,19 +21,91 @@ using System.Text;
 using Fap.Foundation;
 using Fap.Network.Entity;
 using System.ComponentModel;
+using ContinuousLinq;
 
 namespace Fap.Domain.Entity
 {
     public class FileSystemEntity : INotifyPropertyChanged
     {
-        private SafeObservable<FileSystemEntity> subItems = new SafeObservable<FileSystemEntity>();
+        private ContinuousCollection<FileSystemEntity> subItems = new ContinuousCollection<FileSystemEntity>();
+        private ReadOnlyContinuousCollection<FileSystemEntity> foldersSubItems;
+        private FileSystemEntity temp;
 
-        public SafeObservable<FileSystemEntity> Items
+        public ContinuousCollection<FileSystemEntity> SubItems
         {
+            set { subItems = value; }
             get { return subItems; }
         }
 
-        public bool IsPopulated { set; get; }
+
+        public void AddItem(FileSystemEntity ent)
+        {
+            subItems.Add(ent);
+        }
+
+        public void ClearItems()
+        {
+            subItems.Clear();
+        }
+
+        public ReadOnlyContinuousCollection<FileSystemEntity> Items
+        {
+           
+            get
+            {
+                if (IsPopulated)
+                    return subItems.Select(s=>s); 
+                else
+                {
+                    if (subItems.Count == 0)
+                    {
+                        temp = new FileSystemEntity() { IsFolder = true };
+                        subItems.Add(temp);
+                    }
+                    return subItems.Select(s => s); 
+                }
+            }
+        }
+
+
+        public ReadOnlyContinuousCollection<FileSystemEntity> Folders
+        {
+            get
+            {
+                if (null == foldersSubItems)
+                    foldersSubItems = subItems.Where(f => f.IsFolder).Select(f => f);
+
+                if (IsPopulated)
+                {
+                    return foldersSubItems;
+                }
+                else
+                {
+                    if (subItems.Count == 0)
+                    {
+                        temp = new FileSystemEntity() { IsFolder = true };
+                        subItems.Add(temp);
+                    }
+                    return foldersSubItems;
+                }
+            }
+        }
+
+        private bool populated;
+
+        public bool IsPopulated 
+        {
+            set 
+            { 
+                populated = value;
+                if (value)
+                {
+                    if (subItems.Contains(temp))
+                        subItems.Remove(temp);
+                }
+            }
+            get { return populated; }
+        }
         public bool IsFolder { set; get; }
         public string Name { set; get; }
         public long Size { set; get; }
@@ -79,6 +151,12 @@ namespace Fap.Domain.Entity
         public override string ToString()
         {
             return Name;
+        }
+
+        private void NotifyPropertyChanged(string name)
+        {
+            if (null != PropertyChanged)
+                PropertyChanged(this, new PropertyChangedEventArgs(name));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -111,10 +111,8 @@ namespace Fap.Domain.Services
             {
                 try
                 {
-                    overlordList.Lock();
                     foreach (var s in overlordList.Where(o => o.LastSeen + OVERLORD_DETECTED_TIMEOUT < Environment.TickCount))
                         overlordList.Remove(s);
-                    overlordList.Unlock();
 
                     //Order servers by priority
                     List<DetectedOverlord> servers = overlordList.Where(s => !s.IsBanned).OrderByDescending(s => s.Strength).ToList();

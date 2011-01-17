@@ -1,0 +1,158 @@
+﻿<Window x:Class="StockMonitorDemo.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:converters="clr-namespace:StockMonitorDemo.Views.Converters"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Stock Monitor Sample (CLINQ)" Height="500" Width="800">
+    <Window.Resources>        
+        <ResourceDictionary>            
+            <converters:PriceConverter x:Key="PriceFormatter"/>
+            <converters:LivePriceConverter x:Key="LivePriceFormatter" />
+            <converters:TickCollectionToPointCollectionConverter x:Key="TickCollectionFormatter"/>
+            <DrawingBrush x:Key="gridBackgroundBrush"
+                Viewport="0,0,10,10"
+                ViewportUnits="Absolute"
+                TileMode="Tile">
+                <DrawingBrush.Drawing>
+                    <DrawingGroup>
+                        <DrawingGroup.Children>
+                            <GeometryDrawing Geometry="M0,0 L1,0 1,0.1, 0,0.1Z" Brush="DarkGreen"/>                                                            
+                            <GeometryDrawing Geometry="M0,0 L0,1 0.1,1, 0.1,0Z" Brush="DarkGreen"/>
+                        </DrawingGroup.Children>
+                    </DrawingGroup>
+                </DrawingBrush.Drawing>
+            </DrawingBrush>
+            
+            <DataTemplate x:Key="QuoteListItem">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Path=Quantity}" Padding="5,5,5,5"/>
+                    <TextBlock Text="@" Padding="5,5,5,5"/>
+                    <TextBlock Text="{Binding Path=Price, Converter={StaticResource PriceFormatter}}" Padding="5,5,5,5"/>                    
+                </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate x:Key="SaleListItem">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Path=Quantity}" Padding="5,5,5,5"/>
+                    <TextBlock Text="@" Padding="5,5,5,5"/>
+                    <TextBlock Text="{Binding Path=Price, Converter={StaticResource PriceFormatter}}" Padding="5,5,5,5"/>                    
+                </StackPanel>                    
+           </DataTemplate>
+
+
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.4*"/>
+            <ColumnDefinition Width="0.6*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <Grid x:Name="priceBookGrid" Grid.Row="0" Grid.Column="1" >
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0.499169,0.00124688" EndPoint="0.499169,1.00042">
+                    <GradientStop Color="AliceBlue" Offset="0"/>
+                    <GradientStop Color="#FF48A5BF" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.33*"/>
+                <ColumnDefinition Width="0.33*"/>
+                <ColumnDefinition Width="0.33*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+                       
+            <Rectangle Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Stroke="Transparent">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0.499169,0.00124688" EndPoint="0.499169,1.00042">
+                        <GradientStop Color="LightGreen" Offset="0"/>
+                        <GradientStop Color="Green" Offset="1"/>
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            
+            <TextBlock Text="Bid" Grid.Row="0" Grid.Column="0" TextAlignment="Center" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Foreground="White"/>
+            <TextBlock Text="Ask" Grid.Row="0" Grid.Column="1" TextAlignment="Center" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Foreground="White"/>            
+            <TextBlock Text="Sales" Grid.Row="0" Grid.Column="2" TextAlignment="Center" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Foreground="White"/>            
+            
+            <ListBox x:Name="bidList" Grid.Row="1" Grid.Column="0" 
+                     ItemsSource="{Binding BidTicks}"
+                     ItemTemplate="{StaticResource QuoteListItem}" BorderBrush="White">            
+            </ListBox>
+            
+            <ListBox x:Name="askList" Grid.Row="1" Grid.Column="1" 
+                     ItemsSource="{Binding AskTicks}"
+                     ItemTemplate="{StaticResource QuoteListItem}" BorderBrush="White">            
+            </ListBox>
+            
+            <ListBox x:Name="priceList" Grid.Row="1" Grid.Column="2" Background="Transparent"
+                     ItemsSource="{Binding AllTicks}"
+                     ItemTemplate="{StaticResource SaleListItem}">
+                
+            </ListBox>
+                        
+
+        </Grid>
+
+        <Grid Grid.Row="0" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30*"/>
+                <RowDefinition Height="293*"/>                
+                <RowDefinition Height="139*"/>
+            </Grid.RowDefinitions>
+            <Border Grid.Row="1" Grid.Column="1" Background="Black">
+                <Canvas x:Name="gridCanvas" Background="{StaticResource gridBackgroundBrush}" Width="300" Height="270">
+                    <Polyline x:Name="priceLine" Stroke="Yellow" StrokeThickness="1" Points="{Binding Path=GraphWindowTicks, Converter={StaticResource TickCollectionFormatter}}" Canvas.Top="0" Canvas.Left="0"/>
+                    <Polyline x:Name="vwapLine" Stroke="White" StrokeThickness="1" Points="{Binding Path=VwapTicks, Converter={StaticResource TickCollectionFormatter}}" Canvas.Top="0" Canvas.Left="0"/>
+                </Canvas>
+            </Border>            
+            
+            <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="High:" FontFamily="Segoe UI" FontSize="12" Padding="5,5,5,5" FontWeight="Bold"/>    
+                    <TextBlock Text="{Binding LiveHigh.CurrentValue, Converter={StaticResource PriceFormatter}}" FontFamily="SegoeUI" FontSize="12" Padding="5,5,5,5" FontWeight="Bold"/>
+                    <Button x:Name="toggleHighAgg" Padding="5,5,5,5" Click="toggleHighAgg_Click">Pause</Button>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Low:"  FontFamily="Segoe UI" FontSize="12" Padding="5,5,5,5" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding LiveMin.CurrentValue, Converter={StaticResource PriceFormatter}}" FontFamily="SegoeUI" FontSize="12" Padding="5,5,5,5" FontWeight="Bold"/>                    
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="VWAP:" FontFamily="Segoe UI" FontSize="12" Padding="5,5,5,5" FontWeight="Bold"/>    
+                    <TextBlock Text="{Binding LiveVwap.CurrentValue, Converter={StaticResource PriceFormatter}}" FontFamily="SegoeUI" FontSize="12" Padding="5,5,5,5" FontWeight="Bold"/>                    
+                    <Button x:Name="toggleVwapAgg" Padding="5,5,5,5" Click="toggleVwapAgg_Click">Pause</Button>
+                </StackPanel>                                
+            </StackPanel>
+            
+            <StackPanel Grid.Row="0" Grid.Column="0">
+                <StackPanel.Background>
+                    <LinearGradientBrush StartPoint="0.499169,0.00124688" EndPoint="0.499169,1.00042">
+                        <GradientStop Color="LightGreen" Offset="0" />
+                        <GradientStop Color="Green" Offset="1" />
+                    </LinearGradientBrush>
+                </StackPanel.Background>
+                <TextBlock Grid.Row="0" Text="{Binding MonitoredSymbol}" 
+                           FontFamily="Segoe UI" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           Foreground="White"                            
+                            FontStretch="ExtraExpanded"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center" Width="309" Height="28">
+                    <!--<TextBlock.RenderTransform>
+                        <ScaleTransform ScaleX="3" CenterX="155.5" CenterY="15" />
+                    </TextBlock.RenderTransform>-->
+                </TextBlock>
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+</Window>

@@ -1,0 +1,101 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContinuousLinq", "ContinuousLinq\ContinuousLinq.csproj", "{EFC0FA51-6547-4B90-A84E-905035227972}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContinuousLinq.UnitTests", "ContinuousLinq.UnitTests\ContinuousLinq.UnitTests.csproj", "{307974AE-A537-4331-9047-188C8F3083FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceConsole", "PerformanceConsole\PerformanceConsole.csproj", "{EAA030BB-03AA-4D03-97E9-5B0E85CE796F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderBookDemo", "OrderBookDemo\OrderBookDemo.csproj", "{DAE06799-0A84-4B01-8661-FC5B4AB909A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContinuousLinqSL", "ContinuousLinqSL\ContinuousLinqSL.csproj", "{741C0309-9A6D-4A3C-8571-AF5C23D31F46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightCompatibility", "SilverlightCompatibility\SilverlightCompatibility.csproj", "{1707358D-D349-43F5-B6E3-16600E6A783C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContinuousLinqSL.UnitTests", "ContinuousLinqSL.UnitTests\ContinuousLinqSL.UnitTests.csproj", "{8689071D-142F-4E27-B41A-12FE5E09C250}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightTest", "SilverlightTest\SilverlightTest.csproj", "{8D55576C-3557-4E94-B23D-EDB579B9BF4D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightTest.Web", "SilverlightTest.Web\SilverlightTest.Web.csproj", "{75DE17F8-0AB3-4AA2-8283-A97E46769F1F}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 10
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs06.codeplex.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = ContinuousLinq.UnitTests\\ContinuousLinq.UnitTests.csproj
+		SccProjectName1 = ContinuousLinq.UnitTests
+		SccLocalPath1 = ContinuousLinq.UnitTests
+		SccProjectUniqueName2 = ContinuousLinq\\ContinuousLinq.csproj
+		SccProjectName2 = ContinuousLinq
+		SccLocalPath2 = ContinuousLinq
+		SccProjectUniqueName3 = PerformanceConsole\\PerformanceConsole.csproj
+		SccProjectName3 = PerformanceConsole
+		SccLocalPath3 = PerformanceConsole
+		SccProjectUniqueName4 = OrderBookDemo\\OrderBookDemo.csproj
+		SccProjectName4 = OrderBookDemo
+		SccLocalPath4 = OrderBookDemo
+		SccProjectUniqueName5 = ContinuousLinqSL\\ContinuousLinqSL.csproj
+		SccProjectName5 = ContinuousLinqSL
+		SccLocalPath5 = ContinuousLinqSL
+		SccProjectUniqueName6 = SilverlightCompatibility\\SilverlightCompatibility.csproj
+		SccProjectName6 = SilverlightCompatibility
+		SccLocalPath6 = SilverlightCompatibility
+		SccProjectUniqueName7 = ContinuousLinqSL.UnitTests\\ContinuousLinqSL.UnitTests.csproj
+		SccProjectName7 = ContinuousLinqSL.UnitTests
+		SccLocalPath7 = ContinuousLinqSL.UnitTests
+		SccProjectUniqueName8 = SilverlightTest\\SilverlightTest.csproj
+		SccProjectName8 = SilverlightTest
+		SccLocalPath8 = SilverlightTest
+		SccProjectUniqueName9 = SilverlightTest.Web\\SilverlightTest.Web.csproj
+		SccProjectName9 = SilverlightTest.Web
+		SccLocalPath9 = SilverlightTest.Web
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EFC0FA51-6547-4B90-A84E-905035227972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFC0FA51-6547-4B90-A84E-905035227972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFC0FA51-6547-4B90-A84E-905035227972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFC0FA51-6547-4B90-A84E-905035227972}.Release|Any CPU.Build.0 = Release|Any CPU
+		{307974AE-A537-4331-9047-188C8F3083FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{307974AE-A537-4331-9047-188C8F3083FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{307974AE-A537-4331-9047-188C8F3083FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{307974AE-A537-4331-9047-188C8F3083FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAA030BB-03AA-4D03-97E9-5B0E85CE796F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAA030BB-03AA-4D03-97E9-5B0E85CE796F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAA030BB-03AA-4D03-97E9-5B0E85CE796F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAA030BB-03AA-4D03-97E9-5B0E85CE796F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAE06799-0A84-4B01-8661-FC5B4AB909A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAE06799-0A84-4B01-8661-FC5B4AB909A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAE06799-0A84-4B01-8661-FC5B4AB909A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAE06799-0A84-4B01-8661-FC5B4AB909A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{741C0309-9A6D-4A3C-8571-AF5C23D31F46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{741C0309-9A6D-4A3C-8571-AF5C23D31F46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{741C0309-9A6D-4A3C-8571-AF5C23D31F46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{741C0309-9A6D-4A3C-8571-AF5C23D31F46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1707358D-D349-43F5-B6E3-16600E6A783C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1707358D-D349-43F5-B6E3-16600E6A783C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1707358D-D349-43F5-B6E3-16600E6A783C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1707358D-D349-43F5-B6E3-16600E6A783C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8689071D-142F-4E27-B41A-12FE5E09C250}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8689071D-142F-4E27-B41A-12FE5E09C250}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8689071D-142F-4E27-B41A-12FE5E09C250}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8689071D-142F-4E27-B41A-12FE5E09C250}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D55576C-3557-4E94-B23D-EDB579B9BF4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D55576C-3557-4E94-B23D-EDB579B9BF4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D55576C-3557-4E94-B23D-EDB579B9BF4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D55576C-3557-4E94-B23D-EDB579B9BF4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75DE17F8-0AB3-4AA2-8283-A97E46769F1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75DE17F8-0AB3-4AA2-8283-A97E46769F1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75DE17F8-0AB3-4AA2-8283-A97E46769F1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75DE17F8-0AB3-4AA2-8283-A97E46769F1F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

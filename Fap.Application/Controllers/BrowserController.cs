@@ -39,7 +39,6 @@ namespace Fap.Application.Controllers
         private readonly Node client;
         private BrowserViewModel bvm;
         private Model model;
-        private readonly object _dummyNode = null;
         private readonly BufferService bufferService;
         private readonly ConnectionService connectionService;
 
@@ -64,7 +63,7 @@ namespace Fap.Application.Controllers
             //Pull down the inital listing
             bvm.Status = "Getting initial share list..";
             bvm.Name = "Kayomani";
-            QueueWork(new DelegateCommand(Browse));
+            Populate("");
         }
 
         void bvm_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -77,8 +76,14 @@ namespace Fap.Application.Controllers
 
         private void Populate(string ent)
         {
+            bvm.IsBusy = true;
+            if (string.IsNullOrEmpty(ent))
+            {
+                ThreadPool.QueueUserWorkItem(new WaitCallback(PopulateAsync), null);
+                return;
+            }
             string[] items = ent.Split('\\');
-            FileSystemEntity parent = bvm.Root;
+            FileSystemEntity parent = bvm.Root.Where(n => n.Name == items[0]).FirstOrDefault();
 
             if (string.IsNullOrEmpty(ent))
             {
@@ -87,7 +92,7 @@ namespace Fap.Application.Controllers
             }
             else
             {
-                for (int i = 0; i < items.Length; i++)
+                for (int i = 1; i < items.Length; i++)
                 {
                     var search = parent.Items.Where(n => n.Name == items[i]).FirstOrDefault();
                     if (null == search)
@@ -104,10 +109,17 @@ namespace Fap.Application.Controllers
                 }
             }
 
-            parent.Items.Clear();
-            parent.IsPopulated = false;
+            if (!parent.IsPopulated)
+            {
+                parent.ClearItems();
 
-            ThreadPool.QueueUserWorkItem(new WaitCallback(PopulateAsync), parent);
+                ThreadPool.QueueUserWorkItem(new WaitCallback(PopulateAsync), parent);
+            }
+            else
+            {
+                bvm.CurrentItem = parent;
+                bvm.IsBusy = false;
+            }
         }
 
 
@@ -116,28 +128,55 @@ namespace Fap.Application.Controllers
             FileSystemEntity fse = o as FileSystemEntity;
             if (null != fse)
             {
+                fse.ClearItems();
                 Client c = new Client(bufferService, connectionService);
                 BrowseVerb cmd = new BrowseVerb(model);
-                    cmd.Path = fse.FullPath;
+                cmd.Path = fse.FullPath;
 
-               //  bvm.CurrentDirectory.Clear();
-                  if (c.Execute(cmd, client))
-                  {
-                     
-                      SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
-                        new Action(
-                         delegate()
-                         {
-                             bvm.Status = "Download complete (" + cmd.Results.Count + ").";
-                             fse.IsPopulated = true;
-                             fse.Items.Clear();
-                             foreach (var result in cmd.Results)
-                                 fse.Items.Add(result);
-                             bvm.CurrentItem = fse;
-                         }
-                        ));
-                  }
+                if (c.Execute(cmd, client))
+                {
 
+                    SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+                      new Action(
+                       delegate()
+                       {
+                           bvm.Status = "Download complete (" + cmd.Results.Count + ").";
+                           fse.IsPopulated = true;
+                           fse.ClearItems();
+                           foreach (var result in cmd.Results)
+                               fse.AddItem(result);
+                           bvm.CurrentItem = fse;
+                           bvm.IsBusy = false;
+                       }
+                      ));
+                }
+
+            }
+            else
+            {
+                Client c = new Client(bufferService, connectionService);
+                BrowseVerb cmd = new BrowseVerb(model);
+
+                if (c.Execute(cmd, client))
+                {
+
+                    SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+                      new Action(
+                       delegate()
+                       {
+                           bvm.Status = "Download complete (" + cmd.Results.Count + ").";
+                           FileSystemEntity ent = new FileSystemEntity();
+                           foreach (var result in cmd.Results)
+                           {
+                               bvm.Root.Add(result);
+                               ent.AddItem(result);
+                           }
+                           ent.IsPopulated = true;
+                           bvm.CurrentItem = ent;
+                           bvm.IsBusy = false;
+                       }
+                      ));
+                }
             }
         }
 
@@ -205,10 +244,7 @@ namespace Fap.Application.Controllers
             }
         }
 
-        private void Browse()
-        {
-            Populate("");
-        }
+        
 
         void item_Selected(object sender, System.Windows.RoutedEventArgs e)
         {

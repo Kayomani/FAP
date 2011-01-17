@@ -1,0 +1,26 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:model="clr-namespace:NetworkLibrary.Implementations;assembly=NetworkLibrary">
+    
+    <DataTemplate x:Key="transactionTemplate" DataType="{x:Type model:Transaction}">
+        <Border BorderBrush="#FF9933"
+                BorderThickness="0,0,0,1">
+            <!-- Source, Quantity, Amount, SKU-->
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding EmployeeSource}"
+                           HorizontalAlignment="Right"
+                           Width="100" />
+                <TextBlock Text="{Binding Quantity}"
+                           HorizontalAlignment="Right"
+                           Width="100"/>
+                <TextBlock Text="{Binding Amount}"
+                           HorizontalAlignment="Right"
+                           Width="100"/>
+                <TextBlock Text="{Binding SKU}"
+                           HorizontalAlignment="Right"
+                           Width="100"/>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+    
+</ResourceDictionary>

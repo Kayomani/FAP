@@ -1,0 +1,164 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+					xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<LinearGradientBrush x:Key="Brushes/HeaderBrush"
+						 StartPoint="0,0"
+						 EndPoint="0,1">
+		<GradientStop Offset="0"
+					  Color="#afbdc0" />
+		<GradientStop Offset="0.5"
+					  Color="#6d7673" />
+		<GradientStop Offset="0.5"
+					  Color="#0a0f0b" />
+		<GradientStop Offset="1"
+					  Color="#0a0809" />
+	</LinearGradientBrush>
+
+	<LinearGradientBrush x:Key="Brushes/HorzBlueGradient"
+						 StartPoint="0,0"
+						 EndPoint="1,0">
+		<GradientStop Offset="0"
+					  Color="#ecf2f6" />
+		<GradientStop Offset="0.5"
+					  Color="#aad2ee" />
+		<GradientStop Offset="0.5"
+					  Color="#89c3eb" />
+		<GradientStop Offset="1"
+					  Color="#ddeffc" />
+	</LinearGradientBrush>
+
+
+	<LinearGradientBrush x:Key="Brushes/HorzInnerGrove"
+						 StartPoint="0,0"
+						 EndPoint="1,0">
+		<GradientStop Color="#FF868686"
+					  Offset="0" />
+		<GradientStop Color="#FFFFFFFF"
+					  Offset="1" />
+		<GradientStop Color="#FFA9A9A9"
+					  Offset="0.241" />
+		<GradientStop Color="#FFCECECE"
+					  Offset="0.487" />
+	</LinearGradientBrush>
+
+	<LinearGradientBrush x:Key="Brushes/ListViewBackgroundBrush"
+						 StartPoint="0,0"
+						 EndPoint="0,1">
+		<GradientStop Offset="0"
+					  Color="#b6bec9" />
+		<GradientStop Offset="0.5"
+					  Color="#737d86" />
+		<GradientStop Offset="1"
+					  Color="#27333a" />
+	</LinearGradientBrush>
+
+	<LinearGradientBrush x:Key="Brushes/RowHilightBrush"
+						 StartPoint="0,0"
+						 EndPoint="0,1"
+						 Opacity="0.5">
+		<GradientStop Offset="0"
+					  Color="#ffffff" />
+		<GradientStop Offset="0.5"
+					  Color="#f1f1f1" />
+		<GradientStop Offset="0.5"
+					  Color="#e1e1e1" />
+		<GradientStop Offset="1"
+					  Color="#f3f3f3" />
+	</LinearGradientBrush>
+
+	<LinearGradientBrush x:Key="Brushes/RowSelectionBrush"
+						 StartPoint="0,0"
+						 EndPoint="0,1">
+		<GradientStop Offset="0"
+					  Color="#ecf2f6" />
+		<GradientStop Offset="0.5"
+					  Color="#aad2ee" />
+		<GradientStop Offset="0.5"
+					  Color="#89c3eb" />
+		<GradientStop Offset="1"
+					  Color="#ddeffc" />
+	</LinearGradientBrush>
+
+	<LinearGradientBrush x:Key="Brushes/BlackGradient"
+						 StartPoint="0,0"
+						 EndPoint="0,1">
+		<GradientStop Offset="0"
+					  Color="Black" />
+		<GradientStop Offset="1"
+					  Color="#45494d" />
+	</LinearGradientBrush>
+
+	<DrawingBrush x:Key="Brushes/SwirlBrush"
+				  Opacity="0.5">
+		<DrawingBrush.Drawing>
+			<DrawingGroup>
+				<DrawingGroup>
+					<DrawingGroup.Transform>
+						<MatrixTransform Matrix="1,0,0,1,40,80" />
+					</DrawingGroup.Transform>
+					<GeometryDrawing Brush="#FF767676">
+						<GeometryDrawing.Geometry>
+							<PathGeometry Figures="M40.054934,369.05878 C40.054934,369.05878 118.59155,143.0934 299.15909,180.31123 579.87236,238.17068 603.90876,50.048832 603.90876,50.048832 603.90876,50.048832 40.054745,50.048833 40.054745,50.048833 40.054745,50.048833 40.054934,369.05878 40.054934,369.05878 z">
+								<PathGeometry.Transform>
+									<MatrixTransform Matrix="0.993164883696535,0,0,1.00310352420044,-39.7809658817891,-50.2041597008261" />
+								</PathGeometry.Transform>
+							</PathGeometry>
+						</GeometryDrawing.Geometry>
+					</GeometryDrawing>
+				</DrawingGroup>
+				<DrawingGroup>
+					<DrawingGroup.Transform>
+						<MatrixTransform Matrix="1,0,0,1,40,56" />
+					</DrawingGroup.Transform>
+					<GeometryDrawing Brush="#FF444444">
+						<GeometryDrawing.Geometry>
+							<PathGeometry Figures="M39.997364,356.66417 C39.997364,356.66417 153.79704,146.59719 281.57207,174.45138 599.63004,243.7861 606.99912,57.23167 606.99912,57.23167 606.99912,57.23167 39.997364,57.231669 39.997364,57.231669 39.997364,57.231669 39.997364,356.66417 39.997364,356.66417 z">
+								<PathGeometry.Transform>
+									<MatrixTransform Matrix="1.00176052098778,0,0,1.14883983434393,-40.0677802430452,-65.7500227181705" />
+								</PathGeometry.Transform>
+							</PathGeometry>
+						</GeometryDrawing.Geometry>
+					</GeometryDrawing>
+				</DrawingGroup>
+				<DrawingGroup>
+					<DrawingGroup.Transform>
+						<MatrixTransform Matrix="1,0,0,1,40,56" />
+					</DrawingGroup.Transform>
+					<GeometryDrawing Brush="#FF000000">
+						<GeometryDrawing.Geometry>
+							<PathGeometry Figures="M39.997005,398.96597 C39.997005,398.96597 144.70016,133.15367 288.89231,179.64663 585.70329,275.34961 606.99912,56.03027 606.99912,56.03027 606.99912,56.03027 39.997004,56.03027 39.997004,56.03027 39.997004,56.03027 39.997005,398.96597 39.997005,398.96597 z">
+								<PathGeometry.Transform>
+									<MatrixTransform Matrix="1.00175988745784,0,0,1.00310348765742,-40.0673956909114,-56.2041588730193" />
+								</PathGeometry.Transform>
+							</PathGeometry>
+						</GeometryDrawing.Geometry>
+					</GeometryDrawing>
+				</DrawingGroup>
+			</DrawingGroup>
+		</DrawingBrush.Drawing>
+	</DrawingBrush>
+
+	<DrawingBrush x:Key="Brushes/GraphBrush"
+				  TileMode="Tile"
+				  Viewport="0,0,20,20"
+				  ViewportUnits="Absolute"
+				  Opacity="0.5">
+		<DrawingBrush.Drawing>
+			<GeometryDrawing>
+				<GeometryDrawing.Geometry>
+					<GeometryGroup>
+						<LineGeometry StartPoint="0,0"
+									  EndPoint="0,20" />
+						<LineGeometry StartPoint="0,20"
+									  EndPoint="20,20" />
+					</GeometryGroup>
+				</GeometryDrawing.Geometry>
+
+				<GeometryDrawing.Pen>
+					<Pen Brush="Green"
+						 Thickness="1" />
+				</GeometryDrawing.Pen>
+			</GeometryDrawing>
+		</DrawingBrush.Drawing>
+	</DrawingBrush>
+</ResourceDictionary>

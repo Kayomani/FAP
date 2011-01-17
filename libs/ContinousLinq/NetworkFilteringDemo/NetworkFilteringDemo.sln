@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FilteringApplication1", "FilteringApplication1\FilteringApplication1.csproj", "{505FDF99-D9A6-4FCF-9081-E7B7EB291015}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkLibrary", "NetworkLibrary\NetworkLibrary.csproj", "{A64C4A1A-1E57-4CCE-86E2-25E1319607A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContinuousLinq", "..\ContinuousLinq\ContinuousLinq.csproj", "{735E869D-D965-4E2B-825D-35D05743F7EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionSender", "TransactionSender\TransactionSender.csproj", "{6EC27D37-9EFC-4AD2-A960-D09F1567FF5A}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 5
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs06.codeplex.com/
+		SccProjectUniqueName0 = ..\\ContinuousLinq\\ContinuousLinq.csproj
+		SccProjectName0 = ../ContinuousLinq
+		SccLocalPath0 = ..\\ContinuousLinq
+		SccLocalPath1 = .
+		SccProjectUniqueName2 = FilteringApplication1\\FilteringApplication1.csproj
+		SccProjectName2 = FilteringApplication1
+		SccLocalPath2 = FilteringApplication1
+		SccProjectUniqueName3 = NetworkLibrary\\NetworkLibrary.csproj
+		SccProjectName3 = NetworkLibrary
+		SccLocalPath3 = NetworkLibrary
+		SccProjectUniqueName4 = TransactionSender\\TransactionSender.csproj
+		SccProjectName4 = TransactionSender
+		SccLocalPath4 = TransactionSender
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{505FDF99-D9A6-4FCF-9081-E7B7EB291015}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{505FDF99-D9A6-4FCF-9081-E7B7EB291015}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{505FDF99-D9A6-4FCF-9081-E7B7EB291015}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{505FDF99-D9A6-4FCF-9081-E7B7EB291015}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A64C4A1A-1E57-4CCE-86E2-25E1319607A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A64C4A1A-1E57-4CCE-86E2-25E1319607A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A64C4A1A-1E57-4CCE-86E2-25E1319607A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A64C4A1A-1E57-4CCE-86E2-25E1319607A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{735E869D-D965-4E2B-825D-35D05743F7EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{735E869D-D965-4E2B-825D-35D05743F7EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{735E869D-D965-4E2B-825D-35D05743F7EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{735E869D-D965-4E2B-825D-35D05743F7EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EC27D37-9EFC-4AD2-A960-D09F1567FF5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EC27D37-9EFC-4AD2-A960-D09F1567FF5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EC27D37-9EFC-4AD2-A960-D09F1567FF5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EC27D37-9EFC-4AD2-A960-D09F1567FF5A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -2381,7 +2381,7 @@ DispatcherUnhandledException="Application_DispatcherUnhandledException"
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style d:IsControlPart="True" TargetType="{x:Type TreeViewItem}">
+        <!--<Style d:IsControlPart="True" TargetType="{x:Type TreeViewItem}">
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Foreground">
@@ -2495,7 +2495,7 @@ DispatcherUnhandledException="Application_DispatcherUnhandledException"
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-        </Style>
+        </Style>-->
 
         <Style x:Key="ButtonFocusVisual">
             <Setter Property="Control.Template">

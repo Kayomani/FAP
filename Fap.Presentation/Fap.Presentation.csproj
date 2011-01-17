@@ -218,6 +218,10 @@
       <Project>{9F0CE65A-C35B-4BCB-B8DA-4ACF2CC53B9C}</Project>
       <Name>Fap.Network</Name>
     </ProjectReference>
+    <ProjectReference Include="..\libs\ContinousLinq\ContinuousLinq2\ContinuousLinq\ContinuousLinq.csproj">
+      <Project>{EFC0FA51-6547-4B90-A84E-905035227972}</Project>
+      <Name>ContinuousLinq</Name>
+    </ProjectReference>
     <ProjectReference Include="..\libs\Odyssey\Odyssey.csproj">
       <Project>{333FDC55-6B47-4A64-A2DF-A4C5823FAC74}</Project>
       <Name>Odyssey</Name>

@@ -24,12 +24,17 @@ using Fap.Foundation;
 using Fap.Domain.Entity;
 using System.Windows.Controls;
 using System.Windows.Input;
+using ContinuousLinq;
 
 namespace Fap.Application.ViewModels
 {
+
+   
+
     public class BrowserViewModel: ViewModel<IBrowserView>
     {
-        private FileSystemEntity root = new FileSystemEntity();
+
+        private ContinuousCollection<FileSystemEntity> root = new ContinuousCollection<FileSystemEntity>();
         private FileSystemEntity currentItem;
         private string currentPath;
 
@@ -39,6 +44,7 @@ namespace Fap.Application.ViewModels
         private ICommand browseFolder;
         private List<FileSystemEntity> lastSelectedEntity;
         private string name;
+        private bool isBusy;
 
         public BrowserViewModel(IBrowserView view)
             : base(view)
@@ -46,6 +52,19 @@ namespace Fap.Application.ViewModels
 
         }
 
+
+        public bool IsBusy
+        {
+            set
+            {
+                isBusy = value;
+                RaisePropertyChanged("IsBusy");
+            }
+            get
+            {
+                return isBusy;
+            }
+        }
 
         public string Name
         {
@@ -58,9 +77,9 @@ namespace Fap.Application.ViewModels
             {
                 return name;
             }
-        } 
+        }
 
-        public FileSystemEntity Root
+        public ContinuousCollection<FileSystemEntity> Root
         {
             set
             {

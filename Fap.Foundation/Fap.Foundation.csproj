@@ -99,6 +99,7 @@
     <Compile Include="Sorting\QuickSort.cs" />
     <Compile Include="Sorting\TreeSort.cs" />
     <Compile Include="SystemInfo.cs" />
+    <Compile Include="TreeViewItemViewModel.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="WMI_Prototypes\Win32_BaseBoard.cs" />
     <Compile Include="WMI_Prototypes\Win32_BIOS.cs" />
