@@ -36,15 +36,14 @@ namespace Fap.Domain.Commands
         private Model model;
         private Mediator mediator;
         private BufferService bufferService;
-        private ServerUploadLimiterService limiterService;
+       // private ServerUploadLimiterService limiterService;
         private Logger logService;
 
-        public DownloadServer(Model model, BufferService bs, ServerUploadLimiterService limiter, Logger log)
+        public DownloadServer(Model model, BufferService bs, Logger log)
         {
             mediator = new Mediator();
             this.model = model;
             this.bufferService = bs;
-            this.limiterService = limiter;
             this.logService = log;
         }
 

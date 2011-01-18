@@ -139,6 +139,7 @@ namespace Fap.Presentation
                  * 
                  * 
                  * */
+                builder.RegisterType<ConnectionService>().SingleInstance();
                 builder.RegisterType<BufferService>().SingleInstance();
                 builder.RegisterType<ApplicationController>().SingleInstance();
                 builder.RegisterType<DownloadQueueController>().SingleInstance();
@@ -162,12 +163,12 @@ namespace Fap.Presentation
                 builder.RegisterType<UserInfoPanel>().As<IUserInfo>();
                 
                 //Services
-              //  builder.RegisterType<BroadcastClient>().SingleInstance();
+                builder.RegisterType<DownloadController>().SingleInstance();
               //  builder.RegisterType<BroadcastServer>().SingleInstance();
-                builder.RegisterType<ClientDownloadLimiterService>().SingleInstance();
+             //   builder.RegisterType<ClientDownloadLimiterService>().SingleInstance();
                 builder.RegisterType<ConnectionService>().SingleInstance();
                 builder.RegisterType<Logger>().SingleInstance();
-                builder.RegisterType<ServerUploadLimiterService>().SingleInstance();
+              //  builder.RegisterType<ServerUploadLimiterService>().SingleInstance();
                // builder.RegisterType<BroadcastServer>().SingleInstance();
                 builder.RegisterType<BroadcastClient>().SingleInstance();
                 builder.RegisterType<BroadcastServer>().SingleInstance();

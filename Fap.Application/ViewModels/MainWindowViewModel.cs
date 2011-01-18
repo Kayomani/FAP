@@ -31,7 +31,7 @@ namespace Fap.Application.ViewModels
     public class MainWindowViewModel : ViewModel<IMainWindow>
     {
         private SafeObservable<string> chatList = new SafeObservable<string>();
-        private SafeObservable<Session> sessions = new SafeObservable<Session>();
+        private SafeObservable<TransferSession> sessions;
 
         private string currentChatMessage;
         private ICommand sendChatMessage;
@@ -232,9 +232,7 @@ namespace Fap.Application.ViewModels
             }
         }
 
-
-
-        public SafeObservable<Session> Sessions
+        public SafeObservable<TransferSession> Sessions
         {
             get { return sessions; }
             set

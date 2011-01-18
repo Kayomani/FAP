@@ -24,7 +24,7 @@ using Fap.Network.Entity;
 
 namespace Fap.Domain.Services
 {
-    public class ClientDownloadLimiterService
+   /* public class ClientDownloadLimiterService
     {
         private List<DownloadTokenStore> downloadList = new List<DownloadTokenStore>();
         private Model model;
@@ -81,10 +81,6 @@ namespace Fap.Domain.Services
             }
         }
         
-        private class DownloadTokenStore
-        {
-            public RemoteClient Client { set; get; }
-            public int Downloads { set; get; }
-        }
-    }
+        
+    }*/
 }

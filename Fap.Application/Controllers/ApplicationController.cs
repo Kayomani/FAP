@@ -53,10 +53,10 @@ namespace Fap.Application.Controllers
         private readonly LANPeerConnectionService peerController;
         private readonly SharesController shareController;
         private readonly Logger logger;
-        private readonly DownloadService downloadService;
         private readonly WatchdogController watchdog;
         private readonly ServerService server;
         private readonly ConversationController chatController;
+        private readonly DownloadController downloadController;
 
         private MainWindowViewModel mainWindowModel;
 
@@ -75,11 +75,11 @@ namespace Fap.Application.Controllers
             model = container.Resolve<Model>();
             popupController = container.Resolve<PopupWindowController>();
             browser = container.Resolve<QueryViewModel>();
-            downloadService = container.Resolve<DownloadService>();
             watchdog = container.Resolve<WatchdogController>();
             trayIcon = container.Resolve<TrayIconViewModel>();
             server = container.Resolve<ServerService>();
             chatController = container.Resolve<ConversationController>();
+            downloadController = container.Resolve<DownloadController>();
             logger.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(logger_CollectionChanged);
         }
 
@@ -267,11 +267,19 @@ namespace Fap.Application.Controllers
                                     if (peerController.IsOverlord)
                                         mainWindowModel.OverlordStatus = " (Overlord host)";
                                 }
+
+                                foreach (var xfer in mainWindowModel.Sessions)
+                                {
+                                    xfer.Percent = xfer.Worker.Percent;
+                                    xfer.Size = xfer.Worker.Size;
+                                    xfer.Speed = xfer.Worker.Speed;
+                                    xfer.Status = xfer.Worker.Status;
+                                }
                             }
                            ));
                     }
                 }
-                Thread.Sleep(250);
+                Thread.Sleep(333);
             }
         }
 
@@ -309,7 +317,7 @@ namespace Fap.Application.Controllers
                 mainWindowModel.Avatar = model.Avatar;
                 mainWindowModel.Nickname = model.Nickname;
                 mainWindowModel.Description = model.Description;
-                mainWindowModel.Sessions = model.Sessions;
+                mainWindowModel.Sessions = model.TransferSessions;
                 mainWindowModel.ChatMessages = model.Messages;
                 mainWindowModel.Peers = model.Peers;
                 mainWindowModel.Node = model.Node;
@@ -524,8 +532,8 @@ namespace Fap.Application.Controllers
         public void Run()
         {
             watchdog.Run();
-            downloadService.Run();
             ShowMainWindow();
+            downloadController.Start();
         }
 
         public void ShutDownAsync(object param)

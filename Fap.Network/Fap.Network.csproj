@@ -78,7 +78,6 @@
     <Compile Include="Entity\Node.cs" />
     <Compile Include="Entity\Overlord.cs" />
     <Compile Include="Entity\PeerStream.cs" />
-    <Compile Include="Entity\RemoteClient.cs" />
     <Compile Include="Entity\Reponse.cs" />
     <Compile Include="Entity\Request.cs" />
     <Compile Include="Entity\Session.cs" />

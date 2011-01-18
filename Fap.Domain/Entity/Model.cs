@@ -30,15 +30,10 @@ namespace Fap.Domain.Entity
     [Serializable]
     public class Model : INotifyPropertyChanged
     {
-        public readonly string SoftwareVersion = "FAP 2.0";
-        [XmlIgnore]
         public static readonly int ClientVersion = 0;
-        [XmlIgnore]
         public static readonly int NetCodeVersion = 3;
 
-        [XmlIgnore]
         private readonly string saveLocation;
-        [XmlIgnore]
         private DownloadQueue downloadQueue;
         private int maxDownloads;
         private int maxDownloadsPerUser;
@@ -47,21 +42,14 @@ namespace Fap.Domain.Entity
         private string downloadFolder;
         private bool disableCompare;
 
-        [XmlIgnore]
         private SafeObservable<Session> sessions;
-        [XmlIgnore]
+        private SafeObservable<TransferSession> transferSessions;
         private Node node;
-        [XmlIgnore]
         private SafeObservable<Node> peers;
-        [XmlIgnore]
         private SafeObservable<Share> shares;
-        [XmlIgnore]
         private SafeObservable<Fap.Network.Entity.Network> networks;
-        [XmlIgnore]
         private SafeObservable<string> messages;
-        [XmlIgnore]
         private SafeObservable<Conversation> converstations;
-        [XmlIgnore]
         private Overlord overlord;
 
         public delegate bool NewConversation(string id, string message);
@@ -83,6 +71,7 @@ namespace Fap.Domain.Entity
             sessions = new SafeObservable<Session>();
             messages = new SafeObservable<string>();
             converstations = new SafeObservable<Conversation>();
+            transferSessions = new SafeObservable<TransferSession>();
             saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
             node.PropertyChanged += new PropertyChangedEventHandler(node_PropertyChanged);
             node = new Node();
@@ -149,6 +138,13 @@ namespace Fap.Domain.Entity
             get { return sessions; }
         }
         
+        [XmlIgnore]
+        public SafeObservable<TransferSession> TransferSessions
+        {
+            get { return transferSessions; }
+        }
+        
+
         //Properties
         [XmlIgnore]
         public DownloadQueue DownloadQueue

@@ -58,11 +58,9 @@ namespace Fap.Application.Controllers
         {
             bvm.Download = new DelegateCommand(Download);
             bvm.Refresh = new DelegateCommand(Refresh);
-            bvm.BrowseFolder = new DelegateCommand(BrowseFolder);
             bvm.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(bvm_PropertyChanged);
             //Pull down the inital listing
             bvm.Status = "Getting initial share list..";
-            bvm.Name = "Kayomani";
             Populate("");
         }
 
@@ -180,57 +178,24 @@ namespace Fap.Application.Controllers
             }
         }
 
-        private void BrowseFolder(object o )
-        {
-           /* string[] path = ((string)o).Split('\\');
-            System.Windows.Controls.TreeViewItem root = bvm.Folders[0] as System.Windows.Controls.TreeViewItem;
-
-            if (path.Length > 0)
-            {
-                for (int i = 0; i < bvm.Folders.Count; i++)
-                {
-                    if (string.Equals(bvm.Folders[i].Header, path[0]))
-                    {
-                        root = bvm.Folders[i];
-                        break;
-                    }
-                }
-
-
-                if (null != root)
-                {
-                    for (int i = 1; i < path.Length ; i++)
-                    {
-                        for (int x = 0; x < root.Items.Count; x++)
-                        {
-                            System.Windows.Controls.TreeViewItem subitem = root.Items[x] as System.Windows.Controls.TreeViewItem;
-                            string text = (string)subitem.Header;
-                            if (string.Equals(path[i], text))
-                            {
-                                root = root.Items[x] as System.Windows.Controls.TreeViewItem;
-                                break;
-                            }
-
-                        }
-
-                    }
-                    root.IsSelected = true;
-                    root.IsExpanded = true;
-                }
-            }*/
-        }
-
         private void Download()
         {
-
             for (int i = 0; i < bvm.LastSelectedEntity.Count; i++)
             {
                 FileSystemEntity ent = bvm.LastSelectedEntity[i];
-                model.DownloadQueue.List.Add(new DownloadRequest() { Added = DateTime.Now, FullPath = ent.FullPath, IsFolder = ent.IsFolder });
-                if (bvm.LastSelectedEntity.Count - 1 == i)
-                {
+                model.DownloadQueue.List.Add(new DownloadRequest()
+                                                  { Added = DateTime.Now,
+                                                    FullPath = ent.FullPath, 
+                                                    IsFolder = ent.IsFolder, 
+                                                    Size  = ent.Size,
+                                                    State = DownloadRequestState.None,
+                                                    ClientID =  client.ID,
+                                                    Nickname = client.Nickname});
+
+                if (bvm.LastSelectedEntity.Count == 1)
                     bvm.Status = "Queued download of: " + ent.FullPath;
-                }
+                else
+                    bvm.Status = "Queued " + bvm.LastSelectedEntity.Count + " downloads.";
             }
         }
 

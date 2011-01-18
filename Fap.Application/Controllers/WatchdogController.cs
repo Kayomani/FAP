@@ -74,7 +74,7 @@ namespace Fap.Application.Controllers
                         //Disconnect sessions if needed
                         DisconnectStaleSessions();
                         //Update user display info
-                        foreach (var session in model.Sessions.ToList())
+                        /*foreach (var session in model.Sessions.ToList())
                         {
                             Node rc = session.Host;
                             if (rc != null)
@@ -93,7 +93,7 @@ namespace Fap.Application.Controllers
                                 // rc = model.Clients.Where(c => c.Host == session.User).FirstOrDefault();
                                 session.Host = rc;
                             }
-                        }
+                        }*/
                         //Clean up excess buffers
                         bufferService.Clean();
 

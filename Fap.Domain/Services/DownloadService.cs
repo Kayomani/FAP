@@ -27,7 +27,7 @@ using Fap.Foundation.Logging;
 
 namespace Fap.Domain.Services
 {
-    public class DownloadService 
+    /*public class DownloadService 
     {
         private Model model;
         private Timer timer;
@@ -132,12 +132,12 @@ namespace Fap.Domain.Services
                                 //OnStartDownloadAsync.BeginInvoke(download, client,DownloadService_OnStartDownloadAsync,null);
                             }
                             else
-                                break;*/
+                                break;*//*
                         }
                     }
                 }
             }
             sync.ExitWriteLock();
         }
-    }
+    }*/
 }

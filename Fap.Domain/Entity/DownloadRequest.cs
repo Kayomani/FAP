@@ -24,17 +24,59 @@ using System.Xml.Serialization;
 
 namespace Fap.Domain.Entity
 {
+    public enum DownloadRequestState { None = 0, Requesting = 1, Queued = 2, Downloading = 3, Downloaded = 4 }
     public class DownloadRequest : INotifyPropertyChanged
     {
-        private string host;
+        private string clientid;
+        private string nickname;
         private string path;
+        private long size;
         private DateTime added;
         private bool isFolder;
-        [XmlIgnore]
-        private string status;
-        [XmlIgnore]
         private int nextTryTime;
-        
+        private DownloadRequestState state;
+        private string localPath;
+
+        public string LocalPath
+        {
+            set
+            {
+                localPath = value;
+                NotifyChange("LocalPath");
+            }
+            get
+            {
+                return localPath;
+            }
+        }
+
+        public long Size
+        {
+            set
+            {
+                size = value;
+                NotifyChange("Size");
+            }
+            get
+            {
+                return size;
+            }
+        }
+
+        [XmlIgnore]
+        public DownloadRequestState State
+        {
+            set
+            {
+                state = value;
+                NotifyChange("State");
+            }
+            get
+            {
+                return state;
+            }
+        }
+
         [XmlIgnore]
         public int NextTryTime
         {
@@ -48,20 +90,6 @@ namespace Fap.Domain.Entity
                 return nextTryTime;
             }
         }
-        [XmlIgnore]
-        public string Status
-        {
-            set
-            {
-                status = value;
-                NotifyChange("Status");
-            }
-            get
-            {
-                return status;
-            }
-        }
-
 
         public bool IsFolder
         {
@@ -76,27 +104,30 @@ namespace Fap.Domain.Entity
             }
         }
 
-
-        public string Host
+        public string ClientID
         {
             set
             {
-                host = value;
-                NotifyChange("Host");
+                clientid = value;
+                NotifyChange("ClientID");
             }
             get
             {
-                return host;
+                return clientid;
             }
         }
 
-        /// <summary>
-        /// Path inside the download folder
-        /// </summary>
-        public string LocalPath
+        public string Nickname
         {
-            set;
-            get;
+            set
+            {
+                nickname = value;
+                NotifyChange("Nickname");
+            }
+            get
+            {
+                return nickname;
+            }
         }
 
         public string FullPath

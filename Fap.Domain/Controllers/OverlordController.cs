@@ -585,6 +585,7 @@ namespace Fap.Domain.Controllers
                             verb = new ClientVerb(client);
                             search.AddMessage(verb.CreateRequest());
                         }
+                        ScanClient(search.Node);
                     }
                     else
                     {

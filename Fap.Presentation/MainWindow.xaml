@@ -128,9 +128,9 @@
                     </GridViewColumn>
                     <GridViewColumn Header="User" DisplayMemberBinding="{Binding User}" Width="150px"/>
                     <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}"  Width="350px"/>
-                    <GridViewColumn Header="%" DisplayMemberBinding="{Binding PercentXfer}"  Width="50px"/>
-                    <GridViewColumn Header="Speed" DisplayMemberBinding="{Binding SpeedString}" local:SortableListView.SortPropertyName="Speed" Width="100px"/>
-                    <GridViewColumn Header="Size" DisplayMemberBinding="{Binding LengthString}" local:SortableListView.SortPropertyName="Speed" Width="100px"/>
+                    <GridViewColumn Header="%" DisplayMemberBinding="{Binding Percent}"  Width="50px"/>
+                    <GridViewColumn Header="Speed" DisplayMemberBinding="{Binding Speed, Converter={StaticResource sizeConverter}}" Width="100px"/>
+                    <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size, Converter={StaticResource sizeConverter}}" Width="100px"/>
                 </GridView>
                </local:SortableListView.View>
            </local:SortableListView>

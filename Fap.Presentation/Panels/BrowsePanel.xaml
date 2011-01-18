@@ -39,9 +39,7 @@
                            HideRootNode="True"
                            PopulateItems="BreadcrumbBar_PopulateItems"    
                            BreadcrumbItemDropDownOpened="bar_BreadcrumbItemDropDownOpened"
-                           TraceBinding="{Binding Name}"
-                           
-                           PathConversion="BreadcrumbBar_PathConversion">
+                           TraceBinding="{Binding Name}">
             <!--<odc:BreadcrumbBar.Buttons>
                 <Button Click="Button_Click">Refresh</Button>
             </odc:BreadcrumbBar.Buttons>-->

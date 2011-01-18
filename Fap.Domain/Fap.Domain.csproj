@@ -91,9 +91,11 @@
     <Compile Include="Entity\Model.cs" />
     <Compile Include="Entity\NodeModel.cs" />
     <Compile Include="Entity\Share.cs" />
+    <Compile Include="Entity\TransferSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ConnectionService.cs" />
     <Compile Include="Services\DownloadService.cs" />
+    <Compile Include="Services\DownloadWorkerService.cs" />
     <Compile Include="Services\IconService.cs" />
     <Compile Include="Services\LANPeerConnectionService.cs" />
     <Compile Include="Services\ServerService.cs" />

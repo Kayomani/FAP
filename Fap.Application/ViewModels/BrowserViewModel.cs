@@ -37,13 +37,10 @@ namespace Fap.Application.ViewModels
         private ContinuousCollection<FileSystemEntity> root = new ContinuousCollection<FileSystemEntity>();
         private FileSystemEntity currentItem;
         private string currentPath;
-
         private string status;
         private ICommand download;
         private ICommand refresh;
-        private ICommand browseFolder;
         private List<FileSystemEntity> lastSelectedEntity;
-        private string name;
         private bool isBusy;
 
         public BrowserViewModel(IBrowserView view)
@@ -51,7 +48,6 @@ namespace Fap.Application.ViewModels
         {
 
         }
-
 
         public bool IsBusy
         {
@@ -66,19 +62,6 @@ namespace Fap.Application.ViewModels
             }
         }
 
-        public string Name
-        {
-            set
-            {
-                name = value;
-                RaisePropertyChanged("Name");
-            }
-            get
-            {
-                return name;
-            }
-        }
-
         public ContinuousCollection<FileSystemEntity> Root
         {
             set
@@ -89,19 +72,6 @@ namespace Fap.Application.ViewModels
             get
             {
                 return root;
-            }
-        }
-
-        public ICommand BrowseFolder
-        {
-            set
-            {
-                browseFolder = value;
-                RaisePropertyChanged("BrowseFolder");
-            }
-            get
-            {
-                return browseFolder;
             }
         }
 

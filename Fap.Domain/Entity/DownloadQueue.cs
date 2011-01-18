@@ -34,7 +34,7 @@ namespace Fap.Domain.Entity
 
         public DownloadQueue()
         {
-            saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\DownloadQueue.xml";
+            saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Queue.xml";
         }
 
 

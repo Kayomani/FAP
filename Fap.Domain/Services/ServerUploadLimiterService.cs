@@ -24,7 +24,7 @@ using Fap.Network.Entity;
 
 namespace Fap.Domain.Services
 {
-    public class ServerUploadLimiterService
+    /*public class ServerUploadLimiterService
     {
         List<ServerUploadToken> tokenlist = new List<ServerUploadToken>();
         Queue<ServerUploadToken> recycledList = new Queue<ServerUploadToken>();
@@ -191,18 +191,19 @@ namespace Fap.Domain.Services
                     lockCount++;
                 semaphore.WaitOne();
                */
-            }
+    /*
+}
 
-            public void Release()
-            {
-                if (lockCount != 1)
-                {
+public void Release()
+{
+   if (lockCount != 1)
+   {
 
-                }
-               /* lock (semaphore)
-                    lockCount--;
-                semaphore.Release();*/
-            }
-        }
-    }
+   }
+  /* lock (semaphore)
+       lockCount--;
+   semaphore.Release();
+}
+}
+}*/
 }

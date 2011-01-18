@@ -31,7 +31,8 @@ using Fap.Network;
 
 namespace Fap.Domain.Commands
 {
-    class DownloadClient
+}
+  /*  class DownloadClient
     {
      //   private readonly long RECEIVE_TIMEOUT = 45000;
 
@@ -52,12 +53,12 @@ namespace Fap.Domain.Commands
             logService = log;
         }
 
-
-        public void StartDownload(DownloadRequest req, RemoteClient rc)
+    */
+        /*  public void StartDownload(DownloadRequest req, RemoteClient rc)
         {
             if (req.IsFolder)
             {
-                /* logService.AddInfo("Client download folder: " + req.FullPath);
+               logService.AddInfo("Client download folder: " + req.FullPath);
                  // session.Status = "Started get folder info for " + req.FullPath;
                  //Download file list and add it to the queue.
                  Client c = new Client(bufferService,connectionService);
@@ -257,13 +258,13 @@ namespace Fap.Domain.Commands
                        token.Dispose();
                        bufferService.FreeArg(arg);
                    }*/
-            }
-        }
+          //  }
+        //}
 
-        public void FreeSession()
-        {
+        //public void FreeSession()
+        //{
           //  if (null != session)
             //    connectionService.FreeClientSession(session);
-        }
-    }
-}
+       // }
+   // }
+

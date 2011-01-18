@@ -15,10 +15,10 @@ namespace Fap.Presentation
                           System.Globalization.CultureInfo culture)
         {
 
-            Session s = value as Session;
+            TransferSession s = value as TransferSession;
             if (null != s)
             {
-                if (s.IsUpload)
+                if (s.IsDownload)
                     return "/Fap.Presentation;component/Images/Download.png";
                 else
                     return "/Fap.Presentation;component/Images/Upload.png";

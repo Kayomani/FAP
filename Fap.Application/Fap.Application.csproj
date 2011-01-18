@@ -84,6 +84,7 @@
     <Compile Include="Controllers\BrowserController.cs" />
     <Compile Include="Controllers\ConversationController.cs" />
     <Compile Include="Controllers\CompareController.cs" />
+    <Compile Include="Controllers\DownloadController.cs" />
     <Compile Include="Controllers\DownloadQueueController.cs" />
     <Compile Include="Controllers\PopupWindowController.cs" />
     <Compile Include="Controllers\SharesController.cs" />

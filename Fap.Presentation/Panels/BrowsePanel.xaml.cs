@@ -57,19 +57,19 @@ namespace Fap.Presentation.Panels
         {
 
             if (Model != null)
-             {
-                 bar.PathChanged += new RoutedPropertyChangedEventHandler<string>(bar_PathChanged);
-                 Model.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Model_PropertyChanged);
+            {
+                bar.PathChanged += new RoutedPropertyChangedEventHandler<string>(bar_PathChanged);
+                Model.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Model_PropertyChanged);
 
-                 root.SubItems = Model.Root;
-                 root.IsPopulated = true;
-                 rootB.DataContext = root;
-                 rootB.Header = "ROOT";
-                 rootB.Items.Add(fake);
-                 bar.AddChild(rootB);
-                 if (Model.Root.Count == 0)
-                     Model.IsBusy = true;
-             }
+                root.SubItems = Model.Root;
+                root.IsPopulated = true;
+                rootB.DataContext = root;
+                rootB.Header = "ROOT";
+                rootB.Items.Add(fake);
+                bar.AddChild(rootB);
+                if (Model.Root.Count == 0)
+                    Model.IsBusy = true;
+            }
         }
 
         BreadcrumbItem rootB = new BreadcrumbItem();
@@ -105,7 +105,7 @@ namespace Fap.Presentation.Panels
             if (ignoreFolderTreeEvents)
                 return;
             System.Windows.Controls.TreeViewItem src = e.OriginalSource as System.Windows.Controls.TreeViewItem;
-            
+
             FileSystemEntity ent = src.DataContext as FileSystemEntity;
             ent.ClearItems();
             Model.CurrentPath = ent.FullPath;
@@ -232,7 +232,7 @@ namespace Fap.Presentation.Panels
                 }
                 return;
             }
-            if (item.Items.Contains(fake) || item.Items.Count==0)
+            if (item.Items.Contains(fake) || item.Items.Count == 0)
             {
                 if (fse == root)
                 {
@@ -265,82 +265,13 @@ namespace Fap.Presentation.Panels
             }
         }
 
-
-        /// <summary>
-        /// Populate the Items of the specified BreadcrumbItem with the sub folders if necassary.
-        /// </summary>
-        /// <param name="item"></param>
-        private static void PopulateFolders(BreadcrumbItem item)
-        {
-
-           /* BreadcrumbBar bar = item.BreadcrumbBar;
-            string path = bar.PathFromBreadcrumbItem(item);
-            string trace = item.TraceValue;
-            if (trace.Equals("Computer"))
-            {
-                string[] dirs = System.IO.Directory.GetLogicalDrives();
-                foreach (string s in dirs)
-                {
-                    string dir = s;
-                    if (s.EndsWith(bar.SeparatorString)) dir = s.Remove(s.Length - bar.SeparatorString.Length, bar.SeparatorString.Length);
-                    FolderItem fi = new FolderItem();
-                    fi.Folder = dir;
-
-                    item.Items.Add(fi);
-                }
-            }
-            else
-            {
-                try
-                {
-                    string[] paths = System.IO.Directory.GetDirectories(path + "\\");
-                    foreach (string s in paths)
-                    {
-                        string file = System.IO.Path.GetFileName(s);
-                        FolderItem fi = new FolderItem();
-                        fi.Folder = file;
-                        item.Items.Add(fi);
-                    }
-                }
-                catch { }
-            }*/
-        }
-
-        private void BreadcrumbBar_PathConversion(object sender, PathConversionEventArgs e)
-        {
-           /* if (e.Mode == PathConversionEventArgs.ConversionMode.DisplayToEdit)
-            {
-                if (e.DisplayPath.StartsWith(@"Computer\", StringComparison.OrdinalIgnoreCase))
-                {
-                    e.EditPath = e.DisplayPath.Remove(0, 9);
-                }
-                else if (e.DisplayPath.StartsWith(@"Network\", StringComparison.OrdinalIgnoreCase))
-                {
-                    string editPath = e.DisplayPath.Remove(0, 8);
-                    editPath = @"\\" + editPath.Replace('\\', '/');
-                    e.EditPath = editPath;
-                }
-            }
-            else
-            {
-                if (e.EditPath.StartsWith("c:", StringComparison.OrdinalIgnoreCase))
-                {
-                    e.DisplayPath = @"Desktop\Computer\" + e.EditPath;
-                }
-                else if (e.EditPath.StartsWith(@"\\"))
-                {
-                    e.DisplayPath = @"Desktop\Network\" + e.EditPath.Remove(0, 2).Replace('/', '\\');
-                }
-            }*/
-        }
-
         /// <summary>
         /// The dropdown menu of a BreadcrumbItem was pressed, so delete the current folders, and repopulate the folders
         /// to ensure actual data.
         /// </summary>
         private void bar_BreadcrumbItemDropDownOpened(object sender, BreadcrumbItemEventArgs e)
         {
-           BreadcrumbItem item = e.Item;
+            BreadcrumbItem item = e.Item;
 
             FileSystemEntity ent = item.Data as FileSystemEntity;
             if (null != ent)
@@ -355,15 +286,7 @@ namespace Fap.Presentation.Panels
                     }
                 }
             }
-            /* 
-            // only repopulate, if the BreadcrumbItem is dynamically generated which means, item.Data is a  pointer to itself:
-            if (!(item.Data is BreadcrumbItem))
-            {
-                item.Items.Clear();
-                PopulateFolders(item);
-            }*/
         }
-
     }
 
 
@@ -372,15 +295,10 @@ namespace Fap.Presentation.Panels
 
         public static TreeViewItem ContainerFromItem(this TreeView treeView, object item)
         {
-
             TreeViewItem containerThatMightContainItem = (TreeViewItem)treeView.ItemContainerGenerator.ContainerFromItem(item);
-
             if (containerThatMightContainItem != null)
-
                 return containerThatMightContainItem;
-
             else
-
                 return ContainerFromItem(treeView.ItemContainerGenerator, treeView.Items, item);
 
         }
@@ -389,77 +307,50 @@ namespace Fap.Presentation.Panels
 
         private static TreeViewItem ContainerFromItem(ItemContainerGenerator parentItemContainerGenerator, ItemCollection itemCollection, object item)
         {
-
             foreach (object curChildItem in itemCollection)
             {
-
                 TreeViewItem parentContainer = (TreeViewItem)parentItemContainerGenerator.ContainerFromItem(curChildItem);
 
                 if (parentContainer == null)
                     return null;
 
                 TreeViewItem containerThatMightContainItem = (TreeViewItem)parentContainer.ItemContainerGenerator.ContainerFromItem(item);
-
                 if (containerThatMightContainItem != null)
-
                     return containerThatMightContainItem;
 
                 TreeViewItem recursionResult = ContainerFromItem(parentContainer.ItemContainerGenerator, parentContainer.Items, item);
-
                 if (recursionResult != null)
-
                     return recursionResult;
-
             }
-
             return null;
-
         }
 
 
 
         public static object ItemFromContainer(this TreeView treeView, TreeViewItem container)
         {
-
             TreeViewItem itemThatMightBelongToContainer = (TreeViewItem)treeView.ItemContainerGenerator.ItemFromContainer(container);
-
             if (itemThatMightBelongToContainer != null)
-
                 return itemThatMightBelongToContainer;
-
             else
-
                 return ItemFromContainer(treeView.ItemContainerGenerator, treeView.Items, container);
-
         }
 
 
 
         private static object ItemFromContainer(ItemContainerGenerator parentItemContainerGenerator, ItemCollection itemCollection, TreeViewItem container)
         {
-
             foreach (object curChildItem in itemCollection)
             {
-
                 TreeViewItem parentContainer = (TreeViewItem)parentItemContainerGenerator.ContainerFromItem(curChildItem);
-
                 TreeViewItem itemThatMightBelongToContainer = (TreeViewItem)parentContainer.ItemContainerGenerator.ItemFromContainer(container);
-
                 if (itemThatMightBelongToContainer != null)
-
                     return itemThatMightBelongToContainer;
-
                 TreeViewItem recursionResult = ItemFromContainer(parentContainer.ItemContainerGenerator, parentContainer.Items, container) as TreeViewItem;
-
                 if (recursionResult != null)
-
                     return recursionResult;
-
             }
-
             return null;
-
         }
-
     }
 }
