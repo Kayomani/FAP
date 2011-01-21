@@ -54,8 +54,8 @@ namespace Fap.Network
                 listenSocket.Bind(new IPEndPoint(IPAddress.Any, broadcastPort));
 
               //  listenSocket.Connect(broadcastAddress, broadcastPort);
-                listenSocket.ReceiveBufferSize = manager.SmallBuffer;
-                listenSocket.SendBufferSize = manager.SmallBuffer;
+                listenSocket.ReceiveBufferSize = BufferService.SmallBuffer;
+                listenSocket.SendBufferSize = BufferService.SmallBuffer;
             }
         }
 

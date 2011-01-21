@@ -46,7 +46,17 @@ namespace Fap.Network.Services
         public void FreeClientSession(Session s)
         {
             lock (sync)
-                s.InUse = false;
+            {
+                if (!s.Socket.Connected)
+                {
+                    sessions.Remove(s);
+                    s.Socket.Close();
+                }
+                else
+                {
+                    s.InUse = false;
+                }
+            }
         }
 
         public void RemoveClientSession(Session s)

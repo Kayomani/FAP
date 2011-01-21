@@ -84,15 +84,14 @@ namespace Fap.Network.Services
         {
             Socket socket = null;
             MemoryBuffer arg = null;
-            int wait = 5;
             ConnectionToken token = new ConnectionToken();
             bool disposed = false;
             try
             {
                 listener.BeginAcceptSocket(new AsyncCallback(handleClient), null);
                 socket = listener.EndAcceptSocket(result);
-                socket.SendBufferSize = bufferManager.SmallBuffer;
-                socket.ReceiveBufferSize = bufferManager.SmallBuffer;
+                socket.SendBufferSize = BufferService.SmallBuffer;
+                socket.ReceiveBufferSize = BufferService.SmallBuffer;
                 socket.ReceiveTimeout = 300 * 1000;
 
                 while (socket.Connected)

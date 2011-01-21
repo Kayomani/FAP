@@ -29,17 +29,14 @@ namespace Fap.Network.Services
         private Stack<MemoryBuffer> smallPool = new Stack<MemoryBuffer>();
         private Logger logger;
 
-        public int Buffer { set; get; }
-        public int SmallBuffer { set; get; }
-
+        public const int Buffer = 5242880;//5mb
+        public const int SmallBuffer = 256000;//256kb
 
         private int largeCount = 10;
         private int smallCount = 10;
 
         public BufferService(Logger log)
         {
-            SmallBuffer = 256000;//256kb
-            Buffer = 5242880; //5mb
             logger = log;
         }
 

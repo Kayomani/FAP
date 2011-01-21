@@ -40,6 +40,7 @@ namespace Fap.Domain.Entity
         private int maxUploads;
         private int maxUploadsPerUser;
         private string downloadFolder;
+        private string incompleteFolder;
         private bool disableCompare;
 
         private SafeObservable<Session> sessions;
@@ -164,6 +165,19 @@ namespace Fap.Domain.Entity
             get
             {
                 return downloadFolder;
+            }
+        }
+
+        public string IncompleteFolder
+        {
+            set
+            {
+                incompleteFolder = value;
+                NotifyChange("IncompleteFolder");
+            }
+            get
+            {
+                return incompleteFolder;
             }
         }
 

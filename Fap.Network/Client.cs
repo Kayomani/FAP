@@ -53,7 +53,7 @@ namespace Fap.Network
             try
             {
                 byte[] data = Mediator.Serialize(r);
-                session.Socket.ReceiveBufferSize = bufferService.Buffer;
+                session.Socket.ReceiveBufferSize = BufferService.Buffer;
                 //transmit
                 session.Socket.Send(data);
                 //Receive

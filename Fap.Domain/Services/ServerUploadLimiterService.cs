@@ -24,7 +24,7 @@ using Fap.Network.Entity;
 
 namespace Fap.Domain.Services
 {
-    /*public class ServerUploadLimiterService
+    public class ServerUploadLimiterService
     {
         List<ServerUploadToken> tokenlist = new List<ServerUploadToken>();
         Queue<ServerUploadToken> recycledList = new Queue<ServerUploadToken>();
@@ -35,70 +35,53 @@ namespace Fap.Domain.Services
             this.model = model;
         }
 
-        public bool RequestUploadToken(out ServerUploadToken token, RemoteClient rc)
+        public ServerUploadToken RequestUploadToken(Node node)
         {
             bool startNow = true;
+            ServerUploadToken token;
             lock (tokenlist)
             {
+                //Create token
                 if (recycledList.Count > 0)
-                {
                     token = recycledList.Dequeue();
-                }
                 else
-                {
                     token = new ServerUploadToken();
-               }
 
                 tokenlist.Add(token);
-                token.Position = tokenlist.IndexOf(token);
+                token.RemoteClient = node;
+
+                int totalDownloads = tokenlist.Where(t => t.CanUpload).Count();
+
                 //If we have reached the global uploads then pause the download
-                if (token.Position > model.MaxUploads)
-                {
-                 //   token.Wait();
+                if (totalDownloads > model.MaxUploads)
                     startNow = false;
-                }
-                else if (tokenlist.Where(i => i.RemoteClient == rc).Count() >= model.MaxUploadsPerUser)
+                else if (tokenlist.Where(i => i.RemoteClient == node).Count() >= model.MaxUploadsPerUser)
                 {
                     //We have reached the max uploads for this perticular user
-                 //   token.Wait();
                     startNow = false;
                 }
             }
-            return startNow;
+            token.CanUpload = startNow;
+            return token;
         }
 
         public void FreeToken(ServerUploadToken token)
         {
             lock (tokenlist)
             {
-                RemoteClient rc = token.RemoteClient;
+                Node node = token.RemoteClient;
 
                 //Recycle token
-                token.AllowedToUpload = false;
+                token.CanUpload = false;
                 token.RemoteClient = null;
-                token.AllowedToLock = true;
-               // while (token.HasLock)
-                //    token.Release();
+                token.Position = 0;
                 recycledList.Enqueue(token);
-                
+
                 tokenlist.Remove(token);
-                
+
                 //Update positions
                 for (int i = 0; i < tokenlist.Count; i++)
-                {
                     tokenlist[i].Position = i;
-                }
-
-                // Signal updates
-                for (int i = 0; i < tokenlist.Count; i++)
-                {
-                    tokenlist[i].AllowedToLock = false;
-                    if (tokenlist[i].HasLock)
-                    {
-                        tokenlist[i].Release();
-                    }
-                    tokenlist[i].AllowedToLock = true;
-                }
 
                 //Trigger next download if there is one
                 if (tokenlist.Count > 0)
@@ -106,104 +89,16 @@ namespace Fap.Domain.Services
                     for (int i = 0; i < tokenlist.Count; i++)
                     {
                         //Make sure we don't exceed the per user limit
-                        var count = tokenlist.Where(t => t.RemoteClient == rc).Count();
-                        if ((count + 1) <= model.MaxUploadsPerUser)
+                        var count = tokenlist.Where(t => t.RemoteClient == node).Count();
+                        if (count < model.MaxUploadsPerUser)
                         {
-                            if (!tokenlist[i].AllowedToUpload)
-                            {
-                                tokenlist[i].AllowedToUpload = true;
-                                if(tokenlist[i].HasLock)
-                                  tokenlist[i].Release();
-                            }
+                            if (!tokenlist[i].CanUpload)
+                                tokenlist[i].CanUpload = true;
                             return;
                         }
                     }
                 }
             }
         }
-
-
-
-        public class ServerUploadToken
-        {
-            private Semaphore semaphore;
-            private int position;
-            private int lockCount = 0;
-            private bool allowedToLock =true;
-
-            public ServerUploadToken()
-            {
-                semaphore = new Semaphore(0, 1);
-            }
-
-            public bool AllowedToUpload { set; get; }
-            public RemoteClient RemoteClient { set; get; }
-
-            public bool AllowedToLock
-            {
-                get
-                {
-                    lock (semaphore)
-                        return allowedToLock;
-                }
-                set
-                {
-                    lock (semaphore)
-                        allowedToLock = value;
-                }
-            }
-
-            public int Position
-            {
-                set
-                {
-                    lock (semaphore)
-                        position = value;
-                }
-                get
-                {
-                    lock (semaphore)
-                        return position;
-                }
-            }
-
-            public bool HasLock
-            {
-                get
-                {
-                    lock (semaphore)
-                        return lockCount == 1;
-                }
-            }
-
-            public void Dispose()
-            {
-                semaphore.Close();
-            }
-
-            public void Wait()
-            {
-                if (lockCount != 0)
-                {
-
-                }
-               /* lock (semaphore)
-                    lockCount++;
-                semaphore.WaitOne();
-               */
-    /*
-}
-
-public void Release()
-{
-   if (lockCount != 1)
-   {
-
-   }
-  /* lock (semaphore)
-       lockCount--;
-   semaphore.Release();
-}
-}
-}*/
+    }
 }

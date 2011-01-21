@@ -34,11 +34,13 @@ namespace Fap.Application.Controllers
         private long lastRun = Environment.TickCount;
         private BackgroundSafeObservable<DownloadWorkerService> workers = new BackgroundSafeObservable<DownloadWorkerService>();
         private ConnectionService connectionService;
+        private BufferService bufferService;
 
-        public DownloadController(ConnectionService cs, Model m)
+        public DownloadController(ConnectionService cs, Model m, BufferService bufferService)
         {
             model = m;
             connectionService = cs;
+            this.bufferService = bufferService;
         }
 
         public void Start()
@@ -101,8 +103,7 @@ namespace Fap.Application.Controllers
                                     if (i <= workerlist.Count)
                                     {
                                         //Add a new worker
-                                        item.State = DownloadRequestState.Requesting;
-                                        var worker = new DownloadWorkerService(connectionService,client, item);
+                                        var worker = new DownloadWorkerService(model, connectionService, client, item, bufferService);
                                         workers.Add(worker);
                                         model.TransferSessions.Add(new TransferSession(worker) { Status = "Connecting..", User = client.Nickname, Size = item.Size, IsDownload = true });
                                         addedDownload = true;

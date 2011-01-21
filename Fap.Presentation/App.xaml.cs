@@ -146,6 +146,7 @@ namespace Fap.Presentation
                 builder.RegisterType<LANPeerConnectionService>().SingleInstance();
                 builder.RegisterType<SharesController>().SingleInstance();
                 builder.RegisterType<WatchdogController>().SingleInstance();
+                builder.RegisterType<ServerUploadLimiterService>().SingleInstance();
 
                 //UI
                 builder.RegisterType<MainWindow>().As<IMainWindow>();
@@ -168,7 +169,7 @@ namespace Fap.Presentation
              //   builder.RegisterType<ClientDownloadLimiterService>().SingleInstance();
                 builder.RegisterType<ConnectionService>().SingleInstance();
                 builder.RegisterType<Logger>().SingleInstance();
-              //  builder.RegisterType<ServerUploadLimiterService>().SingleInstance();
+              
                // builder.RegisterType<BroadcastServer>().SingleInstance();
                 builder.RegisterType<BroadcastClient>().SingleInstance();
                 builder.RegisterType<BroadcastServer>().SingleInstance();

@@ -39,6 +39,8 @@ namespace Fap.Domain.Services
         private Model model;
         private LANPeerConnectionService peerController;
         private Logger logger;
+        private BufferService bs;
+        private ServerUploadLimiterService limiter;
 
         public ServerService(IContainer c)
         {
@@ -47,6 +49,8 @@ namespace Fap.Domain.Services
             peerController = c.Resolve<LANPeerConnectionService>();
             listener.OnReceiveRequest += new FAPListener.ReceiveRequest(listener_OnReceiveRequest);
             logger = c.Resolve<Logger>();
+            bs = c.Resolve<BufferService>();
+            limiter = c.Resolve<ServerUploadLimiterService>();
         }
 
         private bool listener_OnReceiveRequest(Request r, Socket s)
@@ -62,6 +66,9 @@ namespace Fap.Domain.Services
                     break;
                 case "DISCONNECT":
                     return HandleDisconnect(r, s);
+                case "GET":
+
+                    break;
                 default:
                     VerbFactory factory = new VerbFactory();
                     var verb = factory.GetVerb(r.Command, model);
@@ -83,6 +90,12 @@ namespace Fap.Domain.Services
             return false;
         }
 
+        private bool HandleDownload(Request r, Socket s)
+        {
+            DownloadServerService dl = new DownloadServerService(model, logger, bs, limiter);
+            dl.HandleRequest(r, s);
+            return true;
+        }
 
         private bool HandleDisconnect(Request r, Socket s)
         {

@@ -29,7 +29,7 @@
                 <TextBox Height="23" Margin="143,6,79,0" Name="textBox3" Text="{Binding Model.DownloadFolder}" VerticalAlignment="Top" IsReadOnly="True" IsEnabled="False" />
                 <Button Content="Edit" Height="23" Margin="0,6,6,0"  Command="{Binding EditDownloadDir}" VerticalAlignment="Top" HorizontalAlignment="Right" Width="65" />
                 <Label Content="Incomplete Directory" Height="20" HorizontalAlignment="Left" Margin="21,37,0,0" Name="label1" VerticalAlignment="Top" />
-                <TextBox Height="23" IsEnabled="False" IsReadOnly="True" Margin="143,35,79,0" Name="textBox4" Text="{Binding Model.DownloadFolder}" VerticalAlignment="Top" />
+                <TextBox Height="23" IsEnabled="False" IsReadOnly="True" Margin="143,35,79,0" Name="textBox4" Text="{Binding Model.IncompleteFolder}" VerticalAlignment="Top" />
                 <Button Command="{Binding EditDownloadDir}" Content="Edit" Height="23" HorizontalAlignment="Right" Margin="0,36,6,0" VerticalAlignment="Top" Width="65" />
                 <Label Content="Disable spec comparision" Height="22" HorizontalAlignment="Left" Margin="21,95,0,0" Name="label2" VerticalAlignment="Top" />
                 <CheckBox Margin="164,95,0,0" IsChecked="{Binding Model.DisableComparision}" HorizontalAlignment="Left" Width="35" Height="22" VerticalAlignment="Top" />

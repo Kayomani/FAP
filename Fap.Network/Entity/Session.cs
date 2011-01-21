@@ -28,21 +28,14 @@ namespace Fap.Network.Entity
     {
         private readonly int SessionExpireTime = 15000;//15 Seconds
 
-        private string user;
-        private string status;
-        private long speed;
-        private long length;
-        private long transfered;
-        private Node host;
+        
         private bool isUpload;
         private int lastUseTicks = 0;
-
         private bool inUse;
+        private Node host;
         private object sync = new object();
 
         public Socket Socket { set; get; }
-        // public SocketAsyncEventArgs SocketAsyncEventArgs { set; get; }
-
 
         public Session()
         {
@@ -104,105 +97,6 @@ namespace Fap.Network.Entity
             {
                 return host;
             }
-        }
-
-
-        public string User
-        {
-            set
-            {
-                user = value;
-                NotifyChange("User");
-            }
-            get
-            {
-                return user;
-            }
-        }
-
-
-        public string Status
-        {
-            set
-            {
-                status = value;
-                NotifyChange("Status");
-            }
-            get
-            {
-                return status;
-            }
-        }
-
-        public long Speed
-        {
-            set
-            {
-                speed = value;
-                NotifyChange("Speed");
-                NotifyChange("SpeedString");
-            }
-            get
-            {
-                return speed;
-            }
-        }
-
-        public string SpeedString
-        {
-            get { return Utility.FormatBytes(speed) + "/s"; }
-        }
-
-        public long Length
-        {
-            set
-            {
-                length = value;
-                NotifyChange("Length");
-                NotifyChange("LengthString");
-                NotifyChange("PercentXfer");
-            }
-            get
-            {
-                return length;
-            }
-        }
-
-
-        public int PercentXfer
-        {
-            get
-            {
-                if (Length == 0)
-                    return 0;
-                int value = (int)(((double)transfered / length) * 100);
-                return value;
-            }
-        }
-
-        public string LengthString
-        {
-            get { return Utility.FormatBytes(length); }
-        }
-
-        public long Transfered
-        {
-            set
-            {
-                transfered = value;
-                NotifyChange("Transfered");
-                NotifyChange("TransferedString");
-                NotifyChange("PercentXfer");
-            }
-            get
-            {
-                return transfered;
-            }
-        }
-
-        public string TransferedString
-        {
-            get { return Utility.FormatBytes(transfered); }
         }
 
         private void NotifyChange(string path)

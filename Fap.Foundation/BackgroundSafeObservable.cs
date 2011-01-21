@@ -41,6 +41,19 @@ namespace Fap.Foundation
                     new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
 
+        public T Pop()
+        {
+            sync.AcquireWriterLock(Timeout.Infinite);
+            T item = default(T);
+            if (collection.Count > 0)
+            {
+                item = collection.First();
+                collection.RemoveAt(0);
+            }
+            sync.ReleaseWriterLock();
+            return item;
+        }
+
         public void Lock()
         {
             sync.AcquireWriterLock(Timeout.Infinite);

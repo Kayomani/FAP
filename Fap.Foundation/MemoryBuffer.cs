@@ -31,6 +31,7 @@ namespace Fap.Foundation
        public int DataSize
        {
            get { return dataSize; }
+           set { dataSize = value; }
        }
 
        public int StartLocation

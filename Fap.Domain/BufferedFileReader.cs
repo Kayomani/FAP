@@ -31,18 +31,37 @@ namespace Fap.Domain
     public class BufferedFileReader
     {
         public Queue<MemoryBuffer> readbuffer = new Queue<MemoryBuffer>();
-        public delegate void ReadAsync(string path, long resumePoint);
-
+        
         private bool EOF = false;
         private bool error = false;
         private BufferService bufferService;
+
+        private AutoResetEvent OnreadEvent = new AutoResetEvent(false);
+        private AutoResetEvent OnwriteEvent = new AutoResetEvent(false);
 
         public BufferedFileReader(BufferService bs)
         {
             bufferService = bs;
         }
 
-        public MemoryBuffer LastBuffer { set; get; }
+
+        public MemoryBuffer GetBuffer()
+        {
+            bool wait = false;
+            lock (readbuffer)
+                wait = readbuffer.Count == 0;
+            if (wait)
+                OnwriteEvent.WaitOne();
+            OnreadEvent.Set();
+            return readbuffer.Dequeue();
+        }
+
+        private void PutBuffer(MemoryBuffer b)
+        {
+            lock (readbuffer)
+                readbuffer.Enqueue(b);
+            OnwriteEvent.Set();
+        }
 
         public bool IsEOF
         {
@@ -57,54 +76,37 @@ namespace Fap.Domain
         }
 
 
-        public void Start(string path, long resumePoint)
+        public void Start(FileStream stream)
         {
-            ReadAsync ra = new ReadAsync(Run);
-            ra.BeginInvoke(path,resumePoint, null, null);
+            ThreadPool.QueueUserWorkItem(new WaitCallback(Run), stream);
         }
 
 
-        private void Run(string path, long resumePoint)
+        private void Run(object o)
         {
+            FileStream stream = o as FileStream;
             try
             {
-                using (Stream fs = new FileStream(path, FileMode.Open,FileAccess.Read,FileShare.Read))
+                long length = stream.Length;
+                long position = stream.Position;
+
+                while (position < length)
                 {
-                    long totalread = resumePoint;
-                    int wait = 5;
+                    MemoryBuffer arg = bufferService.GetArg();
+                    int thisread = stream.Read(arg.Data, 0, arg.Data.Length);
+                    arg.SetDataLocation(0, thisread);
+                    position += thisread;
 
-                    if (resumePoint < fs.Length && resumePoint!=0)
+                    bool doWait = false;
+                    lock (readbuffer)
                     {
-                        fs.Seek(resumePoint, SeekOrigin.Begin);
+                        readbuffer.Enqueue(arg);
+                        if (readbuffer.Count > 5)
+                            doWait = true;
                     }
 
-                    while (fs.Length > totalread)
-                    {
-                        MemoryBuffer arg = bufferService.GetArg();
-                        int thisread = fs.Read(arg.Data, 0, arg.Data.Length);
-                        arg.SetDataLocation(0, thisread);
-                        totalread += thisread;
-                        bool doWait = false;
-
-                        lock (readbuffer)
-                        {
-                            readbuffer.Enqueue(arg);
-                            if (readbuffer.Count > 5)
-                                doWait = true;
-                            wait = 5;
-                        }
-
-                        while (doWait)
-                        {
-                            Thread.Sleep(wait);
-                            lock (readbuffer)
-                            {
-                                doWait = (readbuffer.Count > 5);
-                                if (wait < 50)
-                                    wait += 5;
-                            }
-                        }
-                    }
+                    if (doWait)
+                        OnreadEvent.WaitOne();
                 }
             }
             catch (Exception e)
@@ -115,12 +117,13 @@ namespace Fap.Domain
                     HasError = true;
                     while (readbuffer.Count > 0)
                     {
-                       bufferService.FreeArg(readbuffer.Dequeue());
+                        bufferService.FreeArg(readbuffer.Dequeue());
                     }
                 }
 
             }
             IsEOF = true;
+            OnwriteEvent.Set();
         }
     }
 }
