@@ -42,7 +42,8 @@ namespace Fap.Domain.Verbs
             Request request = new Request();
             request.Command = "BROWSE";
             request.Param = Path;
-            request.AdditionalHeaders.Add("ID", model.Node.ID);
+            request.RequestID = RequestID;
+           // request.AdditionalHeaders.Add("ID", model.Node.ID);
             return request;
         }
 
@@ -57,7 +58,10 @@ namespace Fap.Domain.Verbs
                 {
                     foreach (var share in model.Shares.ToList().OrderBy(sh => sh.Name))
                     {
-                        response.AdditionalHeaders.Add(share.Name, "D|0|0");
+                        if (share.LastRefresh == DateTime.MinValue)
+                            response.AdditionalHeaders.Add(share.Name, "D|0|0");
+                        else
+                            response.AdditionalHeaders.Add(share.Name, "D|0|" + share.LastRefresh.ToFileTime());
                     }
                 }
             }
@@ -71,7 +75,7 @@ namespace Fap.Domain.Verbs
                         DirectoryInfo directory = new DirectoryInfo(path);
                         DirectoryInfo[] directories = directory.GetDirectories();
                         foreach (var dir in directories)
-                            response.AdditionalHeaders.Add(dir.Name, "D|0|0" + dir.LastWriteTime.ToFileTime());
+                            response.AdditionalHeaders.Add(dir.Name, "D|0|" + dir.LastWriteTime.ToFileTime());
 
                         FileInfo[] files = directory.GetFiles();
                         foreach (var file in files)
@@ -86,6 +90,7 @@ namespace Fap.Domain.Verbs
         public bool ReceiveResponse(Network.Entity.Response r)
         {
             Results.Clear();
+            RequestID = r.RequestID;
             foreach (var header in r.AdditionalHeaders)
             {
                 FileSystemEntity fse = new FileSystemEntity();
@@ -125,7 +130,7 @@ namespace Fap.Domain.Verbs
         }
 
         public string Path { set; get; }
-
+        public string RequestID { set; get; }
         public List<FileSystemEntity> Results
         {
             get { return results; }

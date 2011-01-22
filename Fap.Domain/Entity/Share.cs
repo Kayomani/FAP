@@ -34,6 +34,13 @@ namespace Fap.Domain.Entity
         [XmlIgnore]
         private object syncRoot = new object();
         private string status;
+        private DateTime refresh;
+
+        public DateTime LastRefresh
+        {
+            set { refresh = value; NotifyChange("LastRefresh"); }
+            get { return refresh; }
+        }
 
         public string Path
         {

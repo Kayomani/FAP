@@ -55,7 +55,7 @@ namespace Fap.Domain.Services
                 //If we have reached the global uploads then pause the download
                 if (totalDownloads > model.MaxUploads)
                     startNow = false;
-                else if (tokenlist.Where(i => i.RemoteClient == node).Count() >= model.MaxUploadsPerUser)
+                else if (tokenlist.Where(i => i.RemoteClient == node).Count() > model.MaxUploadsPerUser)
                 {
                     //We have reached the max uploads for this perticular user
                     startNow = false;

@@ -43,7 +43,7 @@ namespace Fap.Domain.Verbs
             response.RequestID = ID;
             response.ContentSize = FileSize;
             response.Status = Error ? 1 : 0;
-            if (QueuePosition != 0)
+            if (InQueue)
                 response.AdditionalHeaders.Add("queue", QueuePosition.ToString());
             return response;
         }
@@ -80,6 +80,7 @@ namespace Fap.Domain.Verbs
             if (string.IsNullOrEmpty(queuePoint))
             {
                 InQueue = false;
+                QueuePosition = 0;
             }
             else
             {

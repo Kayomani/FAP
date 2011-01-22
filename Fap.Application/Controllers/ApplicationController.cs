@@ -84,6 +84,7 @@ namespace Fap.Application.Controllers
 
         void logger_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
+            return;
             foreach (Fap.Foundation.Logging.Log newmsg in e.NewItems)
             {
 #if DEBUG
@@ -164,6 +165,9 @@ namespace Fap.Application.Controllers
             if (!Directory.Exists(model.IncompleteFolder))
                 Directory.CreateDirectory(model.IncompleteFolder);
 
+            //Delete any empty folders in the incomplete folder
+            RemoveEmptyFolders(model.IncompleteFolder);
+
             if (string.IsNullOrEmpty(model.LocalNodeID))
             {
                 model.LocalNodeID = IDService.CreateID();
@@ -212,6 +216,38 @@ namespace Fap.Application.Controllers
             trayIcon.ShowIcon = true;
             model.Node.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Node_PropertyChanged);
         }
+
+
+        private void RemoveEmptyFolders(string path)
+        {
+            string[] folders = Directory.GetDirectories(path);
+            foreach (var folder in folders)
+                iRemoveEmptyFolders(folder);
+
+        }
+
+        private void iRemoveEmptyFolders(string path)
+        {
+            string[] folders = Directory.GetDirectories(path);
+            foreach (var folder in folders)
+                iRemoveEmptyFolders(folder);
+            folders = Directory.GetDirectories(path);
+
+            if (folders.Length == 0)
+            {
+                if (Directory.GetFiles(path).Length==0)
+                {
+                    try
+                    {
+                        Directory.Delete(path);
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        
+
 
         void Node_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
@@ -276,16 +312,13 @@ namespace Fap.Application.Controllers
 
                                 foreach (var xfer in mainWindowModel.Sessions)
                                 {
-                                    if (xfer.IsDownload)
-                                    {
-                                        if (xfer.Worker.Length == 0)
-                                            xfer.Percent = 0;
-                                        else
-                                            xfer.Percent = (int)(((double)xfer.Worker.Received / xfer.Worker.Length) * 100);
-                                        xfer.Size = xfer.Worker.Length;
-                                        xfer.Speed = xfer.Worker.Speed;
-                                        xfer.Status = xfer.Worker.Status;
-                                    }
+                                    if (xfer.Worker.Length == 0)
+                                        xfer.Percent = 0;
+                                    else
+                                        xfer.Percent = (int)(((double)xfer.Worker.Position / xfer.Worker.Length) * 100);
+                                    xfer.Size = xfer.Worker.Length;
+                                    xfer.Speed = xfer.Worker.Speed;
+                                    xfer.Status = xfer.Worker.Status;
                                 }
                                 //Local stats
                                 StringBuilder ls = new StringBuilder();

@@ -31,14 +31,14 @@ namespace Fap.Domain.Entity
         private int percent;
         private long speed;
         private long size;
-        private DownloadWorkerService worker;
+        private ITransferWorker worker;
 
-        public TransferSession(DownloadWorkerService worker)
+        public TransferSession(ITransferWorker worker)
         {
             this.worker = worker;
         }
 
-        public DownloadWorkerService Worker
+        public ITransferWorker Worker
         {
             get { return worker; }
         }

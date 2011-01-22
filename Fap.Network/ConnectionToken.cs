@@ -59,9 +59,9 @@ namespace Fap.Network
             }
         }
 
-        public MemoryBuffer[] InputBufferBytes
+        public List<MemoryBuffer> RawInputBuffers
         {
-            get { return inputBuffer.ToArray(); }
+            get { return inputBuffer; }
         }
 
         public void SetOutputData(string data)
@@ -107,23 +107,21 @@ namespace Fap.Network
               
                 if (msg.Contains(TERMINATOR))
                 {
-                    processed.Add(b);
+                   
                     int endIndex = msg.IndexOf(TERMINATOR);
                     if (endIndex + 2 != msg.Length)
                     {
                         //We have a partial bit of the next request so leave that in the buffer.
-                        string substring = msg.Substring(endIndex + 2);
+                        string substring = msg.Substring(0,endIndex + 2);
                         byte[] data = Encoding.Unicode.GetBytes(substring);
 
-                        MemoryBuffer nb = new MemoryBuffer(data.Length);
-                        nb.Data = data;
-                        nb.SetDataLocation(0, data.Length);
-                        inputBuffer.Insert(0, nb);
+                        b.SetDataLocation(b.StartLocation+data.Length, b.DataSize-data.Length);
                         sb.Append(msg.Substring(0, endIndex));
                     }
                     else
                     {
                         sb.Append(msg);
+                        processed.Add(b);
                     }
                     break;
                 }

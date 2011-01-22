@@ -39,7 +39,7 @@
                     </GridViewColumn>
                     <GridViewColumn Header="Nickname" DisplayMemberBinding="{Binding Nickname}" Width="150px"/>
                     <GridViewColumn Header="File" DisplayMemberBinding="{Binding FileName}" Width="350px"/>
-                    <GridViewColumn Header="Path" DisplayMemberBinding="{Binding LocalPath}"  Width="400px"/>
+                    <GridViewColumn Header="Path" DisplayMemberBinding="{Binding FolderPath}"  Width="400px"/>
                     <GridViewColumn Header="State" DisplayMemberBinding="{Binding State}"  Width="130px"/>
                     <GridViewColumn Header="Added" DisplayMemberBinding="{Binding Added}"  Width="130px"/>
                 </GridView>

@@ -24,6 +24,7 @@ using Fap.Foundation;
 using Fap.Domain.Services;
 using Fap.Network.Entity;
 using Fap.Network.Services;
+using Fap.Foundation.Logging;
 
 namespace Fap.Application.Controllers
 {
@@ -35,12 +36,14 @@ namespace Fap.Application.Controllers
         private BackgroundSafeObservable<DownloadWorkerService> workers = new BackgroundSafeObservable<DownloadWorkerService>();
         private ConnectionService connectionService;
         private BufferService bufferService;
+        private Logger logger;
 
-        public DownloadController(ConnectionService cs, Model m, BufferService bufferService)
+        public DownloadController(ConnectionService cs, Model m, BufferService bufferService, Logger logger)
         {
             model = m;
             connectionService = cs;
             this.bufferService = bufferService;
+            this.logger = logger;
         }
 
         public void Start()
@@ -70,61 +73,77 @@ namespace Fap.Application.Controllers
             sync.EnterWriteLock();
             Console.WriteLine("Checking downloads..");
 
-            if (workers.Where(w=>w.IsBusy).Count() < model.MaxDownloads)
+            foreach (var worker in workers.ToList())
             {
-                var downloads =
-                from download in model.DownloadQueue.List.ToList()
-                group download by download.ClientID into g
-                select new
-                {
-                    Downloads = g,
-                    ID = g.First().ClientID,
-                };
+                if (worker.IsComplete)
+                    workers.Remove(worker);
+            }
 
-                foreach (var group in downloads)
-                {
-                    //Check if the client is online
-                    Node client = model.Peers.ToList().Where(p => p.ID == group.ID).FirstOrDefault();
-                    if (null == client)
-                        client = model.Peers.ToList().Where(c => c.Nickname == group.Downloads.First().Nickname).FirstOrDefault();
+            var downloads =
+            from download in model.DownloadQueue.List.ToList()
+            group download by download.ClientID into g
+            select new
+            {
+                Downloads = g,
+                ID = g.First().ClientID,
+            };
 
-                    if (null != client)
+            foreach (var group in downloads)
+            {
+                //Check if the client is online
+                Node client = model.Peers.ToList().Where(p => p.ID == group.ID).FirstOrDefault();
+                if (null == client)
+                    client = model.Peers.ToList().Where(c => c.Nickname == group.Downloads.First().Nickname).FirstOrDefault();
+
+                if (null != client)
+                {
+                    var workerlist = workers.Where(w => w.Node == client).ToList();
+                    var currentDownloads = group.Downloads.Where(d => d.State != DownloadRequestState.None && d.State!=DownloadRequestState.Downloaded).Count();
+                    foreach (var item in group.Downloads)
                     {
-                        var workerlist = workers.Where(w => w.Node == client).ToList();
+                        if (workers.Count > model.MaxDownloads)
+                            break;
 
-                        foreach (var item in group.Downloads)
+                        if (item.State == DownloadRequestState.Downloaded)
                         {
-                            if (item.State == DownloadRequestState.None && item.NextTryTime < Environment.TickCount)
+                            model.DownloadQueue.List.Remove(item);
+                        }
+                        else if (item.State == DownloadRequestState.None && item.NextTryTime < Environment.TickCount)
+                        {
+                            bool addedDownload = false;
+                            //Try to place item with a worker
+
+                            for (int i = currentDownloads; i < model.MaxDownloadsPerUser; i++)
                             {
-                                bool addedDownload = false;
-                                //Try to place item with a worker
-                                for (int i = workerlist.Count; i < model.MaxDownloadsPerUser; i++)
+                                if (i >= workerlist.Count)
                                 {
-                                    if (i <= workerlist.Count)
+                                    logger.AddInfo("Added download to new downloader");
+                                    //Add a new worker
+                                    var worker = new DownloadWorkerService(model, connectionService, client, item, bufferService, item,logger);
+                                    worker.OnDownloaderFinished += new DownloadWorkerService.DownloaderFinished(worker_OnDownloaderFinished);
+                                    workers.Add(worker);
+                                    model.TransferSessions.Add(new TransferSession(worker) { Status = "Connecting..", User = client.Nickname, Size = item.Size, IsDownload = true });
+                                    workerlist.Add(worker);
+                                    addedDownload = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    //Is the worker busy? if no give it the request
+                                    if (!workerlist[i].IsBusy)
                                     {
-                                        //Add a new worker
-                                        var worker = new DownloadWorkerService(model, connectionService, client, item, bufferService,item);
-                                        workers.Add(worker);
-                                        model.TransferSessions.Add(new TransferSession(worker) { Status = "Connecting..", User = client.Nickname, Size = item.Size, IsDownload = true });
+                                        logger.AddInfo("Added download to existing downloader");
+                                        workerlist[i].AddDownload(item);
                                         addedDownload = true;
                                         break;
                                     }
-                                    else
-                                    {
-                                        //Is the worker busy? if no give it the request
-                                        if (!workers[i].IsBusy)
-                                        {
-                                            workers[i].AddDownload(item);
-                                            addedDownload = true;
-                                            break;
-                                        }
-                                    }
                                 }
-                                if (!addedDownload)
-                                {
-                                    //Could not place the download so skip the rest of the queue for this host
-                                    break;
-                                }
+
+                            }
+                            if (!addedDownload)
+                            {
+                                //Could not place the download so skip the rest of the queue for this host
+                                break;
                             }
                         }
                     }
@@ -133,10 +152,16 @@ namespace Fap.Application.Controllers
                 foreach (var worker in workers.Where(w => w.IsComplete).ToList())
                 {
                     workers.Remove(worker);
+                    worker.OnDownloaderFinished-=new DownloadWorkerService.DownloaderFinished(worker_OnDownloaderFinished);
                     worker.Stop();
                 }
             }
             sync.ExitWriteLock();
+        }
+
+        private void worker_OnDownloaderFinished()
+        {
+            ScanForDownloads();
         }
     }
 }

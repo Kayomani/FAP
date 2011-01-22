@@ -114,7 +114,7 @@ namespace Fap.Application.Controllers
                         }
                         else
                         {
-                            retry = false;
+                            return;
                         }
                     }
                     while (retry);
@@ -145,6 +145,7 @@ namespace Fap.Application.Controllers
                 s.Size = state.Size;
                 s.FileCount = state.FileCount;
                 s.Status = string.Empty;
+                s.LastRefresh = DateTime.Now;
                 RefreshClientStats();
             }
         }

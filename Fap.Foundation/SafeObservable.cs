@@ -89,9 +89,9 @@ namespace Fap.Foundation
 
         public List<T> ToList()
         {
-            sync.AcquireWriterLock(Timeout.Infinite);
+            sync.AcquireReaderLock(Timeout.Infinite);
             var list = collection.ToList();
-            sync.ReleaseWriterLock();
+            sync.ReleaseReaderLock();
             return list;
         }
 
@@ -133,9 +133,9 @@ namespace Fap.Foundation
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            sync.AcquireWriterLock(Timeout.Infinite);
+            sync.AcquireReaderLock(Timeout.Infinite);
             collection.CopyTo(array, arrayIndex);
-            sync.ReleaseWriterLock();
+            sync.ReleaseReaderLock();
         }
 
         public int Count

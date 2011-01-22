@@ -30,8 +30,6 @@ namespace Fap.Application.Controllers
 {
     public class WatchdogController
     {
-      //  private readonly long ClientTimeout = 2*60*1000;//2 minutes
-
         private ConnectionService connectionService;
         private Model model;
         private Logger logger;
@@ -65,6 +63,9 @@ namespace Fap.Application.Controllers
             worker = Thread.CurrentThread;
             Thread.CurrentThread.IsBackground = false;
 
+            int speedCount = 0;
+            long lastSave = Environment.TickCount;
+
             while(true)
             {
                 try
@@ -73,46 +74,36 @@ namespace Fap.Application.Controllers
                         // logger.AddInfo("Processing watchdog");
                         //Disconnect sessions if needed
                         DisconnectStaleSessions();
-                        //Update user display info
-                        /*foreach (var session in model.Sessions.ToList())
-                        {
-                            Node rc = session.Host;
-                            if (rc != null)
-                            {
-                                if (session.User != rc.Nickname && !string.IsNullOrEmpty(rc.Nickname))
-                                {
-                                    session.User = rc.Nickname;
-                                }
-                                else if (string.IsNullOrEmpty(rc.Nickname) && session.User != rc.Host)
-                                {
-                                    session.User = rc.Host;
-                                }
-                            }
-                            else
-                            {
-                                // rc = model.Clients.Where(c => c.Host == session.User).FirstOrDefault();
-                                session.Host = rc;
-                            }
-                        }*/
                         //Clean up excess buffers
                         bufferService.Clean();
-
+                        //Send ping to local overlord if needed
                         if (Environment.TickCount - model.Node.LastUpdate > 45000)
-                        {
                             peerService.SendPing();
+                        //Remove completed download sessions from view
+                        foreach (var session in model.TransferSessions.ToList())
+                        {
+                            if (session.Worker.IsComplete)
+                                model.TransferSessions.Remove(session);
                         }
-                       // 
-                        //Check clients are still alive
-                        /* foreach (var client in model.Clients.ToList())
-                         {
-                             if (client.LastAccess + ClientTimeout < Environment.TickCount)
-                                 model.Clients.Remove(client);
-                         }*/
+                        
+                        //Update transfer stats every 4 seconds
+                        if (speedCount > 3)
+                        {
+                            speedCount = 0;
+                            //Check for disconnected server connections
+                            model.Node.DownloadSpeed = NetworkSpeedMeasurement.TotalDownload.GetSpeed();
+                            model.Node.UploadSpeed = NetworkSpeedMeasurement.TotalUpload.GetSpeed();
+                        }
+                        else
+                            speedCount++;
 
-
-                        //Check for disconnected server connections
-                        model.Node.DownloadSpeed = NetworkSpeedMeasurement.TotalDownload.GetSpeed();
-                        model.Node.UploadSpeed = NetworkSpeedMeasurement.TotalUpload.GetSpeed();
+                        //Save config + queue every 5 minutes
+                        if (Environment.TickCount - lastSave > 1000 * 300)
+                        {
+                            lastSave = Environment.TickCount;
+                            model.Save();
+                            model.DownloadQueue.Save();
+                        }
                     }
                 }
                 catch { }
