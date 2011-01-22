@@ -67,8 +67,8 @@ namespace Fap.Domain.Services
                 case "DISCONNECT":
                     return HandleDisconnect(r, s);
                 case "GET":
-
-                    break;
+                    ServerUploaderService dl = new ServerUploaderService(model, logger, bs, limiter);
+                    return dl.HandleRequest(r, s); 
                 default:
                     VerbFactory factory = new VerbFactory();
                     var verb = factory.GetVerb(r.Command, model);
@@ -78,8 +78,6 @@ namespace Fap.Domain.Services
            return false;
         }
 
-
-
         private bool IsOverlordKey(string key)
         {
             foreach (var network in model.Networks.ToList())
@@ -88,13 +86,6 @@ namespace Fap.Domain.Services
                     return true;
             }
             return false;
-        }
-
-        private bool HandleDownload(Request r, Socket s)
-        {
-            DownloadServerService dl = new DownloadServerService(model, logger, bs, limiter);
-            dl.HandleRequest(r, s);
-            return true;
         }
 
         private bool HandleDisconnect(Request r, Socket s)

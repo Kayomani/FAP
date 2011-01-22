@@ -28,9 +28,6 @@ using ContinuousLinq;
 
 namespace Fap.Application.ViewModels
 {
-
-   
-
     public class BrowserViewModel: ViewModel<IBrowserView>
     {
 

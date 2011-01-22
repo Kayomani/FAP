@@ -122,22 +122,37 @@ namespace Fap.Network.Entity
             }
         }
 
-        public long Speed
+        public long DownloadSpeed
         {
             get
             {
                 long i = 0;
-                long.TryParse(data.SafeGet("Speed"), out i);
+                long.TryParse(data.SafeGet("DSpeed"), out i);
                 return i;
             }
             set
             {
-                data.Set("Speed", ((int)value).ToString());
+                data.Set("DSpeed", ((int)value).ToString());
                 LastUpdate = Environment.TickCount;
-                NotifyChange("Speed");
+                NotifyChange("DownloadSpeed");
             }
         }
 
+        public long UploadSpeed
+        {
+            get
+            {
+                long i = 0;
+                long.TryParse(data.SafeGet("USpeed"), out i);
+                return i;
+            }
+            set
+            {
+                data.Set("USpeed", ((int)value).ToString());
+                LastUpdate = Environment.TickCount;
+                NotifyChange("UploadSpeed");
+            }
+        }
 
         public string Location
         {

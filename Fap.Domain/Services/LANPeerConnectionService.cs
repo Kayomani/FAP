@@ -111,7 +111,7 @@ namespace Fap.Domain.Services
             {
                 try
                 {
-                    foreach (var s in overlordList.Where(o => o.LastSeen + OVERLORD_DETECTED_TIMEOUT < Environment.TickCount))
+                    foreach (var s in overlordList.Where(o => o.LastSeen + OVERLORD_DETECTED_TIMEOUT < Environment.TickCount).ToList())
                         overlordList.Remove(s);
 
                     //Order servers by priority

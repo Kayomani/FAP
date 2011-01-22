@@ -24,7 +24,7 @@ using Fap.Domain.Entity;
 using Fap.Network.Services;
 using Fap.Foundation.Logging;
 using Fap.Network.Entity;
-using Fap.Domain.Commands;
+using Fap.Foundation;
 
 namespace Fap.Application.Controllers
 {
@@ -111,6 +111,8 @@ namespace Fap.Application.Controllers
 
 
                         //Check for disconnected server connections
+                        model.Node.DownloadSpeed = NetworkSpeedMeasurement.TotalDownload.GetSpeed();
+                        model.Node.UploadSpeed = NetworkSpeedMeasurement.TotalUpload.GetSpeed();
                     }
                 }
                 catch { }

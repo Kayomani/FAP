@@ -22,7 +22,6 @@ using Fap.Domain.Entity;
 using System.Threading;
 using System.Net.Sockets;
 using System.Net;
-using Fap.Domain.Commands;
 using Fap.Foundation;
 using Fap.Network.Entity;
 

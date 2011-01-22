@@ -71,5 +71,10 @@ namespace Fap.Foundation
             }
             return "0";
         }
+
+        public static string ConvertNumberToTextSpeed(long count)
+        {
+            return FormatBytesTrue(count) + "/s";
+        }
     }
 }

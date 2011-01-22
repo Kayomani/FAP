@@ -103,7 +103,7 @@ namespace Fap.Application.Controllers
                                     if (i <= workerlist.Count)
                                     {
                                         //Add a new worker
-                                        var worker = new DownloadWorkerService(model, connectionService, client, item, bufferService);
+                                        var worker = new DownloadWorkerService(model, connectionService, client, item, bufferService,item);
                                         workers.Add(worker);
                                         model.TransferSessions.Add(new TransferSession(worker) { Status = "Connecting..", User = client.Nickname, Size = item.Size, IsDownload = true });
                                         addedDownload = true;
@@ -130,7 +130,7 @@ namespace Fap.Application.Controllers
                     }
                 }
                 //Remove redundant workers
-                foreach (var worker in workers.Where(w => w.Completed).ToList())
+                foreach (var worker in workers.Where(w => w.IsComplete).ToList())
                 {
                     workers.Remove(worker);
                     worker.Stop();

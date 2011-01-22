@@ -23,7 +23,6 @@ using Fap.Application.ViewModels;
 using Fap.Foundation;
 using System.Waf.Applications;
 using Fap.Domain;
-using Fap.Domain.Commands;
 using System.Windows.Controls;
 using Fap.Domain.Services;
 using Fap.Network.Entity;

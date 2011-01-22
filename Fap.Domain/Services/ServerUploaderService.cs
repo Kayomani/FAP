@@ -1,4 +1,20 @@
-﻿using System;
+﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+/**
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or any 
+    later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,7 +32,7 @@ using System.Net;
 
 namespace Fap.Domain.Services
 {
-    public class DownloadServerService
+    public class ServerUploaderService
     {
         private Model model;
         private Logger logger;
@@ -24,12 +40,12 @@ namespace Fap.Domain.Services
         private ServerUploadLimiterService limiterService;
         private NetworkSpeedMeasurement msm;
 
-        public DownloadServerService(Model m, Logger l, BufferService b, ServerUploadLimiterService limiterService)
+        public ServerUploaderService(Model m, Logger l, BufferService b, ServerUploadLimiterService limiterService)
         {
             model = m;
             logger = l;
             bufferService = b;
-            msm = new NetworkSpeedMeasurement();
+            msm = new NetworkSpeedMeasurement(NetSpeedType.Upload);
             this.limiterService = limiterService;
         }
 
@@ -50,7 +66,7 @@ namespace Fap.Domain.Services
             if (null == peer)
                 session.User = remoteHost;
             else
-                session.User = peer.Host;
+                session.User = peer.Nickname;
             model.TransferSessions.Add(session);
  
             try
@@ -73,9 +89,12 @@ namespace Fap.Domain.Services
                             buffer.DataSize = stream.Read(buffer.Data, 0, buffer.Data.Length);
                             session.Size = verb.FileSize;
                             session.Percent = 0;
+                            msm.PutData(0);
                             //Dont limit files this small
                             s.Send(buffer.Data, 0, buffer.DataSize, SocketFlags.None);
                             session.Percent = 100;
+                            msm.PutData(verb.FileSize);
+                            session.Speed = msm.GetSpeed();
                         }
                         else if (verb.FileSize < BufferService.Buffer)
                         {
@@ -100,10 +119,13 @@ namespace Fap.Domain.Services
                             //Send file header and data
                             verb.QueuePosition = 0;
                             verb.InQueue = false;
+                            msm.PutData(0);
                             s.Send(Mediator.Serialize(verb.CreateResponse()));
                             buffer.DataSize = stream.Read(buffer.Data, 0, buffer.Data.Length);
                             s.Send(buffer.Data, 0, buffer.DataSize, SocketFlags.None);
                             session.Percent = 100;
+                            msm.PutData(verb.FileSize);
+                            session.Speed = msm.GetSpeed();
                         }
                         else
                         {
@@ -131,19 +153,26 @@ namespace Fap.Domain.Services
                             s.Send(Mediator.Serialize(verb.CreateResponse()));
 
                             //We have a large file so read the file on another thread to try to improve performance
-                            BufferedFileReader bfr = new BufferedFileReader(bufferService);
-                            bfr.Start(stream);
-
-                            while (!bfr.IsEOF)
+                            using (BufferedFileReader bfr = new BufferedFileReader(bufferService))
                             {
-                                buffer = bfr.GetBuffer();
-                                s.Send(buffer.Data, buffer.DataSize, SocketFlags.None);
-                                bufferService.FreeArg(buffer);
-                                if (bfr.HasError)
+                                try
                                 {
-                                    s.Close();
-                                    return false;
+                                    bfr.Start(stream);
+                                    while (!bfr.IsEOF)
+                                    {
+                                        buffer = bfr.GetBuffer();
+                                        s.Send(buffer.Data, buffer.DataSize, SocketFlags.None);
+                                        msm.PutData(buffer.DataSize);
+                                        session.Speed = msm.GetSpeed();
+                                        bufferService.FreeArg(buffer);
+                                        if (bfr.HasError)
+                                        {
+                                            s.Close();
+                                            return false;
+                                        }
+                                    }
                                 }
+                                catch { }
                             }
                         }
                         stream.Close();

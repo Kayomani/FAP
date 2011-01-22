@@ -89,8 +89,8 @@
 
                     <Label Content="{Binding CurrentNetworkStatus}" Foreground="White" Margin="0" Grid.Column="0" Grid.Row="4"  Grid.ColumnSpan="2" />
 
-                    <Label Content="You: 0 Bytes /  0 Bytes" Foreground="White" Margin="0" Grid.Column="1" Grid.Row="2" />
-                    <Label Content="Network: 0 Bytes / 0 Bytes" Foreground="White" Margin="0" Grid.Column="1" Grid.Row="3" />
+                    <Label Content="{Binding LocalStats}" Foreground="White" Margin="0" Grid.Column="1" Grid.Row="2" />
+                    <Label Content="{Binding GlobalStats}" Foreground="White" Margin="0" Grid.Column="1" Grid.Row="3" />
                 </Grid>
                     <StackPanel>
                         <!--  <Label Content="Your stats: 0 Bytes TX, 0 Bytes RX and 0 Bytes Shared" Foreground="White"  Margin="0"/>-->

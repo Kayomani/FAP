@@ -28,10 +28,10 @@ using Fap.Network.Services;
 
 namespace Fap.Domain
 {
-    public class BufferedFileReader
+    public class BufferedFileReader: IDisposable
     {
         public Queue<MemoryBuffer> readbuffer = new Queue<MemoryBuffer>();
-        
+
         private bool EOF = false;
         private bool error = false;
         private BufferService bufferService;
@@ -47,11 +47,15 @@ namespace Fap.Domain
 
         public MemoryBuffer GetBuffer()
         {
-            bool wait = false;
-            lock (readbuffer)
-                wait = readbuffer.Count == 0;
-            if (wait)
+            while (true)
+            {
+                lock (readbuffer)
+                {
+                    if (readbuffer.Count != 0)
+                        break;
+                }
                 OnwriteEvent.WaitOne();
+            }
             OnreadEvent.Set();
             return readbuffer.Dequeue();
         }
@@ -65,8 +69,19 @@ namespace Fap.Domain
 
         public bool IsEOF
         {
-            set { lock (readbuffer) { EOF = value; } }
-            get { lock (readbuffer) { return EOF; } }
+            set
+            {
+                lock (readbuffer)
+                 EOF = value; 
+            }
+            get
+            {
+                lock (readbuffer)
+                    if (readbuffer.Count > 0)
+                        return false;
+                lock (readbuffer)
+                    return EOF;
+            }
         }
 
         public bool HasError
@@ -104,7 +119,9 @@ namespace Fap.Domain
                         if (readbuffer.Count > 5)
                             doWait = true;
                     }
-
+                    OnwriteEvent.Set();
+                    if (HasError)
+                        return;
                     if (doWait)
                         OnreadEvent.WaitOne();
                 }
@@ -124,6 +141,20 @@ namespace Fap.Domain
             }
             IsEOF = true;
             OnwriteEvent.Set();
+        }
+
+        public void Dispose()
+        {
+            //Make sure the read thread has exited
+            HasError = true;
+            OnreadEvent.Set();
+            lock (readbuffer)
+            {
+                while (readbuffer.Count > 0)
+                {
+                    bufferService.FreeArg(readbuffer.Dequeue());
+                }
+            }
         }
     }
 }

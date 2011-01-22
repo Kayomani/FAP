@@ -35,39 +35,53 @@ namespace Fap.Domain.Services
         private Node node;
         private BackgroundSafeObservable<DownloadItem> queue = new BackgroundSafeObservable<DownloadItem>();
         private ConnectionService service;
-        private NetworkSpeedMeasurement netSpeed = new NetworkSpeedMeasurement();
+        private NetworkSpeedMeasurement netSpeed = new NetworkSpeedMeasurement(NetSpeedType.Download);
         private Model model;
         private BufferService bufferService;
-
         private ReaderWriterLockSlim sync = new ReaderWriterLockSlim();
+
+        private bool complete;
+        private int lastRequestID = 1;
+
         private string status;
-        private bool error;
-        private bool run = true;
-        private int outstandingRequests = 0;
+        private long length = 0;
+        private long received;
 
-        private int requestID = 1;
-
-        public DownloadWorkerService(Model m, ConnectionService s, Node n, DownloadRequest r, BufferService b)
+        public DownloadWorkerService(Model m, ConnectionService s, Node n, DownloadRequest r, BufferService b, DownloadRequest req)
         {
             node = n;
             model = m;
             service = s;
             status = "Connecting..";
             bufferService =b;
+            AddDownload(req);
             ThreadPool.QueueUserWorkItem(new WaitCallback(process));
         }
 
         public void Stop()
         {
-            run = false;
+            sync.EnterWriteLock();
+            complete = true;
+            sync.ExitWriteLock();
         }
 
-        public bool InError
+        #region Properties
+        public Node Node
+        {
+            get { return node; }
+        }
+
+        public int Downloads
+        {
+            get { return queue.Count; }
+        }
+
+        public bool IsComplete
         {
             get
             {
                 sync.EnterReadLock();
-                bool e = error;
+                bool e = complete;
                 sync.ExitReadLock();
                 return e;
             }
@@ -95,24 +109,25 @@ namespace Fap.Domain.Services
             }
         }
 
-        public int Percent
+        public long Received
         {
-            get { return 0; }
+            get 
+            {
+                sync.EnterReadLock();
+                long v = received;
+                sync.ExitReadLock();
+                return v;
+            }
         }
 
-        public int Size
-        {
-            get { return 0; }
-        }
-
-        public bool Completed
+        public long Length
         {
             get
             {
                 sync.EnterReadLock();
-                bool count = queue.Count() == 0;
+                long v = length;
                 sync.ExitReadLock();
-                return count;
+                return v;
             }
         }
 
@@ -126,25 +141,30 @@ namespace Fap.Domain.Services
                 return list.Select(i => i.Request.Size).Sum() > 22428800;//20mb
             }
         }
-
+        #endregion
+       
         public void AddDownload(DownloadRequest req)
         {
             sync.EnterWriteLock();
-            if (!error)
+            if (!complete)
             {
-                queue.Add(new DownloadItem() { Request = req, UID = (requestID++).ToString() });
+                queue.Add(new DownloadItem() { Request = req, UID = (lastRequestID++).ToString() });
                 req.State = DownloadRequestState.Requesting;
             }
             sync.ExitWriteLock();
         }
 
-        public Node Node
+        private void OnError()
         {
-            get { return node; }
-        }
-        public int Downloads
-        {
-            get { return queue.Count; }
+            sync.EnterWriteLock();
+            complete = true;
+            foreach (var w in queue)
+            {
+                w.Request.NextTryTime = Environment.TickCount + 60000;
+                w.Request.State = DownloadRequestState.None;
+            }
+            queue.Clear();
+            sync.ExitWriteLock();
         }
 
         private void process(object o)
@@ -155,96 +175,108 @@ namespace Fap.Domain.Services
                 OnError();
                 return;
             }
+            var arg = bufferService.GetArg();
             try
             {
                 session.Socket.ReceiveBufferSize = BufferService.Buffer * 2;
                 session.Socket.SendBufferSize = BufferService.SmallBuffer;
                 DownloadVerb verb = new DownloadVerb();
-                while (run)
+                while (!complete)
                 {
-                    var arg = bufferService.GetArg();
-                    
-                    DownloadItem currentItem =  CheckForAndSendDownloadRequests(session);
+
+                    CheckForAndSendDownloadRequests(session);
                     ConnectionToken token = new ConnectionToken();
 
-                    bool canDownload = false;
-
-                    while (!canDownload)
+                    var currentItem = queue.First();
+                    length = currentItem.Request.Size;
+                    do
                     {
-                        do
-                        {
-                            //Receive header
-                            arg.DataSize = session.Socket.Receive(arg.Data);
-                            token.ReceiveData(arg);
-                        }
-                        while (!token.ContainsCommand());
+                        //Receive header
+                        arg.DataSize = session.Socket.Receive(arg.Data);
+                        token.ReceiveData(arg);
+                    }
+                    while (!token.ContainsCommand());
 
-                        Response response = new Response();
-                        Mediator.Deserialize(token.GetCommand(), out response);
-                        verb.ReceiveResponse(response);
+                    Response response = new Response();
+                    Mediator.Deserialize(token.GetCommand(), out response);
+                    verb.ReceiveResponse(response);
 
-
-                        if (currentItem.UID != response.RequestID)
-                        {
-                            //Wrong file id.. erk what did they send us??
-                            OnError();
-                            return;
-                        }
-
-                        if (verb.Error)
-                        {
-                            sync.EnterWriteLock();
-                            queue.RemoveAt(0);
-                            currentItem.Request.NextTryTime = Environment.TickCount + 60000;
-                            currentItem.Request.State = DownloadRequestState.None;
-                            status = verb.ErrorMsg + " " + currentItem.Request.FileName;
-                            sync.ExitWriteLock();
-                        }
-                        else if (verb.InQueue)
-                        {
-                            sync.EnterWriteLock();
-                            status = "Queue position " + verb.QueuePosition + " for " + currentItem.Request.FileName;
-                            sync.ExitWriteLock();
-                        }
-                        else
-                        {
-                            sync.EnterWriteLock();
-                            int count = queue.Count;
-                            if (count > 0)
-                                status = "Downloading " + currentItem.Request.FileName + " [Requested " + count + "]";
-                            else
-                                status = "Downloading " + currentItem.Request.FileName;
-                            canDownload = true;
-                            sync.ExitWriteLock();
-
-                            DownloadFile(currentItem, verb.ResumePoint, verb.FileSize,arg,session); 
-                        }
+                    if (currentItem.UID != response.RequestID)
+                    {
+                        //Wrong file id.. erk what did they send us??
+                        throw new Exception();
                     }
 
+                    if (verb.Error)
+                    {
+                        sync.EnterWriteLock();
+                        queue.RemoveAt(0);
+                        currentItem.Request.NextTryTime = Environment.TickCount + 60000;
+                        currentItem.Request.State = DownloadRequestState.None;
+                        status = verb.ErrorMsg + " " + currentItem.Request.FileName;
+                        sync.ExitWriteLock();
+                    }
+                    else if (verb.InQueue)
+                    {
+                        sync.EnterWriteLock();
+                        status = "Queue position " + verb.QueuePosition + " for " + currentItem.Request.FileName;
+                        sync.ExitWriteLock();
+                    }
+                    else
+                    {
+                        sync.EnterWriteLock();
+                        int count = queue.Count;
+                        if (count > 1)
+                            status = "Downloading " + currentItem.Request.FileName + " [Requested " + count + "]";
+                        else
+                            status = "Downloading " + currentItem.Request.FileName;
+                        sync.ExitWriteLock();
+                        try
+                        {
+                            DownloadFile(currentItem, verb.ResumePoint, verb.FileSize, arg, session);
+                            
+                        }
+                        finally
+                        {
+                            currentItem.FileStream.Flush();
+                            currentItem.FileStream.Close();
+                            if (currentItem.FileStream.Name.Contains(model.IncompleteFolder))
+                            {
+                                File.Move(currentItem.FileStream.Name,
+                                    currentItem.FileStream.Name.Replace(model.IncompleteFolder, model.DownloadFolder));
+                            }
+                        }
+                    }
+                    status = "Download complete: " + currentItem.Request.FileName;
+                    currentItem.Request.State = DownloadRequestState.Downloaded;
+                    queue.Remove(currentItem);
 
+                     sync.EnterWriteLock();
+                     if (!complete)
+                     {
+                         if (queue.Count == 0)
+                             complete = true;
+                     }
+                     sync.ExitWriteLock();
                 }
             }
             catch
             {
-                service.FreeClientSession(session);
+                OnError();
+                session.Socket.Close();
+                service.RemoveClientSession(session);
             }
-        }
-
-        private void OnError()
-        {
-            sync.EnterWriteLock();
-            error = true;
-            foreach (var w in queue)
-                w.Request.State = DownloadRequestState.None;
-            queue.Clear();
-            sync.ExitWriteLock();
+            finally
+            {
+                bufferService.FreeArg(arg);
+            }
         }
 
         private void DownloadFile(DownloadItem i, long resumePoint, long length, MemoryBuffer arg, Session session)
         {
             if (resumePoint != 0)
                 i.FileStream.Seek(resumePoint, SeekOrigin.Begin);
-            long received = 0;
+            received = resumePoint;
 
             while (received < length)
             {
@@ -254,31 +286,52 @@ namespace Fap.Domain.Services
                     rx = session.Socket.Receive(arg.Data, 0, (int)dataLeft, SocketFlags.None);
                 else
                     rx = session.Socket.Receive(arg.Data, 0, arg.Data.Length, SocketFlags.None);
-                received += rx;
                 i.FileStream.Write(arg.Data, 0, rx);
 
                 sync.EnterWriteLock();
+                received += rx;
                 netSpeed.PutData(rx);
                 sync.ExitWriteLock();
             }
         }
 
-        private DownloadItem CheckForAndSendDownloadRequests(Session s)
+        private void CheckForAndSendDownloadRequests(Session s)
         {
-            var item = queue.Pop();
-            var req = item.Request;
+            var item = queue.FirstOrDefault();
             if (null != item)
             {
+                var req = item.Request;
                 //Open file to check file size
                 FileStream stream;
 
-                string mainPath = model.DownloadFolder + req.LocalPath + req.FolderPath;
-                string incompletePath = model.IncompleteFolder + req.LocalPath + req.FolderPath;
+                StringBuilder main = new StringBuilder();
+                main.Append(model.DownloadFolder);
+                main.Append("\\");
+                main.Append(req.LocalPath);
+                main.Append(req.FileName);
+
+                StringBuilder incomplete = new StringBuilder();
+                incomplete.Append(model.IncompleteFolder);
+                incomplete.Append("\\");
+                incomplete.Append(req.LocalPath);
+
+                string mainPath = main.ToString();
+                string incompleteFolder = incomplete.ToString();
+
+                incomplete.Append("\\");
+                incomplete.Append(req.FileName);
+
+                string incompletePath = incomplete.ToString();
 
                 if (File.Exists(mainPath) || req.Size < BufferService.Buffer)
-                    stream = File.Open(mainPath, FileMode.Append, FileAccess.Write, FileShare.Read);
+                    stream = File.Open(mainPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
                 else
-                    stream = File.Open(incompletePath, FileMode.Append, FileAccess.Write, FileShare.Read);
+                {
+                    if (!Directory.Exists(incompleteFolder))
+                        Directory.CreateDirectory(incompleteFolder);
+
+                    stream = File.Open(incompletePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+                }
 
                 //If file size less than expected size then download
                 if (stream.Length < req.Size)
@@ -292,16 +345,14 @@ namespace Fap.Domain.Services
                     byte[] data = Mediator.Serialize(verb.CreateRequest());
                     arg.SetBuffer(data,0,data.Length);
                     s.Socket.SendAsync(arg);
-                    return item;
                 }
                 else
                 {
                     stream.Close();
                     req.State = DownloadRequestState.Downloaded;
-                   
+                    model.DownloadQueue.List.Remove(req);
                 }
             }
-            return null;
         }
 
         protected class DownloadItem

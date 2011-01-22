@@ -101,7 +101,7 @@ namespace Fap.Network.Services
                         arg = bufferManager.GetSmallArg();
                         arg.Socket = socket;
                         int rx = socket.Receive(arg.Data);
-                        arg.SetDataLocation(0, rx);
+                        arg.SetDataLocation(0, rx); 
                         token.ReceiveData(arg);
                         while (token.ContainsCommand())
                         {

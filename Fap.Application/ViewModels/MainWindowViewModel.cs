@@ -60,6 +60,9 @@ namespace Fap.Application.ViewModels
         private string networkStats;
         private string overlordStatus;
         private Model model;
+        private string localStats;
+        private string globalStats;
+
 
         public MainWindowViewModel(IMainWindow view)
             : base(view)
@@ -108,6 +111,32 @@ namespace Fap.Application.ViewModels
                 {
                     networkStats = value;
                     RaisePropertyChanged("CurrentNetworkStatus");
+                }
+            }
+        }
+
+        public string LocalStats
+        {
+            get { return localStats; }
+            set
+            {
+                if (localStats != value)
+                {
+                    localStats = value;
+                    RaisePropertyChanged("LocalStats");
+                }
+            }
+        }
+
+        public string GlobalStats
+        {
+            get { return globalStats; }
+            set
+            {
+                if (globalStats != value)
+                {
+                    globalStats = value;
+                    RaisePropertyChanged("GlobalStats");
                 }
             }
         }

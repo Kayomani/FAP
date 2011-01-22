@@ -21,7 +21,6 @@ using System.Text;
 using Fap.Application.ViewModels;
 using System.Waf.Applications;
 using Fap.Domain;
-using Fap.Domain.Commands;
 using Fap.Domain.Entity;
 using Fap.Foundation;
 using Fap.Foundation.Logging;
@@ -149,18 +148,21 @@ namespace Fap.Application.Controllers
                 model.MaxUploadsPerUser = 2;
 
             //Set default download folder
-            if (string.IsNullOrEmpty(model.DownloadFolder) || !Directory.Exists(model.DownloadFolder))
+            if (string.IsNullOrEmpty(model.DownloadFolder))
                 model.DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\FAP Downloads";
 
             if (!Directory.Exists(model.DownloadFolder))
                 Directory.CreateDirectory(model.DownloadFolder);
 
             //Set incomplete download folder
-            if (string.IsNullOrEmpty(model.DownloadFolder) || !Directory.Exists(model.DownloadFolder))
-                model.DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\FAP Downloads";
+            if (string.IsNullOrEmpty(model.IncompleteFolder) || !Directory.Exists(model.IncompleteFolder))
+                model.IncompleteFolder = model.DownloadFolder + "\\Incomplete";
 
             if (!Directory.Exists(model.DownloadFolder))
                 Directory.CreateDirectory(model.DownloadFolder);
+
+            if (!Directory.Exists(model.IncompleteFolder))
+                Directory.CreateDirectory(model.IncompleteFolder);
 
             if (string.IsNullOrEmpty(model.LocalNodeID))
             {
@@ -255,7 +257,11 @@ namespace Fap.Application.Controllers
                     sb.Append(Utility.ConverNumberToText(model.Peers.Select(p => p.FileCount).Sum()));
                     sb.Append(" files.");
                     string text = sb.ToString();
-                    if (text != mainWindowModel.CurrentNetworkStatus)
+
+                    //0 Bytes /  0 Bytes
+                    //: 0 Bytes / 0 Bytes
+
+                   // if (text != mainWindowModel.CurrentNetworkStatus)
                     {
                         mainWindowModel.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
                            new Action(
@@ -270,11 +276,33 @@ namespace Fap.Application.Controllers
 
                                 foreach (var xfer in mainWindowModel.Sessions)
                                 {
-                                    xfer.Percent = xfer.Worker.Percent;
-                                    xfer.Size = xfer.Worker.Size;
-                                    xfer.Speed = xfer.Worker.Speed;
-                                    xfer.Status = xfer.Worker.Status;
+                                    if (xfer.IsDownload)
+                                    {
+                                        if (xfer.Worker.Length == 0)
+                                            xfer.Percent = 0;
+                                        else
+                                            xfer.Percent = (int)(((double)xfer.Worker.Received / xfer.Worker.Length) * 100);
+                                        xfer.Size = xfer.Worker.Length;
+                                        xfer.Speed = xfer.Worker.Speed;
+                                        xfer.Status = xfer.Worker.Status;
+                                    }
                                 }
+                                //Local stats
+                                StringBuilder ls = new StringBuilder();
+                                ls.Append("You: ");
+                                ls.Append(Utility.ConvertNumberToTextSpeed(model.Node.DownloadSpeed));
+                                ls.Append(" / ");
+                                ls.Append(Utility.ConvertNumberToTextSpeed(model.Node.UploadSpeed));
+                                mainWindowModel.LocalStats = ls.ToString();
+                                //Global stats
+                                StringBuilder gs = new StringBuilder();
+                                gs.Append("Network: ");
+                                gs.Append(Utility.ConvertNumberToTextSpeed(model.Peers.Select(s => s.DownloadSpeed).Sum()));
+                                gs.Append(" / ");
+                                gs.Append(Utility.ConvertNumberToTextSpeed(model.Peers.Select(s => s.UploadSpeed).Sum()));
+                                mainWindowModel.GlobalStats = gs.ToString();
+
+
                             }
                            ));
                     }
@@ -436,6 +464,7 @@ namespace Fap.Application.Controllers
              if (browser.SelectFolder(out folder))
              {
                  model.DownloadFolder = folder;
+                 model.IncompleteFolder = folder + "\\Incomplete";
              }
         }
 
