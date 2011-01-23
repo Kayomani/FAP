@@ -67,9 +67,7 @@ namespace Fap.Domain.Services
 
         public void Stop()
         {
-            sync.EnterWriteLock();
             complete = true;
-            sync.ExitWriteLock();
         }
 
         #region Properties
@@ -174,6 +172,7 @@ namespace Fap.Domain.Services
             var arg = bufferService.GetArg();
             try
             {
+                session.Socket.Blocking = true;
                 session.Socket.ReceiveBufferSize = BufferService.Buffer * 2;
                 session.Socket.SendBufferSize = BufferService.SmallBuffer;
                 DownloadVerb verb = new DownloadVerb();
@@ -188,7 +187,8 @@ namespace Fap.Domain.Services
                         do
                         {
                             //Receive header
-                            arg.DataSize = session.Socket.Receive(arg.Data);
+                            int rx = session.Socket.Receive(arg.Data);
+                            arg.SetDataLocation(0, rx);
                             token.ReceiveData(arg);
                         }
                         while (!token.ContainsCommand());
@@ -346,7 +346,9 @@ namespace Fap.Domain.Services
                 {
                     i.FileStream.Write(buffer.Data, buffer.StartLocation, buffer.DataSize);
                     received += buffer.DataSize;
+                    Console.WriteLine("pre buf for " + i.FileStream.Name);
                 }
+                token.ResetInputBuffer();
             }
 
             while (received < length)
@@ -381,10 +383,8 @@ namespace Fap.Domain.Services
                     BrowseVerb cmd = new BrowseVerb(model);
                     cmd.Path = item.Request.FullPath;
                     cmd.RequestID = item.UID;
-                    SocketAsyncEventArgs arg = new SocketAsyncEventArgs();
-                    byte[] data = Mediator.Serialize(cmd.CreateRequest());
-                    arg.SetBuffer(data, 0, data.Length);
-                    s.Socket.SendAsync(arg);
+                    s.Socket.Send(Mediator.Serialize(cmd.CreateRequest()));
+                    s.Socket.Blocking = true;
                     oustandingRequests++;
                 }
                 else
@@ -434,10 +434,8 @@ namespace Fap.Domain.Services
                             verb.ID = item.UID;
                             verb.ResumePoint = stream.Length;
                             item.FileStream = stream;
-                            SocketAsyncEventArgs arg = new SocketAsyncEventArgs();
-                            byte[] data = Mediator.Serialize(verb.CreateRequest());
-                            arg.SetBuffer(data, 0, data.Length);
-                            s.Socket.SendAsync(arg);
+                            s.Socket.Send(Mediator.Serialize(verb.CreateRequest()));
+                            s.Socket.Blocking = true;
                             oustandingRequests++;
                         }
                         else

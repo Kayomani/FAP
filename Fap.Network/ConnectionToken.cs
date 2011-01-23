@@ -116,7 +116,7 @@ namespace Fap.Network
                         byte[] data = Encoding.Unicode.GetBytes(substring);
 
                         b.SetDataLocation(b.StartLocation+data.Length, b.DataSize-data.Length);
-                        sb.Append(msg.Substring(0, endIndex));
+                        sb.Append(substring);
                     }
                     else
                     {

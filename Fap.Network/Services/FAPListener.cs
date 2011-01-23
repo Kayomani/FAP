@@ -91,15 +91,15 @@ namespace Fap.Network.Services
                 listener.BeginAcceptSocket(new AsyncCallback(handleClient), null);
                 socket = listener.EndAcceptSocket(result);
                 socket.SendBufferSize = BufferService.SmallBuffer;
-                socket.ReceiveBufferSize = BufferService.SmallBuffer;
+                socket.ReceiveBufferSize = BufferService.SmallBuffer*2;
                 socket.ReceiveTimeout = 300 * 1000;
+                socket.Blocking = true;
 
                 while (socket.Connected)
                 {
                     try
                     {
                         arg = bufferManager.GetSmallArg();
-                        arg.Socket = socket;
                         int rx = socket.Receive(arg.Data);
                         arg.SetDataLocation(0, rx); 
                         token.ReceiveData(arg);
@@ -123,12 +123,12 @@ namespace Fap.Network.Services
                     socket.Close();
                     //Free the associated session
                     token.Dispose();
-                    connectionService.RemoveServerSession(arg);
+                    //connectionService.RemoveServerSession(arg);
                     bufferManager.FreeArg(arg);
                 }
                 else
                 {
-                    connectionService.RemoveServerSession(arg);
+                   // connectionService.RemoveServerSession(arg);
                     bufferManager.FreeArg(arg);
                 }
             }

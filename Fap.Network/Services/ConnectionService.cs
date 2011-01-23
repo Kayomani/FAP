@@ -67,7 +67,7 @@ namespace Fap.Network.Services
 
      
 
-        public void RemoveServerSession(MemoryBuffer arg)
+      /*  public void RemoveServerSession(MemoryBuffer arg)
         {
             lock (sync)
             {
@@ -99,7 +99,7 @@ namespace Fap.Network.Services
                 s.IsUpload = true;
                 s.InUse = true;
                 //Try to find username
-                /* IPEndPoint host = arg.Socket.RemoteEndPoint as IPEndPoint;
+               */ /* IPEndPoint host = arg.Socket.RemoteEndPoint as IPEndPoint;
                  if (null != host)
                  {
                      string address = host.Address.ToString();
@@ -116,11 +116,11 @@ namespace Fap.Network.Services
                          s.User = address;
                  }
                  else if (null != arg.Socket.RemoteEndPoint)
-                     s.User = arg.Socket.RemoteEndPoint.ToString();**/
+                     s.User = arg.Socket.RemoteEndPoint.ToString();**//*
                 sessions.Add(s);
                 return s;
             }
-        }
+        }*/
 
         private Session CreateSession(Node rc)
         {
@@ -129,6 +129,7 @@ namespace Fap.Network.Services
             {
                 s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 s.Connect(rc.Host, rc.Port);
+                s.Blocking = true;
             }
             catch
             {

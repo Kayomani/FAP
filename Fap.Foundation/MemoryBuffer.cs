@@ -26,12 +26,26 @@ namespace Fap.Foundation
     {
        private int dataSize;
        private int startLocation;
+       private byte[] data;
 
-       public byte[] Data { set; get; }
+       public MemoryBuffer(byte[] d)
+       {
+           data = d;
+       }
+
+       public MemoryBuffer(int size)
+       {
+           data = new byte[size];
+       }
+
+       public byte[] Data
+       {
+           get { return data; }
+       }
+
        public int DataSize
        {
            get { return dataSize; }
-           set { dataSize = value; }
        }
 
        public int StartLocation
@@ -47,17 +61,12 @@ namespace Fap.Foundation
                throw new Exception("Unset / Incorrectly sized buffer");
        }
 
-       public Socket Socket { set; get; }
-
-       public MemoryBuffer(int size)
-       {
-           Data = new byte[size];
-       }
+      // public Socket Socket { set; get; }
 
        public void Dispose()
        {
-           Data = new byte[0];
-           Socket = null;
+           data = new byte[0];
+        //   Socket = null;
        }
     }
 }

@@ -37,7 +37,6 @@ namespace Fap.Network
 
             byte[] data = Mediator.Serialize(r);
             MemoryBuffer mb=  new MemoryBuffer(data.Length);
-            mb.Data = data;
             mb.SetDataLocation(0, data.Length);
 
             ConnectionToken token = new ConnectionToken();

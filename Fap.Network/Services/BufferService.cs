@@ -40,8 +40,6 @@ namespace Fap.Network.Services
             logger = log;
         }
 
-
-
         public void Clean()
         {
             lock (pool)
@@ -92,9 +90,7 @@ namespace Fap.Network.Services
             lock (pool)
             {
                 if (pool.Count > 0)
-                {
                     return pool.Pop();
-                }
             }
             MemoryBuffer a = new MemoryBuffer(Buffer);
             return a;
@@ -105,9 +101,7 @@ namespace Fap.Network.Services
             lock (smallPool)
             {
                 if (smallPool.Count > 0)
-                {
                     return smallPool.Pop();
-                }
             }
             MemoryBuffer a = new MemoryBuffer(SmallBuffer);
             return a;
@@ -115,19 +109,16 @@ namespace Fap.Network.Services
 
         public void FreeArg(MemoryBuffer input)
         {
+            input.SetDataLocation(0, 0);
             if (input.Data.Length == SmallBuffer)
             {
                 lock (smallPool)
-                {
                     smallPool.Push(input);
-                }
             }
             else if (input.Data.Length == Buffer)
             {
                 lock (pool)
-                {
                     pool.Push(input);
-                }
             }
             else
             {

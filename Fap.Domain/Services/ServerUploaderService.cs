@@ -62,7 +62,7 @@ namespace Fap.Domain.Services
             verb.ProcessRequest(r);
             MemoryBuffer buffer = null;
             ServerUploadToken token = null;
-
+            s.Blocking = true;
             string remoteHost = (s.RemoteEndPoint as IPEndPoint).Address.ToString();
             Node peer = model.Peers.Where(w => w.Host == remoteHost).FirstOrDefault();
             
@@ -73,6 +73,9 @@ namespace Fap.Domain.Services
             else
                 session.User = peer.Nickname;
             model.TransferSessions.Add(session);
+
+            if (s.SendBufferSize != BufferService.Buffer)
+                s.SendBufferSize = BufferService.Buffer;
  
             try
             {
@@ -95,7 +98,8 @@ namespace Fap.Domain.Services
                         {
                             buffer = bufferService.GetSmallArg();
                             s.Send(Mediator.Serialize(verb.CreateResponse()));
-                            buffer.DataSize = stream.Read(buffer.Data, 0, buffer.Data.Length);
+                            int rx = stream.Read(buffer.Data, 0, buffer.Data.Length);
+                            buffer.SetDataLocation(0, rx);
                             if (buffer.DataSize != verb.FileSize)
                             {
 
@@ -121,7 +125,7 @@ namespace Fap.Domain.Services
                             //Limit sending the file by slots
                             token = limiterService.RequestUploadToken(peer);
                             long lastQueueStatus = 0;
-                           /* while (!token.CanUpload)
+                            while (!token.CanUpload)
                             {
                                 //Send queue info
                                 if (Environment.TickCount - lastQueueStatus > 5000)
@@ -129,18 +133,20 @@ namespace Fap.Domain.Services
                                     verb.InQueue = true;
                                     verb.QueuePosition = token.Position;
                                     status = "Queued in position " + verb.QueuePosition + " "  + Path.GetFileName(verb.Path);
+                                    Console.WriteLine("Queue");
                                     s.Send(Mediator.Serialize(verb.CreateResponse()));
                                     lastQueueStatus = Environment.TickCount;
                                 }
                                 token.Wait();
-                            }*/
+                            }
                             //Send file header and data
                             verb.QueuePosition = 0;
                             verb.InQueue = false;
                             msm.PutData(0);
                             status = "Uploading " + Path.GetFileName(verb.Path);
                             s.Send(Mediator.Serialize(verb.CreateResponse()));
-                            buffer.DataSize = stream.Read(buffer.Data, 0, buffer.Data.Length);
+                            int rx = stream.Read(buffer.Data, 0, buffer.Data.Length);
+                            buffer.SetDataLocation(0, rx);
                             s.Send(buffer.Data, 0, buffer.DataSize, SocketFlags.None);
                             session.Percent = 100;
                             msm.PutData(verb.FileSize);
@@ -152,7 +158,7 @@ namespace Fap.Domain.Services
                             session.Percent = 0;
                             //Limit sending the file by slots
                             token = limiterService.RequestUploadToken(peer);
-                            /*long lastQueueStatus = 0;
+                            long lastQueueStatus = 0;
                             while (!token.CanUpload)
                             {
                                 //Send queue info
@@ -164,7 +170,7 @@ namespace Fap.Domain.Services
                                     s.Send(Mediator.Serialize(verb.CreateResponse()));
                                 }
                                 token.Wait();
-                            }*/
+                            }
                             status = "Uploading " + Path.GetFileName(verb.Path);
                             //Send file header and data
                             verb.QueuePosition = 0;
@@ -180,7 +186,7 @@ namespace Fap.Domain.Services
                                     while (!bfr.IsEOF)
                                     {
                                         buffer = bfr.GetBuffer();
-                                        s.Send(buffer.Data, buffer.DataSize, SocketFlags.None);
+                                        s.Send(buffer.Data,buffer.StartLocation, buffer.DataSize, SocketFlags.None);
                                         msm.PutData(buffer.DataSize);
                                         session.Speed = msm.GetSpeed();
                                         bufferService.FreeArg(buffer);
@@ -193,6 +199,7 @@ namespace Fap.Domain.Services
                                 }
                                 catch { }
                             }
+                            buffer = null;
                         }
                         stream.Close();
                     }

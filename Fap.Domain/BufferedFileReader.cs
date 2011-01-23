@@ -57,7 +57,8 @@ namespace Fap.Domain
                 OnwriteEvent.WaitOne();
             }
             OnreadEvent.Set();
-            return readbuffer.Dequeue();
+            lock (readbuffer)
+                return readbuffer.Dequeue();
         }
 
         private void PutBuffer(MemoryBuffer b)
@@ -102,15 +103,20 @@ namespace Fap.Domain
             FileStream stream = o as FileStream;
             try
             {
-                long length = stream.Length;
-                long position = stream.Position;
+             //   long length = stream.Length;
+               // long position = stream.Position;
 
-                while (position < length)
+                while (stream.Position < stream.Length)
                 {
                     MemoryBuffer arg = bufferService.GetArg();
-                    int thisread = stream.Read(arg.Data, 0, arg.Data.Length);
-                    arg.SetDataLocation(0, thisread);
-                    position += thisread;
+
+                    long dataLeft = stream.Length - stream.Position;
+                    if (dataLeft > arg.Data.Length)
+                        arg.SetDataLocation(0, stream.Read(arg.Data, 0, arg.Data.Length));
+                    else
+                        arg.SetDataLocation(0, stream.Read(arg.Data, 0, (int)dataLeft));
+
+                  //  position += arg.DataSize;
 
                     bool doWait = false;
                     lock (readbuffer)
@@ -131,7 +137,8 @@ namespace Fap.Domain
                 e.ToString();
                 lock (readbuffer)
                 {
-                    HasError = true;
+                    EOF = true;
+                    error = true;
                     while (readbuffer.Count > 0)
                     {
                         bufferService.FreeArg(readbuffer.Dequeue());
@@ -155,6 +162,8 @@ namespace Fap.Domain
                     bufferService.FreeArg(readbuffer.Dequeue());
                 }
             }
+            OnreadEvent.Close();
+            OnwriteEvent.Close();
         }
     }
 }

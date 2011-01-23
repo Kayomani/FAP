@@ -71,7 +71,7 @@ namespace Fap.Application.Controllers
         public void ScanForDownloads()
         {
             sync.EnterWriteLock();
-            Console.WriteLine("Checking downloads..");
+          //  Console.WriteLine("Checking downloads..");
 
             foreach (var worker in workers.ToList())
             {
