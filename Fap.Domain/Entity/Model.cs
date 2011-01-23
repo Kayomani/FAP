@@ -24,6 +24,7 @@ using System.IO;
 using System.ComponentModel;
 using System.Net;
 using Fap.Network.Entity;
+using ContinuousLinq;
 
 namespace Fap.Domain.Entity
 {
@@ -46,12 +47,13 @@ namespace Fap.Domain.Entity
         private SafeObservable<Session> sessions;
         private SafeObservable<TransferSession> transferSessions;
         private Node node;
-        private SafeObservable<Node> peers;
+        private ContinuousCollection<Node> peers;
         private SafeObservable<Share> shares;
         private SafeObservable<Fap.Network.Entity.Network> networks;
         private SafeObservable<string> messages;
         private SafeObservable<Conversation> converstations;
         private Overlord overlord;
+        private PeerSortType peerSortType;
 
         public delegate bool NewConversation(string id, string message);
         public event NewConversation OnNewConverstation;
@@ -65,7 +67,7 @@ namespace Fap.Domain.Entity
 
         public Model()
         {
-            peers = new SafeObservable<Node>();
+            peers = new ContinuousCollection<Node>();
             shares = new SafeObservable<Share>();
             networks = new SafeObservable<Fap.Network.Entity.Network>();
             node = new Fap.Network.Entity.Node();
@@ -82,6 +84,12 @@ namespace Fap.Domain.Entity
         void node_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             NotifyChange(e.PropertyName);
+        }
+
+        public PeerSortType PeerSortType
+        {
+            set { peerSortType = value; NotifyChange("PeerSortType"); }
+            get { return peerSortType; }
         }
 
         public SafeObservable<Share> Shares
@@ -113,7 +121,7 @@ namespace Fap.Domain.Entity
         }
 
         [XmlIgnore]
-        public SafeObservable<Node> Peers
+        public ContinuousCollection<Node> Peers
         {
             set { peers = value; NotifyChange("Peers"); }
             get { return peers; }

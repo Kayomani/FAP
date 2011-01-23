@@ -32,6 +32,7 @@ using System.Xml.Linq;
 using System.Xml;
 using Fap.Domain.Entity;
 using Fap.Foundation.Services;
+using System.Text.RegularExpressions;
 
 namespace Fap.Domain.Controllers
 {
@@ -585,7 +586,7 @@ namespace Fap.Domain.Controllers
                             verb = new ClientVerb(client);
                             search.AddMessage(verb.CreateRequest());
                         }
-                        ScanClient(search.Node);
+                        ThreadPool.QueueUserWorkItem(new WaitCallback(ScanClientAsync), search.Node);
                     }
                     else
                     {
@@ -610,6 +611,11 @@ namespace Fap.Domain.Controllers
             return false;
         }
 
+        private void ScanClientAsync(object o)
+        {
+            ScanClient(o as Node);
+        }
+
         /// <summary>
         /// Scan the client machine for services such as HTTP or samba shares
         /// </summary>
@@ -622,12 +628,19 @@ namespace Fap.Domain.Controllers
             {
                 WebClient wc = new WebClient();
                 string html = wc.DownloadString("http://" + n.Host);
+
                 if (!string.IsNullOrEmpty(html))
+                {
+                    webTitle = RegexEx.FindMatches("<title>.*</title>", html).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(html) && webTitle.Length > 14)
+                    {
+                        webTitle = webTitle.Substring(7);
+                        webTitle = webTitle.Substring(0, webTitle.Length - 8);
+                    }
+                }
+
+                if (string.IsNullOrEmpty(webTitle))
                     webTitle = "Web";
-                XDocument doc = XDocument.Parse(html);
-                var title = doc.Elements("html").Where(x => (string.Equals(x.Name.LocalName, "title", StringComparison.InvariantCultureIgnoreCase))).FirstOrDefault();
-                if (null != title && !string.IsNullOrEmpty(title.Value))
-                    webTitle = title.Value;
             }
             catch { }
 

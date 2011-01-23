@@ -40,6 +40,7 @@ using System.Net.Sockets;
 using Fap.Domain.Controllers;
 using System.Diagnostics;
 using Fap.Foundation.Services;
+using ContinuousLinq;
 
 namespace Fap.Application.Controllers
 {
@@ -84,7 +85,6 @@ namespace Fap.Application.Controllers
 
         void logger_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            return;
             foreach (Fap.Foundation.Logging.Log newmsg in e.NewItems)
             {
 #if DEBUG
@@ -374,15 +374,17 @@ namespace Fap.Application.Controllers
                 mainWindowModel.Compare = new DelegateCommand(Compare);
                 mainWindowModel.Chat = new DelegateCommand(Chat);
                 mainWindowModel.UserInfo = new DelegateCommand(showUserInfo);
+                mainWindowModel.ChangePeerSort = new DelegateCommand(ChangePeerSort);
                 mainWindowModel.LogView = loggerModel.View;
                 mainWindowModel.Avatar = model.Avatar;
                 mainWindowModel.Nickname = model.Nickname;
                 mainWindowModel.Description = model.Description;
                 mainWindowModel.Sessions = model.TransferSessions;
                 mainWindowModel.ChatMessages = model.Messages;
-                mainWindowModel.Peers = model.Peers;
                 mainWindowModel.Node = model.Node;
                 mainWindowModel.Model = model;
+                mainWindowModel.PeerSortType = model.PeerSortType;
+                BindPeerList();
                 ClientList_CollectionChanged(null, null);
                 mainWindowModel.Show();
             }
@@ -392,6 +394,35 @@ namespace Fap.Application.Controllers
                     mainWindowModel.DoFlashWindow();
                 else
                     mainWindowModel.Show();
+            }
+        }
+
+        private void ChangePeerSort(object o)
+        {
+            mainWindowModel.PeerSortType = (PeerSortType)o;
+            model.PeerSortType = mainWindowModel.PeerSortType;
+            BindPeerList();
+        }
+
+        private void BindPeerList()
+        {
+            if (null != mainWindowModel)
+            {
+                switch (mainWindowModel.PeerSortType)
+                {
+                    case PeerSortType.Address:
+                        mainWindowModel.Peers = model.Peers.Select(s => s).OrderBy(s=>s.Host);
+                        break;
+                    case PeerSortType.Name:
+                        mainWindowModel.Peers = model.Peers.Select(s => s).OrderBy(s => s.Nickname);
+                        break;
+                    case PeerSortType.Size:
+                        mainWindowModel.Peers = model.Peers.Select(s => s).OrderByDescending(s => s.ShareSize);
+                        break;
+                    case PeerSortType.Type:
+                        mainWindowModel.Peers = model.Peers.Select(s => s).OrderBy(s => s.NodeType);
+                        break;
+                }
             }
         }
 

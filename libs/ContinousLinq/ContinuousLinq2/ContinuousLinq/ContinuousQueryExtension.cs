@@ -357,4 +357,5 @@ namespace ContinuousLinq
         }
         #endregion
     }
+
 }

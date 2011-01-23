@@ -97,6 +97,10 @@ namespace Fap.Presentation.Panels
             if (ignoreFolderTreeEvents)
                 return;
             FileSystemEntity ent = e.NewValue as FileSystemEntity;
+            if (null == Model.LastSelectedEntity)
+                Model.LastSelectedEntity = new List<FileSystemEntity>();
+            Model.LastSelectedEntity.Clear();
+            Model.LastSelectedEntity.Add(ent);
             Model.CurrentPath = ent.FullPath;
         }
 

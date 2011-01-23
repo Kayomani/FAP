@@ -23,7 +23,7 @@ using System.Threading;
 
 namespace Fap.Domain.Entity
 {
-    public class ServerUploadToken
+    public class ServerUploadToken: IDisposable
     {
         private int position = 0;
         private bool canUpload = false;
@@ -78,6 +78,11 @@ namespace Fap.Domain.Entity
         public void Wait()
         {
             sync.WaitOne();
+        }
+
+        public void Dispose()
+        {
+            sync.Close();
         }
     }
 }

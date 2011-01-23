@@ -82,6 +82,7 @@
     <Compile Include="Entity\Conversation.cs" />
     <Compile Include="Entity\DownloadQueue.cs" />
     <Compile Include="Entity\DownloadRequest.cs" />
+    <Compile Include="Entity\Enums.cs" />
     <Compile Include="Entity\FileSystemEntity.cs" />
     <Compile Include="Entity\ITransferWorker.cs" />
     <Compile Include="Entity\Model.cs" />

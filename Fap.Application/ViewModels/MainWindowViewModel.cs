@@ -25,6 +25,7 @@ using Fap.Foundation;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Fap.Network.Entity;
+using ContinuousLinq;
 
 namespace Fap.Application.ViewModels
 {
@@ -45,6 +46,7 @@ namespace Fap.Application.ViewModels
         private ICommand openExternal;
         private ICommand compare;
         private ICommand userinfo;
+        private ICommand changeSort;
         private object logView;
         private object selectedClient;
         private string avatar;
@@ -53,7 +55,7 @@ namespace Fap.Application.ViewModels
         private string description;
         private string windowTitle;
         private Node node;
-        private SafeObservable<Node> peers;
+        private ReadOnlyContinuousCollection<Node> peers;
         private bool visible = false;
         private bool allowClose = false;
         private Fap.Network.Entity.Network currentNetwork;
@@ -62,7 +64,7 @@ namespace Fap.Application.ViewModels
         private Model model;
         private string localStats;
         private string globalStats;
-
+        private PeerSortType sortType;
 
         public MainWindowViewModel(IMainWindow view)
             : base(view)
@@ -70,6 +72,16 @@ namespace Fap.Application.ViewModels
 
         }
 
+
+        public PeerSortType PeerSortType
+        {
+            get { return sortType; }
+            set
+            {
+                sortType = value;
+                RaisePropertyChanged("PeerSortType");
+            }
+        }
 
         public Model Model
         {
@@ -171,7 +183,7 @@ namespace Fap.Application.ViewModels
             }
         }
 
-        public SafeObservable<Node> Peers
+        public ReadOnlyContinuousCollection<Node> Peers
         {
             get { return peers; }
             set
@@ -311,6 +323,15 @@ namespace Fap.Application.ViewModels
             }
         }
 
+        public ICommand ChangePeerSort
+        {
+            get { return changeSort; }
+            set
+            {
+                changeSort = value;
+                RaisePropertyChanged("ChangePeerSort");
+            }
+        }
 
         public ICommand UserInfo
         {

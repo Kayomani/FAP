@@ -52,6 +52,7 @@ namespace Fap.Domain.Services
 
                 int totalDownloads = tokenlist.Where(t => t.CanUpload).Count();
 
+
                 //If we have reached the global uploads then pause the download
                 if (totalDownloads > model.MaxUploads)
                     startNow = false;
@@ -60,8 +61,13 @@ namespace Fap.Domain.Services
                     //We have reached the max uploads for this perticular user
                     startNow = false;
                 }
+
+                token.CanUpload = startNow;
+                if (startNow)
+                    token.Position = 0;
+                else
+                    token.Position = tokenlist.Where(t => !t.CanUpload).Count() + 1;
             }
-            token.CanUpload = startNow;
             return token;
         }
 
@@ -80,22 +86,15 @@ namespace Fap.Domain.Services
                 tokenlist.Remove(token);
 
                 //Update positions
-                for (int i = 0; i < tokenlist.Count; i++)
-                    tokenlist[i].Position = i;
-
-                //Trigger next download if there is one
-                if (tokenlist.Count > 0)
+                var queuedTokens = tokenlist.Where(t => !t.CanUpload).ToList();
+                for (int i = 0; i < queuedTokens.Count(); i++)
                 {
-                    for (int i = 0; i < tokenlist.Count; i++)
+                    queuedTokens[i].Position = i;
+                    int currentCLientDownloads = tokenlist.Where(t => t.RemoteClient == queuedTokens[i].RemoteClient).Count();
+                    if (currentCLientDownloads < model.MaxDownloadsPerUser)
                     {
-                        //Make sure we don't exceed the per user limit
-                        var count = tokenlist.Where(t => t.RemoteClient == node).Count();
-                        if (count < model.MaxUploadsPerUser)
-                        {
-                            if (!tokenlist[i].CanUpload)
-                                tokenlist[i].CanUpload = true;
-                            return;
-                        }
+                        queuedTokens[i].CanUpload = true;
+                        break;
                     }
                 }
             }

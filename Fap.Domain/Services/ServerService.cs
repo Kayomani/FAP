@@ -92,26 +92,31 @@ namespace Fap.Domain.Services
         {
             if (IsOverlordKey(r.RequestID))
             {
-                var localNet = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
-                if (null != localNet)
-                {
-                    if (localNet.State == ConnectionState.Connected)
-                    {
-                        if (localNet.OverlordID == r.Param)
-                        {
-                            peerController.Disconnect();
-                            var peers = model.Peers.Where(p => p.Network == localNet).ToList();
-                            foreach (var p in peers)
-                                model.Peers.Remove(p);
-                        }
-                        else
-                        {
-                            var search = model.Peers.Where(p => p.ID == r.Param).FirstOrDefault();
-                            if (null != search)
-                                model.Peers.Remove(search);
-                        }
-                    }
-                }
+                SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+      new Action(
+       delegate()
+       {
+           var localNet = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
+           if (null != localNet)
+           {
+               if (localNet.State == ConnectionState.Connected)
+               {
+                   if (localNet.OverlordID == r.Param)
+                   {
+                       peerController.Disconnect();
+                       var peers = model.Peers.Where(p => p.Network == localNet).ToList();
+                       foreach (var p in peers)
+                           model.Peers.Remove(p);
+                   }
+                   else
+                   {
+                       var search = model.Peers.Where(p => p.ID == r.Param).FirstOrDefault();
+                       if (null != search)
+                           model.Peers.Remove(search);
+                   }
+               }
+           }
+       }));
             }
             return false;
         }
@@ -155,20 +160,27 @@ namespace Fap.Domain.Services
         {
             if (IsOverlordKey(r.RequestID))
             {
-                var search = model.Peers.Where(i => i.ID == r.Param).FirstOrDefault();
-                if (search == null)
-                {
-                    search = new Node();
-                    search.Network =  model.Networks.Where(n=>n.ID == "LOCAL").FirstOrDefault();
-                    foreach (var param in r.AdditionalHeaders)
-                        search.SetData(param.Key, param.Value);
-                    model.Peers.Add(search);
-                }
-                else
-                {
-                    foreach (var param in r.AdditionalHeaders)
-                        search.SetData(param.Key, param.Value);
-                }
+                SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+          new Action(
+           delegate()
+           {
+               var search = model.Peers.Where(i => i.ID == r.Param).FirstOrDefault();
+               if (search == null)
+               {
+                   search = new Node();
+                   search.Network = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
+                   foreach (var param in r.AdditionalHeaders)
+                       search.SetData(param.Key, param.Value);
+                   model.Peers.Add(search);
+               }
+               else
+               {
+                   foreach (var param in r.AdditionalHeaders)
+                       search.SetData(param.Key, param.Value);
+               }
+           }
+          ));
+
             }
         }
 

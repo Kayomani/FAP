@@ -30,6 +30,7 @@ using System.Windows.Threading;
 using Fap.Application.Views;
 using Fap.Application.ViewModels;
 using Fap.Network.Entity;
+using Fap.Domain.Entity;
 
 namespace Fap.Presentation
 {
@@ -53,9 +54,6 @@ namespace Fap.Presentation
             var c = (DataContext as MainWindowViewModel);
             if (!c.AllowClose)
             {
-                // c.ChatMessages.CollectionChanged -= new System.Collections.Specialized.NotifyCollectionChangedEventHandler(ChatMessages_CollectionChanged);
-                //  c.FlashWindow -= new EventHandler(c_FlashWindow);
-                //  c.Closing.Execute(this);
                 e.Cancel = true;
                 c.Visible = false;
             }
@@ -227,17 +225,58 @@ namespace Fap.Presentation
                         src.ContextMenu.Items.Add(m);
                         src.ContextMenu.Items.Add(new Separator());
                     }
-                    //View Info
+                    //Sort menu
+                    src.ContextMenu.Items.Add(new Separator());
+                    MenuItem sort = m = new MenuItem();
+                    m.Foreground = Brushes.Black;
+                    m.Header = "Sort";
+                    src.ContextMenu.Items.Add(m);
+                    //By name
                     m = new MenuItem();
+                    m.Foreground = Brushes.Black;
+                    m.Header = "By name";
+                    m.CommandParameter = PeerSortType.Name;
+                    m.Command = Model.ChangePeerSort;
+                    if (Model.PeerSortType == PeerSortType.Name)
+                        m.FontWeight = FontWeights.DemiBold;
+                    sort.Items.Add(m);
+                    //By size
+                    m = new MenuItem();
+                    m.Foreground = Brushes.Black;
+                    m.Header = "By size";
+                    m.CommandParameter = PeerSortType.Size;
+                    m.Command = Model.ChangePeerSort;
+                    if (Model.PeerSortType == PeerSortType.Size)
+                        m.FontWeight = FontWeights.DemiBold;
+                    sort.Items.Add(m);
+                    //By address
+                    m = new MenuItem();
+                    m.Foreground = Brushes.Black;
+                    m.Header = "By address";
+                    m.CommandParameter = PeerSortType.Address;
+                    m.Command = Model.ChangePeerSort;
+                    if (Model.PeerSortType == PeerSortType.Address)
+                        m.FontWeight = FontWeights.DemiBold;
+                    sort.Items.Add(m);
+                    //By type
+                    m = new MenuItem();
+                    m.Foreground = Brushes.Black;
+                    m.Header = "By type";
+                    m.CommandParameter = PeerSortType.Type;
+                    m.Command = Model.ChangePeerSort;
+                    if (Model.PeerSortType == PeerSortType.Type)
+                        m.FontWeight = FontWeights.DemiBold;
+                    sort.Items.Add(m);
+
+                    //View Info
+                   /* m = new MenuItem();
                     m.Foreground = Brushes.Black;
                     m.Header = "View Information";
                     m.CommandParameter = peer;
                     m.Command = Model.UserInfo;
-                    src.ContextMenu.Items.Add(m);
-                    return;
+                    src.ContextMenu.Items.Add(m);*/
                 }
             }
-            e.Handled = true;
         }
 
         void m_SubmenuOpened(object sender, RoutedEventArgs e)
