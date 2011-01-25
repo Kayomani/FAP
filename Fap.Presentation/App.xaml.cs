@@ -126,14 +126,13 @@ namespace Fap.Presentation
 
                 var dataAccess = Assembly.GetExecutingAssembly();
                 builder.RegisterAssemblyTypes(dataAccess);
-#if DEBUG
-                // Add the Application assembly
-                builder.RegisterAssemblyTypes((typeof(ApplicationController).Assembly));
-                // Add domain assembly
-                builder.RegisterAssemblyTypes((typeof(Fap.Domain.Entity.Model).Assembly));
-                // Add network assembly
-                builder.RegisterAssemblyTypes((typeof(Fap.Network.Mediator).Assembly));
-#endif
+                //if (System.Diagnostics.Debugger.IsAttached)
+                    // Add the Application assembly
+                    builder.RegisterAssemblyTypes((typeof(ApplicationController).Assembly));
+                    // Add domain assembly
+                    builder.RegisterAssemblyTypes((typeof(Fap.Domain.Entity.Model).Assembly));
+                    // Add network assembly
+                    builder.RegisterAssemblyTypes((typeof(Fap.Network.Mediator).Assembly));
                 /*
                  * DownloadQueueController
                  * 

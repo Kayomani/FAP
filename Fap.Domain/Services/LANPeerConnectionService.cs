@@ -65,7 +65,7 @@ namespace Fap.Domain.Services
         {
             network = local;
             local.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(local_PropertyChanged);
-            logger.AddInfo("Attempting to connect to the local FAP network..");
+            logger.AddWarning("Attempting to connect to the local FAP network..");
             client.StartListener();
             //Find current servers
             ThreadPool.QueueUserWorkItem(new WaitCallback(SendWhoAsync));
@@ -201,7 +201,7 @@ namespace Fap.Domain.Services
                             {
                                 overlord_creation_holdoff_timer = 0;
                                 overlord_active = true;
-                                logger.AddInfo("Starting a local overlord..");
+                                logger.AddWarning("Starting a local overlord..");
                                 overlord = container.Resolve<OverlordController>();
                                 overlord.Start(GetLocalAddress(), 90, "LOCAL", "Local");
                                 Thread.Sleep(15);
@@ -279,13 +279,13 @@ namespace Fap.Domain.Services
                                         search.OverlordID = connect.OverlordID;
                                         search.Secret = connect.Secret;
                                         search.State = ConnectionState.Connected;
-                                        logger.AddInfo("Connected to local overlord on " + serverNode.Host + " (" + search.OverlordID + ")");
+                                        logger.AddWarning("Connected to local overlord on " + serverNode.Host + " (" + search.OverlordID + ")");
                                         break;
                                     }
                                 }
                                 else
                                 {
-                                    logger.AddInfo("Connection to  " + serverNode.Host + " timed out");
+                                    logger.AddWarning("Connection to  " + serverNode.Host + " timed out");
                                     server.IsBanned = true;
                                 }
                             }
@@ -509,7 +509,7 @@ namespace Fap.Domain.Services
             {
                 if (local.State == ConnectionState.Connected)
                 {
-                    logger.AddInfo("Disconnected from local network");
+                    logger.AddWarning("Disconnected from local network");
                     local.Secret = IDService.CreateID();
 
                     var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
