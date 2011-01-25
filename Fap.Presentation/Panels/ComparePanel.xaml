@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:tk="http://schemas.microsoft.com/wpf/2008/toolkit"
              xmlns:local="clr-namespace:Fap.Presentation"
+             xmlns:base="clr-namespace:Fap.Presentation"
              mc:Ignorable="d" 
              d:DesignHeight="314" d:DesignWidth="463">
     <UserControl.Resources>
@@ -29,34 +30,39 @@
             <TextBlock Margin="5px" Foreground="White" Text="{Binding Status}" />
             <Button Content="Start"  Width="60" Height="20" HorizontalAlignment="Right" Margin="5px" Command="{Binding Run}" IsEnabled="{Binding EnableRun}"/>
         </DockPanel>
-        <tk:DataGrid Grid.Row="1" ItemsSource="{Binding Data}">
-            <tk:DataGrid.Columns>
-                <tk:DataGridTextColumn Binding="{Binding Path=Nickname}" Header="Nickname" />
-                <tk:DataGridTextColumn Binding="{Binding Path=Address}" Header="Address" />
-                <tk:DataGridTextColumn Binding="{Binding Path=Status}" Header="Status" />
-                <tk:DataGridTextColumn Binding="{Binding Path=Score}" Header="Score" />
-                <tk:DataGridTextColumn Binding="{Binding Path=CPUSpeed}" Header="CPU MHz" />
-                <tk:DataGridTextColumn Binding="{Binding Path=CPUType}" Header="CPU Type" />
-                <tk:DataGridTextColumn Binding="{Binding Path=CPUCores}" Header="Cores" />
-                <tk:DataGridTextColumn Binding="{Binding Path=CPUThreads}" Header="Threads" />
-                <tk:DataGridTextColumn Binding="{Binding Path=CPUBits}" Header="Bits" />
-                <tk:DataGridTextColumn Binding="{Binding Path=MoboBrand}" Header="Mobo Manufacturer" />
-                <tk:DataGridTextColumn Binding="{Binding Path=MoboModel}" Header="Mobo Model" />
-                <tk:DataGridTextColumn Binding="{Binding Path=BIOSVersion}" Header="BIOS" />
-                <tk:DataGridTextColumn Binding="{Binding Path=RAMSize, Converter={StaticResource sizeConverter}}" Header="Memory" />
-                <tk:DataGridTextColumn Binding="{Binding Path=GPUModel}" Header="GPU Model" />
-                <tk:DataGridTextColumn Binding="{Binding Path=GPUCount}" Header="Count" />
-                <tk:DataGridTextColumn Binding="{Binding Path=GPUTotalMemory, Converter={StaticResource sizeConverter}}" Header=" GPU Memory" />
-                <tk:DataGridTextColumn Binding="{Binding Path=DisplayPrimaryWidth}" Header="Width" />
-                <tk:DataGridTextColumn Binding="{Binding Path=DisplayPrimaryHeight}" Header="Height" />
-               <!-- <tk:DataGridTextColumn Binding="{Binding Path=DisplayTotalWidth}" Header="Total screen width" />
+        <base:SortableListView   Grid.Column="2"  Grid.Row="1"
+                                VirtualizingStackPanel.IsVirtualizing="True"
+                                VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                x:Name="listView2" BorderBrush="Black" ItemsSource="{Binding Data}">
+            <base:SortableListView.View>
+                <GridView>
+                    <GridViewColumn Header="Nickname" DisplayMemberBinding="{Binding Nickname}" />
+                    <GridViewColumn Header="Address" DisplayMemberBinding="{Binding Address}" />
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" />
+                    <GridViewColumn Header="Score" DisplayMemberBinding="{Binding Score}" />
+                    <GridViewColumn Header="CPU MHz" DisplayMemberBinding="{Binding CPUSpeed}" />
+                    <GridViewColumn Header="CPU Type" DisplayMemberBinding="{Binding CPUType}" />
+                    <GridViewColumn Header="Cores" DisplayMemberBinding="{Binding CPUCores}" />
+                    <GridViewColumn Header="Threads" DisplayMemberBinding="{Binding CPUThreads}" />
+                    <GridViewColumn Header="Bits" DisplayMemberBinding="{Binding CPUBits}" />
+                    <GridViewColumn Header="Mobo Manufacturer" DisplayMemberBinding="{Binding MoboBrand}" />
+                    <GridViewColumn Header="Mobo Model" DisplayMemberBinding="{Binding MoboModel}" />
+                    <GridViewColumn Header="BIOS" DisplayMemberBinding="{Binding BIOSVersion}" />
+                    <GridViewColumn Header="Memory" DisplayMemberBinding="{Binding RAMSize, Converter={StaticResource sizeConverter}}" />
+                    <GridViewColumn Header="GPU Model" DisplayMemberBinding="{Binding GPUModel}" />
+                    <GridViewColumn Header="Count" DisplayMemberBinding="{Binding GPUCount}" />
+                    <GridViewColumn Header="GPU Memory" DisplayMemberBinding="{Binding Path=GPUTotalMemory, Converter={StaticResource sizeConverter}}" />
+                    <GridViewColumn Header="Width" DisplayMemberBinding="{Binding DisplayPrimaryWidth}" />
+                    <GridViewColumn Header="Height" DisplayMemberBinding="{Binding DisplayPrimaryHeight}" />
+                    <!-- <tk:DataGridTextColumn Binding="{Binding Path=DisplayTotalWidth}" Header="Total screen width" />
                 <tk:DataGridTextColumn Binding="{Binding Path=DisplayTotalHeight}" Header="Total screen height" /> -->
-                <tk:DataGridTextColumn Binding="{Binding Path=HDDSize, Converter={StaticResource sizeConverter}}" Header="HDD Size" />
-                <tk:DataGridTextColumn Binding="{Binding Path=HDDFree, Converter={StaticResource sizeConverter}}" Header="HDD Free" />
-                <tk:DataGridTextColumn Binding="{Binding Path=HDDCount}" Header="HDD Count" />
-                <tk:DataGridTextColumn Binding="{Binding Path=NICSpeed, Converter={StaticResource sizeConverterTrue}}" Header="Net Speed" />
-                <tk:DataGridTextColumn Binding="{Binding Path=SoundCard}" Header="Soundcard" />
-            </tk:DataGrid.Columns>
-        </tk:DataGrid>
+                    <GridViewColumn Header="HDD Size" DisplayMemberBinding="{Binding Path=HDDSize, Converter={StaticResource sizeConverter}}" />
+                    <GridViewColumn Header="HDD Free" DisplayMemberBinding="{Binding Path=HDDFree, Converter={StaticResource sizeConverter}}" />
+                    <GridViewColumn Header="HDD Count" DisplayMemberBinding="{Binding HDDCount}" />
+                    <GridViewColumn Header="Net Speed" DisplayMemberBinding="{Binding Path=NICSpeed, Converter={StaticResource sizeConverterTrue}}" />
+                    <GridViewColumn Header="Soundcard" DisplayMemberBinding="{Binding SoundCard}" />
+                </GridView>
+            </base:SortableListView.View>
+        </base:SortableListView>
     </Grid>
 </UserControl>
