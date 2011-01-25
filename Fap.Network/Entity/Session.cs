@@ -26,8 +26,7 @@ namespace Fap.Network.Entity
 {
     public class Session : INotifyPropertyChanged
     {
-        private readonly int SessionExpireTime = 15000;//15 Seconds
-
+        private const int SessionExpireTime = 65000;//65 Seconds
         
         private bool isUpload;
         private int lastUseTicks = 0;
@@ -36,12 +35,6 @@ namespace Fap.Network.Entity
         private object sync = new object();
 
         public Socket Socket { set; get; }
-
-        public Session()
-        {
-
-        }
-
 
         public bool Stale
         {

@@ -40,6 +40,8 @@ namespace Fap.Domain.Verbs
                     return new CompareVerb(n);
                 case "CONVERSATION":
                     return new ConversationVerb(n);
+                case "PING":
+                    return new PingVerb(n.Node);
                 default:
                     throw new Exception("Unknown command");
             }

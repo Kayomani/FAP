@@ -13,7 +13,7 @@ namespace Fap.Network.Services
     public class ConnectionService
     {
         private SafeObservable<Session> sessions = new SafeObservable<Session>();
-        private ReaderWriterLockSlim sync = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+        private object sync = new object();
 
         public SafeObservable<Session> Sessions
         {
@@ -43,6 +43,21 @@ namespace Fap.Network.Services
             return newSession;
         }
 
+
+        public List<Session> GetAndClearStaleSessions()
+        {
+            lock (sync)
+            {
+                var staleSessions = sessions.Where(s => !s.InUse && s.Stale).ToList();
+                foreach (var session in staleSessions)
+                {
+                    session.InUse = true;
+                    sessions.Remove(session);
+                }
+                return staleSessions;
+            }
+        }
+
         public void FreeClientSession(Session s)
         {
             lock (sync)
@@ -61,66 +76,12 @@ namespace Fap.Network.Services
 
         public void RemoveClientSession(Session s)
         {
-            if (sessions.Contains(s))
-                sessions.Remove(s);
-        }
-
-     
-
-      /*  public void RemoveServerSession(MemoryBuffer arg)
-        {
             lock (sync)
             {
-                //Check for existing session
-                foreach (var session in sessions.ToList())
-                {
-                    if (session.Socket == arg.Socket)
-                    {
-                        sessions.Remove(session);
-                        break;
-                    }
-                }
+                if (sessions.Contains(s))
+                    sessions.Remove(s);
             }
         }
-
-        public Session GetServerSession(MemoryBuffer arg)
-        {
-            lock (sync)
-            {
-                //Check for existing session
-                foreach (var session in sessions.ToList())
-                {
-                    if (session.Socket == arg.Socket)
-                        return session;
-                }
-                //Create new
-                Session s = new Session();
-                s.Socket = arg.Socket;
-                s.IsUpload = true;
-                s.InUse = true;
-                //Try to find username
-               */ /* IPEndPoint host = arg.Socket.RemoteEndPoint as IPEndPoint;
-                 if (null != host)
-                 {
-                     string address = host.Address.ToString();
-                     foreach (var client in model.Clients.ToList())
-                     {
-                         if (string.Equals(client.Host, address))
-                         {
-                             s.User = client.Nickname;
-                             s.Host = client;
-                             break;
-                         }
-                     }
-                     if (string.IsNullOrEmpty(s.User))
-                         s.User = address;
-                 }
-                 else if (null != arg.Socket.RemoteEndPoint)
-                     s.User = arg.Socket.RemoteEndPoint.ToString();**//*
-                sessions.Add(s);
-                return s;
-            }
-        }*/
 
         private Session CreateSession(Node rc)
         {

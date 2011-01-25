@@ -7,6 +7,9 @@ using Fap.Network.Entity;
 
 namespace Fap.Domain.Verbs
 {
+    /// <summary>
+    /// This is used to tell other clients you have disconnected and is transmitted via a overlord.
+    /// </summary>
     public class DisconnectVerb : VerbBase, IVerb
     {
         private Node node;

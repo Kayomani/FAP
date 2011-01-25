@@ -112,6 +112,7 @@
     <Compile Include="Verbs\HeloVerb.cs" />
     <Compile Include="Verbs\InfoVerb.cs" />
     <Compile Include="Verbs\PingVerb.cs" />
+    <Compile Include="Verbs\QuitVerb.cs" />
     <Compile Include="Verbs\VerbBase.cs" />
     <Compile Include="Verbs\VerbFactory.cs" />
     <Compile Include="Verbs\WhoVerb.cs" />

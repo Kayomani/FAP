@@ -226,7 +226,6 @@ namespace Fap.Presentation
                         src.ContextMenu.Items.Add(new Separator());
                     }
                     //Sort menu
-                    src.ContextMenu.Items.Add(new Separator());
                     MenuItem sort = m = new MenuItem();
                     m.Foreground = Brushes.Black;
                     m.Header = "Sort";

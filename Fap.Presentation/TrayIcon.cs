@@ -95,23 +95,81 @@ namespace Fap.Presentation
                     if (peers.Count > 0)
                     {
                         src.MenuItems.Clear();
-                        foreach (var peer in peers)
+                        foreach (var peer in peers.Where(p=>p.NodeType!=ClientType.Overlord))
                         {
-                            MenuItem m = new MenuItem();
-                            m.Text = peer.Nickname;
-                            m.Tag = peer;
-                            m.Popup += new EventHandler(peer_Popup);
+                            MenuItem main = new MenuItem();
+                            main.Text = peer.Nickname;
+                            main.Tag = peer;
+                            main.Popup += new EventHandler(peer_Popup);
 
                             MenuItem p = new MenuItem();
                             p.Text = "FAP Shares";
                             p.Tag = peer;
-                            m.MenuItems.Add(p);
+                            main.MenuItems.Add(p);
                             p.Click += delegate
                             {
                                 model.ViewShare.Execute(p.Tag as Node);
                             };
 
-                            src.MenuItems.Add(m);
+                            src.MenuItems.Add(main);
+                            MenuItem m = null;
+                            if (peer.IsKeySet("HTTP"))
+                            {
+                                //Received info so display them as appriate
+                                string http = peer.GetData("HTTP");
+                                string ftp = peer.GetData("FTP");
+                                string shares = peer.GetData("Shares");
+                                
+                                if (!string.IsNullOrEmpty(http))
+                                {
+                                    m = new MenuItem();
+                                    m.Text = "Web site (" + http + ")";
+                                    m.Click += delegate
+                                    {
+                                        model.OpenExternal.Execute("http://" + peer.Host);
+                                    };
+                                    main.MenuItems.Add(m);
+                                }
+
+                                if (!string.IsNullOrEmpty(ftp))
+                                {
+                                    m = new MenuItem();
+                                    m.Text = "FTP (" + ftp + ")";
+                                    m.Click += delegate
+                                    {
+                                        model.OpenExternal.Execute("ftp://" + peer.Host);
+                                    };
+                                    main.MenuItems.Add(m);
+                                }
+
+                                if (!string.IsNullOrEmpty(shares))
+                                {
+                                    int shareCount = shares.Split('|').Length;
+                                    m = new MenuItem();
+                                    m.Text = "Network Shares (" + shareCount + ")";
+
+                                    string[] shareslist = peer.GetData("Shares").Split('|');
+                                    foreach (var sharename in shareslist)
+                                    {
+                                        MenuItem sub = new MenuItem();
+                                        sub.Text = sharename;
+                                        sub.Click += delegate
+                                        {
+                                            model.OpenExternal.Execute("\\\\" + peer.Host + "\\" + sharename + "\\");
+                                        };
+                                        m.MenuItems.Add(sub);
+                                    }
+                                    main.MenuItems.Add(m);
+                                }
+                            }
+                            else
+                            {
+                                m = new MenuItem();
+                                m.Text = "Finding services..";
+                                m.Enabled = false;
+                                main.MenuItems.Add(m);
+                            }
+
                         }
                     }
                 }

@@ -79,7 +79,7 @@ namespace Fap.Network
             //Add additional headers
             if (r.ConnectionClose)
             {
-                sb.Append("Connection: close");
+                sb.Append("Connection:close");
                 sb.Append(NEWLINE);
             }
             if (!string.IsNullOrEmpty(r.ContentType))

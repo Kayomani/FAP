@@ -207,6 +207,7 @@ namespace Fap.Application.Controllers
             trayIcon.Shares = new DelegateCommand(EditShares);
             trayIcon.ViewShare = new DelegateCommand(viewShare);
             trayIcon.Compare = new DelegateCommand(Compare);
+            trayIcon.OpenExternal = new DelegateCommand(OpenExternal);
             trayIcon.ShowIcon = true;
             model.Node.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Node_PropertyChanged);
         }

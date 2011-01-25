@@ -25,6 +25,9 @@ using Fap.Network.Services;
 using Fap.Foundation.Logging;
 using Fap.Network.Entity;
 using Fap.Foundation;
+using Fap.Domain.Verbs;
+using Fap.Network;
+using System.Net.Sockets;
 
 namespace Fap.Application.Controllers
 {
@@ -67,7 +70,7 @@ namespace Fap.Application.Controllers
             int pingCount = 0;
             long lastSave = Environment.TickCount;
 
-            while(true)
+            while (true)
             {
                 try
                 {
@@ -91,7 +94,7 @@ namespace Fap.Application.Controllers
                             if (session.Worker.IsComplete)
                                 model.TransferSessions.Remove(session);
                         }
-                        
+
                         //Update transfer stats every 4 seconds
                         if (speedCount > 3)
                         {
@@ -117,45 +120,46 @@ namespace Fap.Application.Controllers
             }
         }
 
-      public void DisconnectStaleSessions()
-      {
-        /*  try
-          {
-              List<Session> staleSessions = new List<Session>();
-              lock (sync)
-              {
-                  staleSessions = model.Sessions.Where(s => !s.InUse && s.Stale).ToList();
-                  foreach (var session in staleSessions)
-                  {
-                      session.InUse = true;
-                      model.Sessions.Remove(session);
-                  }
-              }
-              foreach (Session session in staleSessions)
-              {
-                  if (session.Socket.Connected)
-                  {
-                      //Notify server
-                      DisconnectCMD cmd = new DisconnectCMD();
-                      string[] data = cmd.CreateRequest(session);
-                      Mediator m = new Mediator();
-                      //transmit
-                      string tx = Mediator.Serialise(data);
-                      session.Socket.Send(ASCIIEncoding.Unicode.GetBytes(tx));
+        public void DisconnectStaleSessions()
+        {
+            List<Session> staleSessions = connectionService.GetAndClearStaleSessions();
+            foreach (Session session in staleSessions)
+            {
+                try
+                {
+                    if (session.Socket.Connected)
+                    {
+                        //Notify server
+                        PingVerb cmd = new PingVerb(model.Node);
 
-                      //Disconnect
-                      //session.Socket.SendBufferSize = 1;
-                      // session.Socket.ReceiveBufferSize = 1;
-                      session.Socket.Shutdown(SocketShutdown.Both);
-                      // session.Socket.Disconnect(true);
-                      session.Socket.Close();
-                      session.Socket = null;
-                  }
-                  session.Host = null;
-                  session.Socket = null;
-              }
-          }
-          catch { }*/
-      }
+                        Request req = cmd.CreateRequest();
+                        req.ConnectionClose = true;
+                        session.Socket.SendTimeout = 3000;
+                        session.Socket.ReceiveTimeout = 3000;
+                        session.Socket.Send(Mediator.Serialize(req));
+                         var buff = bufferService.GetSmallArg();
+                        try
+                        {
+                            session.Socket.Receive(buff.Data, buff.DataSize, SocketFlags.None);
+                        }
+                        finally
+                        {
+                            bufferService.FreeArg(buff);
+                        }
+
+                        //Disconnect
+                        session.Socket.SendBufferSize = 1;
+                        session.Socket.ReceiveBufferSize = 1;
+                        session.Socket.Shutdown(SocketShutdown.Both);
+                        // session.Socket.Disconnect(true);
+                        session.Socket.Close();
+                        session.Socket = null;
+                    }
+                    session.Host = null;
+                    session.Socket = null;
+                }
+                catch { }
+            }
+        }
     }
 }

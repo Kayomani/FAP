@@ -145,8 +145,15 @@ namespace Fap.Network.Services
                 Request x = new Request();
                 if (Mediator.Deserialize(i, out x))
                 {
+                    bool close = false;
                     if (null != OnReceiveRequest)
-                        return OnReceiveRequest(x,s);
+                        close = OnReceiveRequest(x,s);
+                    if (!close && x.ConnectionClose)
+                    {
+                        s.Shutdown(SocketShutdown.Both);
+                        s.Close();
+                        return true;
+                    }
                 }
                 return false;
             }

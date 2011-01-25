@@ -35,6 +35,7 @@ namespace Fap.Application.ViewModels
         private ICommand queue;
         private ICommand viewshare;
         private ICommand compare;
+        private ICommand openExternal;
 
 
         public TrayIconViewModel(ITrayIconView view)
@@ -57,6 +58,18 @@ namespace Fap.Application.ViewModels
             }
         }
 
+        public ICommand OpenExternal
+        {
+            set
+            {
+                openExternal = value;
+                RaisePropertyChanged("OpenExternal");
+            }
+            get
+            {
+                return openExternal;
+            }
+        }
 
         public ICommand Compare
         {
