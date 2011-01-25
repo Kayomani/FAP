@@ -30,6 +30,17 @@ namespace Fap.Domain.Entity
         }
 
 
+        public string Status
+        {
+            get { return data.SafeGet("Status"); }
+            set
+            {
+                data.Set("Status", value.ToString());
+                LastUpdate = Environment.TickCount;
+                NotifyChange("Status");
+            }
+        }
+
         public long CPUSpeed
         {
             get { return ParseString(data.SafeGet("COMP-CPUSpeed")); }

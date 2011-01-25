@@ -27,11 +27,13 @@
                 </LinearGradientBrush>
             </DockPanel.Background>
             <TextBlock Margin="5px" Foreground="White" Text="{Binding Status}" />
-            <Button Content="Start"  Width="60" Height="20" HorizontalAlignment="Right" Margin="5px" Command="{Binding Run}"/>
+            <Button Content="Start"  Width="60" Height="20" HorizontalAlignment="Right" Margin="5px" Command="{Binding Run}" IsEnabled="{Binding EnableRun}"/>
         </DockPanel>
         <tk:DataGrid Grid.Row="1" ItemsSource="{Binding Data}">
             <tk:DataGrid.Columns>
                 <tk:DataGridTextColumn Binding="{Binding Path=Nickname}" Header="Nickname" />
+                <tk:DataGridTextColumn Binding="{Binding Path=Address}" Header="Address" />
+                <tk:DataGridTextColumn Binding="{Binding Path=Status}" Header="Status" />
                 <tk:DataGridTextColumn Binding="{Binding Path=Score}" Header="Score" />
                 <tk:DataGridTextColumn Binding="{Binding Path=CPUSpeed}" Header="CPU MHz" />
                 <tk:DataGridTextColumn Binding="{Binding Path=CPUType}" Header="CPU Type" />

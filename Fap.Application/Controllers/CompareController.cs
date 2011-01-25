@@ -23,6 +23,9 @@ namespace Fap.Application.Controllers
         private BufferService bs;
         private ConnectionService cs;
 
+        private object sync = new object();
+        private int requests = 0;
+
         public CompareController(IContainer c)
         {
             viewModel = c.Resolve<CompareViewModel>();
@@ -42,6 +45,8 @@ namespace Fap.Application.Controllers
         private void Run()
         {
             data.Clear();
+            viewModel.EnableRun = false;
+            viewModel.Status = "Status: Waiting for a response from " + model.Peers.Count + " clients..";
             foreach (var peer in model.Peers)
             {
                 ThreadPool.QueueUserWorkItem(new WaitCallback(RunAsync), peer);
@@ -50,16 +55,48 @@ namespace Fap.Application.Controllers
 
         private void RunAsync(object o)
         {
+            lock (sync)
+            {
+                requests++;
+            }
+
             Node node = o as Node;
             if (null != node)
             {
                 Client client = new Client(bs, cs);
-                CompareVerb verb = new CompareVerb();
+                CompareVerb verb = new CompareVerb(model);
 
                 if (client.Execute(verb, node))
                 {
                     verb.Node.Nickname = node.Nickname;
+                    verb.Node.Address = node.Location;
+                    verb.Node.Status = "OK";
                     data.Add(verb.Node);
+                }
+                else if (verb.Status == 10)
+                {
+                    verb.Node.Nickname = node.Nickname;
+                    verb.Node.Address = node.Location;
+                    verb.Node.Status = "Denied";
+                    data.Add(verb.Node);
+                }
+                else
+                {
+                    verb.Node.Nickname = node.Nickname;
+                    verb.Node.Address = node.Location;
+                    verb.Node.Status = "Error";
+                    data.Add(verb.Node);
+                }
+            }
+
+            lock (sync)
+            {
+                requests--;
+                viewModel.Status = "Status: Waiting for a response from " + requests + " clients..";
+                if (requests == 0)
+                {
+                    viewModel.EnableRun = true;
+                    viewModel.Status = "Status: All Information recieved, click start to refresh info (Note clients will cache information for 5 minutes).";
                 }
             }
         }

@@ -37,7 +37,7 @@ namespace Fap.Domain.Verbs
                 case "BROWSE":
                     return new BrowseVerb(n);
                 case "COMPARE":
-                    return new CompareVerb();
+                    return new CompareVerb(n);
                 case "CONVERSATION":
                     return new ConversationVerb(n);
                 default:

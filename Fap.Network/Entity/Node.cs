@@ -207,6 +207,17 @@ namespace Fap.Network.Entity
             }
         }
 
+        public string Address
+        {
+            get { return data.SafeGet("Address"); }
+            set
+            {
+                data.Set("Address", value);
+                LastUpdate = Environment.TickCount;
+                NotifyChange("Address");
+            }
+        }
+
         public string Description
         {
             get { return data.SafeGet("Description"); }

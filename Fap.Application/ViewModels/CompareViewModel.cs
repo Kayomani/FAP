@@ -15,7 +15,7 @@ namespace Fap.Application.ViewModels
         private ICommand run;
         private string status;
         private SafeObservable<CompareNode> data;
-
+        private bool enableStart = true;
 
         public CompareViewModel(ICompareView view)
             : base(view)
@@ -23,6 +23,15 @@ namespace Fap.Application.ViewModels
 
         }
 
+        public bool EnableRun
+        {
+            get { return enableStart; }
+            set
+            {
+                enableStart = value;
+                RaisePropertyChanged("Run");
+            }
+        }
 
         public ICommand Run
         {

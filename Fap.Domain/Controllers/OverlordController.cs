@@ -201,22 +201,13 @@ namespace Fap.Domain.Controllers
                     return HandleInfo(r, s);
                 case "PING":
                     return HandlePing(r, s);
-                default:
-#if DEBUG
-                    throw new Exception("Unknown command");
-
-#else
-                    s.Close();
-                    break;
-                    return true;
-#endif
-
-                /* default:
+                case "COMPARE":
                      VerbFactory factory = new VerbFactory();
                      var verb = factory.GetVerb(r.Command, model);
                      s.Send(Mediator.Serialize(verb.ProcessRequest(r)));
-                     return false;*/
+                     break;
             }
+            return false;
         }
 
         private bool HandlePing(Request r, Socket s)
