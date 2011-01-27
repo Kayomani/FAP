@@ -59,10 +59,10 @@ namespace Fap.Application.Controllers
         private readonly DownloadController downloadController;
 
         private MainWindowViewModel mainWindowModel;
-
         private Model model;
-       
         private TrayIconViewModel trayIcon;
+
+        private bool manualDebugMode = false;
 
         public ApplicationController(IContainer container)
         {
@@ -87,7 +87,7 @@ namespace Fap.Application.Controllers
         {
             foreach (Fap.Foundation.Logging.Log newmsg in e.NewItems)
             {
-                if (newmsg.Type != Log.LogType.Info || System.Diagnostics.Debugger.IsAttached)
+                if (newmsg.Type != Log.LogType.Info || System.Diagnostics.Debugger.IsAttached || manualDebugMode)
                     QueueWork(new DelegateCommand(AsyncAddLog), newmsg);
             }
         }
@@ -604,7 +604,16 @@ namespace Fap.Application.Controllers
 
         private void sendChatMessage()
         {
-            peerController.SendChatMessage(mainWindowModel.CurrentChatMessage);
+            if (string.Equals(mainWindowModel.CurrentChatMessage, "/debug", StringComparison.InvariantCultureIgnoreCase))
+            {
+                manualDebugMode = !manualDebugMode;
+                logger.AddWarning("Debug mode is " + (manualDebugMode ? "Activated" : "Deactivated"));
+            }
+            else
+            {
+                peerController.SendChatMessage(mainWindowModel.CurrentChatMessage);
+               
+            }
             mainWindowModel.CurrentChatMessage = string.Empty;
         }
 

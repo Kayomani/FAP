@@ -18,6 +18,9 @@ namespace Fap.Network.Entity
         public delegate void Disconnect(PeerStream s);
         public event Disconnect OnDisconnect;
 
+        public delegate void OverlordConnectionTimingout(PeerStream s);
+        public event OverlordConnectionTimingout OnOverlordConnectionTimingout;
+
         public bool Running
         {
             get { return running; }
@@ -70,6 +73,7 @@ namespace Fap.Network.Entity
                         pendingRequests.RemoveAt(0);
                         r.RequestID = node.Secret;
                         session.Socket.Send(Mediator.Serialize(r));
+                        node.LastUpdate = Environment.TickCount;
                     }
                     else
                     {
@@ -80,6 +84,13 @@ namespace Fap.Network.Entity
                             if (null != OnDisconnect)
                                 OnDisconnect(this);
                         }
+                        else if (node.NodeType == ClientType.Overlord && Environment.TickCount - node.LastUpdate > 45000)
+                        {
+                            //Don't allow interoverlord comms to time out
+                            if(OnOverlordConnectionTimingout!=null)
+                                OnOverlordConnectionTimingout();
+                        }
+
                         if (sleep < 350)
                             sleep += 20;
                         Thread.Sleep(sleep);

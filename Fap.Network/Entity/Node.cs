@@ -52,6 +52,16 @@ namespace Fap.Network.Entity
             }
         }
 
+        public string OverlordID
+        {
+            get { return data.SafeGet("OverlordID"); }
+            set
+            {
+                data.Set("OverlordID", value);
+                LastUpdate = Environment.TickCount;
+                NotifyChange("OverlordID");
+            }
+        }
 
         public bool Online
         {

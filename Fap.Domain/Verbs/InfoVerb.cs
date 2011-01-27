@@ -38,6 +38,7 @@ namespace Fap.Domain.Verbs
             Request r = new Request();
             r.Command = "INFO";
             r.Param = model.ID;
+            r.RequestID = model.Secret;
             return r;
         }
 
