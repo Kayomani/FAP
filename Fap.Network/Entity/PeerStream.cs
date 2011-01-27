@@ -88,7 +88,7 @@ namespace Fap.Network.Entity
                         {
                             //Don't allow interoverlord comms to time out
                             if(OnOverlordConnectionTimingout!=null)
-                                OnOverlordConnectionTimingout();
+                                OnOverlordConnectionTimingout(this);
                         }
 
                         if (sleep < 350)
