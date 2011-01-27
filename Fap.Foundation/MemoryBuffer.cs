@@ -61,12 +61,9 @@ namespace Fap.Foundation
                throw new Exception("Unset / Incorrectly sized buffer");
        }
 
-      // public Socket Socket { set; get; }
-
        public void Dispose()
        {
            data = new byte[0];
-        //   Socket = null;
        }
     }
 }

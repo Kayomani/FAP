@@ -150,19 +150,22 @@ namespace Fap.Domain.Controllers
 
         private void TransmitToAll(Request r)
         {
-            foreach (var peer in model.Overlord.Peers.ToList())
+            foreach (var peer in model.Overlord.Peers.ToList().Where(p=>p.Node.ID != model.Overlord.ID))
                 peer.AddMessage(r);
         }
 
         private void TransmitToAllNonOverlords(Request r)
         {
-            foreach (var peer in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType != ClientType.Overlord && p.Node.NodeType != ClientType.Unknown))
+            foreach (var peer in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType != ClientType.Overlord && 
+                                                                          p.Node.NodeType != ClientType.Unknown &&
+                                                                          p.Node.ID != model.Overlord.ID))
                 peer.AddMessage(r);
         }
 
         private void TransmitToAllOverlords(Request r)
         {
-            foreach (var peer in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType == ClientType.Overlord))
+            foreach (var peer in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType == ClientType.Overlord &&
+                                                                          p.Node.ID != model.Overlord.ID))
                 peer.AddMessage(r);
         }
 
@@ -208,6 +211,12 @@ namespace Fap.Domain.Controllers
                     return HandleInfo(r, s);
                 case "PING":
                     return HandlePing(r, s);
+                case "BROWSE":
+                    BrowseVerb bverb = new BrowseVerb(model);
+                    Response response = bverb.ProcessRequest(r);
+                    response.AdditionalHeaders.Clear();
+                    s.Send(Mediator.Serialize(response));
+                    break;
                 case "COMPARE":
                      VerbFactory factory = new VerbFactory();
                      var verb = factory.GetVerb(r.Command, model);
@@ -433,7 +442,8 @@ namespace Fap.Domain.Controllers
                 var session = connectionService.GetClientSession(s.Node);
                 var req = verb.CreateRequest();
                 req.RequestID = s.Node.Secret;
-                session.Socket.Send(Mediator.Serialize(req));
+                if(null!=session)
+                  session.Socket.Send(Mediator.Serialize(req));
             }
             catch
             {

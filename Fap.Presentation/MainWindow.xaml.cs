@@ -146,135 +146,139 @@ namespace Fap.Presentation
         private void DockPanel_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             System.Windows.Controls.ListBox src = e.Source as System.Windows.Controls.ListBox;
-            if (null != src && src.SelectedItems.Count > 0)
+            if (null != src)
             {
-                Node peer = src.SelectedItem as Node;
-                if (null != peer)
+                MenuItem m = new MenuItem();
+                src.ContextMenu.Items.Clear();
+                if (src.SelectedItems.Count > 0)
                 {
-                    src.ContextMenu.Items.Clear();
-                    //View shares
-                    MenuItem m = new MenuItem();
-                    m.Foreground = Brushes.Black;
-                    m.Header = "View Shares";
-                    m.CommandParameter = peer;
-                    m.Command = Model.ViewShare;
-                    src.ContextMenu.Items.Add(m);
-                    //Send message
-                    m = new MenuItem();
-                    m.Foreground = Brushes.Black;
-                    m.Header = "Send Message";
-                    m.CommandParameter = peer;
-                    m.Command = Model.Chat;
-                    src.ContextMenu.Items.Add(m);
-
-                    src.ContextMenu.Items.Add(new Separator());
-                    //Check to see if we have received service info
-                    if (peer.IsKeySet("HTTP"))
+                    Node peer = src.SelectedItem as Node;
+                    if (null != peer && peer.NodeType !=ClientType.Overlord)
                     {
-                        //Received info so display them as appriate
-                        string http = peer.GetData("HTTP");
-                        string ftp = peer.GetData("FTP");
-                        string shares = peer.GetData("Shares");
-                        bool added = false;
-
-
-                        if (!string.IsNullOrEmpty(http))
-                        {
-                            m = new MenuItem();
-                            m.Foreground = Brushes.Black;
-                            m.Header = "Web site (" + http + ")";
-                            m.CommandParameter = "http://" + peer.Host;
-                            m.Command = Model.OpenExternal;
-                            src.ContextMenu.Items.Add(m);
-                            added = true;
-                        }
-
-                        if (!string.IsNullOrEmpty(ftp))
-                        {
-                            m = new MenuItem();
-                            m.Foreground = Brushes.Black;
-                            m.Header = "FTP (" + ftp + ")";
-                            m.CommandParameter = "ftp://" + peer.Host;
-                            m.Command = Model.OpenExternal;
-                            src.ContextMenu.Items.Add(m);
-                            added = true;
-                        }
-
-                        if (!string.IsNullOrEmpty(shares))
-                        {
-                            int shareCount = shares.Split('|').Length;
-                            m = new MenuItem();
-                            m.Foreground = Brushes.Black;
-                            m.Header = "Network Shares (" + shareCount + ")";
-                            m.SubmenuOpened += new RoutedEventHandler(m_SubmenuOpened);
-                            m.DataContext = peer;
-                            MenuItem sub = new MenuItem();
-                            m.Items.Add(sub);
-                            src.ContextMenu.Items.Add(m);
-                            added = true;
-                        }
-                        if (added)
-                            src.ContextMenu.Items.Add(new Separator());
-                    }
-                    else
-                    {
+                        //View shares
+                        m.Foreground = Brushes.Black;
+                        m.Header = "View Shares";
+                        m.CommandParameter = peer;
+                        m.Command = Model.ViewShare;
+                        src.ContextMenu.Items.Add(m);
+                        //Send message
                         m = new MenuItem();
                         m.Foreground = Brushes.Black;
-                        m.Header = "Finding services..";
-                        m.IsEnabled = false;
+                        m.Header = "Send Message";
+                        m.CommandParameter = peer;
+                        m.Command = Model.Chat;
                         src.ContextMenu.Items.Add(m);
-                        src.ContextMenu.Items.Add(new Separator());
-                    }
-                    //Sort menu
-                    MenuItem sort = m = new MenuItem();
-                    m.Foreground = Brushes.Black;
-                    m.Header = "Sort";
-                    src.ContextMenu.Items.Add(m);
-                    //By name
-                    m = new MenuItem();
-                    m.Foreground = Brushes.Black;
-                    m.Header = "By name";
-                    m.CommandParameter = PeerSortType.Name;
-                    m.Command = Model.ChangePeerSort;
-                    if (Model.PeerSortType == PeerSortType.Name)
-                        m.FontWeight = FontWeights.DemiBold;
-                    sort.Items.Add(m);
-                    //By size
-                    m = new MenuItem();
-                    m.Foreground = Brushes.Black;
-                    m.Header = "By size";
-                    m.CommandParameter = PeerSortType.Size;
-                    m.Command = Model.ChangePeerSort;
-                    if (Model.PeerSortType == PeerSortType.Size)
-                        m.FontWeight = FontWeights.DemiBold;
-                    sort.Items.Add(m);
-                    //By address
-                    m = new MenuItem();
-                    m.Foreground = Brushes.Black;
-                    m.Header = "By address";
-                    m.CommandParameter = PeerSortType.Address;
-                    m.Command = Model.ChangePeerSort;
-                    if (Model.PeerSortType == PeerSortType.Address)
-                        m.FontWeight = FontWeights.DemiBold;
-                    sort.Items.Add(m);
-                    //By type
-                    m = new MenuItem();
-                    m.Foreground = Brushes.Black;
-                    m.Header = "By type";
-                    m.CommandParameter = PeerSortType.Type;
-                    m.Command = Model.ChangePeerSort;
-                    if (Model.PeerSortType == PeerSortType.Type)
-                        m.FontWeight = FontWeights.DemiBold;
-                    sort.Items.Add(m);
 
-                    //View Info
-                   /* m = new MenuItem();
-                    m.Foreground = Brushes.Black;
-                    m.Header = "View Information";
-                    m.CommandParameter = peer;
-                    m.Command = Model.UserInfo;
-                    src.ContextMenu.Items.Add(m);*/
+                        src.ContextMenu.Items.Add(new Separator());
+                        //Check to see if we have received service info
+                        if (peer.IsKeySet("HTTP"))
+                        {
+                            //Received info so display them as appriate
+                            string http = peer.GetData("HTTP");
+                            string ftp = peer.GetData("FTP");
+                            string shares = peer.GetData("Shares");
+                            bool added = false;
+
+
+                            if (!string.IsNullOrEmpty(http))
+                            {
+                                m = new MenuItem();
+                                m.Foreground = Brushes.Black;
+                                m.Header = "Web site (" + http + ")";
+                                m.CommandParameter = "http://" + peer.Host;
+                                m.Command = Model.OpenExternal;
+                                src.ContextMenu.Items.Add(m);
+                                added = true;
+                            }
+
+                            if (!string.IsNullOrEmpty(ftp))
+                            {
+                                m = new MenuItem();
+                                m.Foreground = Brushes.Black;
+                                m.Header = "FTP (" + ftp + ")";
+                                m.CommandParameter = "ftp://" + peer.Host;
+                                m.Command = Model.OpenExternal;
+                                src.ContextMenu.Items.Add(m);
+                                added = true;
+                            }
+
+                            if (!string.IsNullOrEmpty(shares))
+                            {
+                                int shareCount = shares.Split('|').Length;
+                                m = new MenuItem();
+                                m.Foreground = Brushes.Black;
+                                m.Header = "Network Shares (" + shareCount + ")";
+                                m.SubmenuOpened += new RoutedEventHandler(m_SubmenuOpened);
+                                m.DataContext = peer;
+                                MenuItem sub = new MenuItem();
+                                m.Items.Add(sub);
+                                src.ContextMenu.Items.Add(m);
+                                added = true;
+                            }
+                            if (added)
+                                src.ContextMenu.Items.Add(new Separator());
+                        }
+                        else
+                        {
+                            m = new MenuItem();
+                            m.Foreground = Brushes.Black;
+                            m.Header = "Finding services..";
+                            m.IsEnabled = false;
+                            src.ContextMenu.Items.Add(m);
+                            src.ContextMenu.Items.Add(new Separator());
+                        }
+                       
+
+                        //View Info
+                        /* m = new MenuItem();
+                         m.Foreground = Brushes.Black;
+                         m.Header = "View Information";
+                         m.CommandParameter = peer;
+                         m.Command = Model.UserInfo;
+                         src.ContextMenu.Items.Add(m);*/
+                    }
                 }
+                //Sort menu
+                MenuItem sort = m = new MenuItem();
+                m.Foreground = Brushes.Black;
+                m.Header = "Sort";
+                src.ContextMenu.Items.Add(m);
+                //By name
+                m = new MenuItem();
+                m.Foreground = Brushes.Black;
+                m.Header = "By name";
+                m.CommandParameter = PeerSortType.Name;
+                m.Command = Model.ChangePeerSort;
+                if (Model.PeerSortType == PeerSortType.Name)
+                    m.FontWeight = FontWeights.DemiBold;
+                sort.Items.Add(m);
+                //By size
+                m = new MenuItem();
+                m.Foreground = Brushes.Black;
+                m.Header = "By size";
+                m.CommandParameter = PeerSortType.Size;
+                m.Command = Model.ChangePeerSort;
+                if (Model.PeerSortType == PeerSortType.Size)
+                    m.FontWeight = FontWeights.DemiBold;
+                sort.Items.Add(m);
+                //By address
+                m = new MenuItem();
+                m.Foreground = Brushes.Black;
+                m.Header = "By address";
+                m.CommandParameter = PeerSortType.Address;
+                m.Command = Model.ChangePeerSort;
+                if (Model.PeerSortType == PeerSortType.Address)
+                    m.FontWeight = FontWeights.DemiBold;
+                sort.Items.Add(m);
+                //By type
+                m = new MenuItem();
+                m.Foreground = Brushes.Black;
+                m.Header = "By type";
+                m.CommandParameter = PeerSortType.Type;
+                m.Command = Model.ChangePeerSort;
+                if (Model.PeerSortType == PeerSortType.Type)
+                    m.FontWeight = FontWeights.DemiBold;
+                sort.Items.Add(m);
             }
         }
 

@@ -94,21 +94,26 @@ namespace Fap.Network.Services
                 socket.ReceiveBufferSize = BufferService.SmallBuffer*2;
                 socket.ReceiveTimeout = 300 * 1000;
                 socket.Blocking = true;
-
+                Console.WriteLine("New connection");
                 while (socket.Connected)
                 {
-                    try
+                    arg = bufferManager.GetSmallArg();
+
+                    int rx = socket.Receive(arg.Data);
+                    if (rx == 0)
                     {
-                        arg = bufferManager.GetSmallArg();
-                        int rx = socket.Receive(arg.Data);
-                        arg.SetDataLocation(0, rx); 
+                        bufferManager.FreeArg(arg);
+                    }
+                    else
+                    {
+                        arg.SetDataLocation(0, rx);
                         token.ReceiveData(arg);
                         while (token.ContainsCommand())
                         {
+
                             disposed = ProcessRequest(token.GetCommand(), socket);
                         }
                     }
-                    catch { }
                 }
             }
             catch (Exception e)
