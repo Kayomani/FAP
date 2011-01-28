@@ -229,10 +229,18 @@ namespace Fap.Domain.Controllers
         private bool HandlePing(Request r, Socket s)
         {
             PingVerb ping = new PingVerb(null);
-            s.Send(Mediator.Serialize(ping.ProcessRequest(r)));
+
             var search = model.Overlord.Peers.Where(p => p.Node.ID == r.Param && r.RequestID == p.Node.Secret).FirstOrDefault();
             if (null != search)
+            {
                 search.Node.LastUpdate = Environment.TickCount;
+                ping.Status = 1;
+            }
+            else
+            {
+                ping.Status = 0;
+            }
+            s.Send(Mediator.Serialize(ping.ProcessRequest(r)));
             return false;
         }
 

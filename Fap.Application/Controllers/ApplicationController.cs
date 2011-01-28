@@ -256,6 +256,9 @@ namespace Fap.Application.Controllers
                 case "Description":
                 mainWindowModel.Description = model.Description;
                 break;
+                case "Avatar":
+                mainWindowModel.Avatar = model.Avatar;
+                break;
             }
         }
         }

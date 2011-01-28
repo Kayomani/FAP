@@ -31,15 +31,18 @@ namespace Fap.Domain.Verbs
         {
             Response response = new Response();
             response.RequestID = r.RequestID;
+            response.Status = Status;
             return response;
         }
 
         public bool ReceiveResponse(Network.Entity.Response r)
         {
             Time = Environment.TickCount - startTime;
+            Status = r.Status;
             return true;
         }
 
         public long Time { set; get; }
+        public int Status { set; get; }
     }
 }

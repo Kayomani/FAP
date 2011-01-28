@@ -173,7 +173,8 @@ namespace Fap.Domain.Services
                         requireNewServer = orderedList.Count == 0;
                     }
 
-                    if (requireNewServer)
+                    //TEMP HACK
+                    if (false)
                     {
                         if (!overlord_active)
                         {
@@ -467,6 +468,8 @@ namespace Fap.Domain.Services
             if (!c.Execute(request, overlord, out response) || response.Status != 0)
             {
                 logger.AddError("Failed to send chat message, try again shortly.");
+                if (network.State == ConnectionState.Connected)
+                    network.State = ConnectionState.Disconnected;
             }
             else
             {
@@ -547,6 +550,8 @@ namespace Fap.Domain.Services
             {
                 get
                 {
+                    //TEMP HACK
+                    return false;
                     return banExpire > Environment.TickCount;
                 }
                 set
