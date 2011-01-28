@@ -173,7 +173,8 @@ namespace Fap.Domain.Services
                         requireNewServer = orderedList.Count == 0;
                     }
 
-                    //TEMP HACK
+                    //TEMP HACK 
+                    //requireNewServer
                     if (false)
                     {
                         if (!overlord_active)

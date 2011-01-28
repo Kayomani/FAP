@@ -43,6 +43,5 @@ namespace Fap.Domain.Verbs
         }
 
         public long Time { set; get; }
-        public int Status { set; get; }
     }
 }
