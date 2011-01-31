@@ -82,10 +82,13 @@ namespace Fap.Application.Controllers
                 }
                 else
                 {
-                    verb.Node.Nickname = node.Nickname;
-                    verb.Node.Address = node.Location;
-                    verb.Node.Status = "Error";
-                    data.Add(verb.Node);
+                    if (null != verb.Node)
+                    {
+                        verb.Node.Nickname = node.Nickname;
+                        verb.Node.Address = node.Location;
+                        verb.Node.Status = "Error";
+                        data.Add(verb.Node);
+                    }
                 }
             }
 
