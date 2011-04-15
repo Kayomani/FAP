@@ -77,7 +77,7 @@
     <Compile Include="Entity\Network.cs" />
     <Compile Include="Entity\Node.cs" />
     <Compile Include="Entity\Overlord.cs" />
-    <Compile Include="Entity\PeerStream.cs" />
+    <Compile Include="Entity\Uplink.cs" />
     <Compile Include="Entity\Reponse.cs" />
     <Compile Include="Entity\Request.cs" />
     <Compile Include="Entity\Session.cs" />
@@ -91,9 +91,9 @@
     <Compile Include="Services\BroadcastServer.cs" />
     <Compile Include="Services\BufferService.cs" />
     <Compile Include="Services\ConnectionService.cs" />
+    <Compile Include="Services\FapConnectionHandler.cs" />
     <Compile Include="Services\FAPListener.cs" />
     <Compile Include="Services\InterfaceService.cs" />
-    <Compile Include="Services\NodeService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fap.Foundation\Fap.Foundation.csproj">

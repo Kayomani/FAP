@@ -39,14 +39,16 @@ namespace Fap.Application.Controllers
         private BufferService bufferService;
         private Thread worker;
         private LANPeerConnectionService peerService;
+        private UplinkConnectionPoolService ucps;
 
-        public WatchdogController(ConnectionService cs, Model model, Logger log, BufferService bufferService, LANPeerConnectionService ps)
+        public WatchdogController(ConnectionService cs, Model model, Logger log, BufferService bufferService, LANPeerConnectionService ps, UplinkConnectionPoolService u)
         {
             connectionService = cs;
             this.model = model;
             logger = log;
             this.bufferService = bufferService;
             peerService = ps;
+            ucps = u;
         }
 
         public void Run()
@@ -113,6 +115,8 @@ namespace Fap.Application.Controllers
                             model.Save();
                             model.DownloadQueue.Save();
                         }
+                        // Remove any old pooled server connections.
+                        ucps.CleanUp();
                     }
                 }
                 catch { }

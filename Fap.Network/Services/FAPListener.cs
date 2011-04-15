@@ -30,18 +30,29 @@ namespace Fap.Network.Services
     public class FAPListener
     {
         private TcpListener listener;
-        public delegate bool ReceiveRequest(Request r, Socket s);
+        public delegate FAPListenerRequestReturnStatus ReceiveRequest(Request r, Socket s);
         public event ReceiveRequest OnReceiveRequest;
-
-        BufferService bufferManager;
-        Logger logger;
-        ConnectionService connectionService;
+        //Services
+        private BufferService bufferManager;
+        private Logger logger;
+        private ConnectionService connectionService;
+        //Handler
+        private FapConnectionHandler handler;
 
         public FAPListener(BufferService b, Logger l, ConnectionService c)
         {
             bufferManager = b;
             logger = l;
             connectionService = c;
+            handler = new FapConnectionHandler(b,l);
+            handler.OnReceiveRequest += new FapConnectionHandler.ReceiveRequest(handler_OnReceiveRequest);
+        }
+
+        FAPListenerRequestReturnStatus handler_OnReceiveRequest(Request r, Socket s)
+        {
+            if (null != OnReceiveRequest)
+                return OnReceiveRequest(r, s);
+            return FAPListenerRequestReturnStatus.None;
         }
 
         public int Start(IPAddress address, int port)
@@ -82,89 +93,20 @@ namespace Fap.Network.Services
 
         private void handleClient(IAsyncResult result)
         {
-            Socket socket = null;
-            MemoryBuffer arg = null;
-            ConnectionToken token = new ConnectionToken();
-            bool disposed = false;
             try
             {
                 listener.BeginAcceptSocket(new AsyncCallback(handleClient), null);
-                socket = listener.EndAcceptSocket(result);
+                Socket socket = listener.EndAcceptSocket(result);
                 socket.SendBufferSize = BufferService.SmallBuffer;
-                socket.ReceiveBufferSize = BufferService.SmallBuffer*2;
+                socket.ReceiveBufferSize = BufferService.SmallBuffer * 2;
                 socket.ReceiveTimeout = 300 * 1000;
                 socket.Blocking = true;
-                Console.WriteLine("New connection");
-                while (socket.Connected)
-                {
-                    arg = bufferManager.GetSmallArg();
 
-                    int rx = socket.Receive(arg.Data);
-                    if (rx == 0)
-                    {
-                        bufferManager.FreeArg(arg);
-                    }
-                    else
-                    {
-                        arg.SetDataLocation(0, rx);
-                        token.ReceiveData(arg);
-                        while (token.ContainsCommand())
-                        {
-
-                            disposed = ProcessRequest(token.GetCommand(), socket);
-                        }
-                    }
-                }
+                handler.HandleConnection(socket);
             }
             catch (Exception e)
             {
                 logger.LogException(e);
-            }
-            try
-            {
-                if (!disposed)
-                {
-                    socket.Shutdown(SocketShutdown.Both);
-                    socket.Close();
-                    //Free the associated session
-                    token.Dispose();
-                    //connectionService.RemoveServerSession(arg);
-                    bufferManager.FreeArg(arg);
-                }
-                else
-                {
-                   // connectionService.RemoveServerSession(arg);
-                    bufferManager.FreeArg(arg);
-                }
-            }
-            catch (Exception e)
-            {
-                logger.LogException(e);
-            }
-        }
-
-        public bool ProcessRequest(string i, Socket s)
-        {
-            try
-            {
-                Request x = new Request();
-                if (Mediator.Deserialize(i, out x))
-                {
-                    bool close = false;
-                    if (null != OnReceiveRequest)
-                        close = OnReceiveRequest(x,s);
-                    if (!close && x.ConnectionClose)
-                    {
-                        s.Shutdown(SocketShutdown.Both);
-                        s.Close();
-                        return true;
-                    }
-                }
-                return false;
-            }
-            catch
-            {
-                return false;
             }
         }
     }

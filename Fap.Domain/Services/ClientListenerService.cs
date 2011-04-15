@@ -33,7 +33,7 @@ using Fap.Foundation.Logging;
 
 namespace Fap.Domain.Services
 {
-    public class ServerService
+    public class ClientListenerService
     {
         private FAPListener listener;
         private Model model;
@@ -41,8 +41,9 @@ namespace Fap.Domain.Services
         private Logger logger;
         private BufferService bs;
         private ServerUploadLimiterService limiter;
+        private UplinkConnectionPoolService ucps;
 
-        public ServerService(IContainer c)
+        public ClientListenerService(IContainer c)
         {
             model = c.Resolve<Model>();
             listener = c.Resolve<FAPListener>();
@@ -51,21 +52,24 @@ namespace Fap.Domain.Services
             logger = c.Resolve<Logger>();
             bs = c.Resolve<BufferService>();
             limiter = c.Resolve<ServerUploadLimiterService>();
+            ucps = c.Resolve<UplinkConnectionPoolService>();
         }
 
-        private bool listener_OnReceiveRequest(Request r, Socket s)
+        private FAPListenerRequestReturnStatus listener_OnReceiveRequest(Request r, Socket s)
         {
             logger.AddInfo("Client RX " + r.Command + " " + r.Param);
             switch (r.Command)
             {
                 case "CLIENT":
-                    HandleClientInfo(r, s);
-                    break;
+                    //Ignore this - Should only get these on server connections.
+                    return FAPListenerRequestReturnStatus.None;
                 case "CHAT":
                     HandleChat(r, s);
                     break;
                 case "DISCONNECT":
                     return HandleDisconnect(r, s);
+                case "UPLINK":
+                    return HandleUplink(r, s);
                 case "GET":
                     ServerUploaderService dl = new ServerUploaderService(model, logger, bs, limiter);
                     return dl.HandleRequest(r, s); 
@@ -73,9 +77,15 @@ namespace Fap.Domain.Services
                     VerbFactory factory = new VerbFactory();
                     var verb = factory.GetVerb(r.Command, model);
                     s.Send(Mediator.Serialize(verb.ProcessRequest(r)));
-                    return false;
+                    return FAPListenerRequestReturnStatus.None;
             }
-           return false;
+            return FAPListenerRequestReturnStatus.None;
+        }
+
+        private FAPListenerRequestReturnStatus HandleUplink(Request r, Socket s)
+        {
+            ucps.AddConnection(s, r.RequestID);
+            return FAPListenerRequestReturnStatus.ExternalHandler;
         }
 
         private bool IsOverlordKey(string key)
@@ -88,7 +98,7 @@ namespace Fap.Domain.Services
             return false;
         }
 
-        private bool HandleDisconnect(Request r, Socket s)
+        private FAPListenerRequestReturnStatus HandleDisconnect(Request r, Socket s)
         {
             if (IsOverlordKey(r.RequestID))
             {
@@ -118,7 +128,7 @@ namespace Fap.Domain.Services
            }
        }));
             }
-            return false;
+            return FAPListenerRequestReturnStatus.None;
         }
 
 
@@ -156,33 +166,7 @@ namespace Fap.Domain.Services
         }
 
 
-        private void HandleClientInfo(Request r, Socket s)
-        {
-            if (IsOverlordKey(r.RequestID))
-            {
-                SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
-          new Action(
-           delegate()
-           {
-               var search = model.Peers.Where(i => i.ID == r.Param).FirstOrDefault();
-               if (search == null)
-               {
-                   search = new Node();
-                   search.Network = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
-                   foreach (var param in r.AdditionalHeaders)
-                       search.SetData(param.Key, param.Value);
-                   model.Peers.Add(search);
-               }
-               else
-               {
-                   foreach (var param in r.AdditionalHeaders)
-                       search.SetData(param.Key, param.Value);
-               }
-           }
-          ));
-
-            }
-        }
+       
 
 
         public void Start()

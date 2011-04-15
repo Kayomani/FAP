@@ -12,4 +12,5 @@ namespace Fap.Network
         public const int NORMAL_PRIORITY = 50;
         public const int LOW_PRIORITY = 25;
     }
+    public enum FAPListenerRequestReturnStatus { None, Disposed, ExternalHandler };
 }

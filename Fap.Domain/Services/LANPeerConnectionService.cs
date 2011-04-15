@@ -1,4 +1,20 @@
-﻿using System;
+﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+/**
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or any 
+    later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,11 +49,14 @@ namespace Fap.Domain.Services
         private Fap.Network.Entity.Network network;
         private long lastConnected = Environment.TickCount;
 
+        private Uplink uplink = null;
+
         //Services
         private ConnectionService connectionService;
         private BufferService bufferService;
-        private OverlordController overlord;
+        private ServerListenerService overlord;
         private Logger logger;
+        private UplinkConnectionPoolService ucps;
 
         private const int OVERLORD_DETECTED_TIMEOUT = 60000;
         private bool overlord_active = false;
@@ -59,6 +78,7 @@ namespace Fap.Domain.Services
             model = container.Resolve<Model>();
             server = container.Resolve<BroadcastServer>();
             bufferService = container.Resolve<BufferService>();
+            ucps = container.Resolve<UplinkConnectionPoolService>();
         }
 
         public void Start(Fap.Network.Entity.Network local)
@@ -173,9 +193,7 @@ namespace Fap.Domain.Services
                         requireNewServer = orderedList.Count == 0;
                     }
 
-                    //TEMP HACK 
-                    //requireNewServer
-                    if (false)
+                    if (requireNewServer)
                     {
                         if (!overlord_active)
                         {
@@ -204,7 +222,7 @@ namespace Fap.Domain.Services
                                 overlord_creation_holdoff_timer = 0;
                                 overlord_active = true;
                                 logger.AddWarning("Starting a local overlord..");
-                                overlord = container.Resolve<OverlordController>();
+                                overlord = container.Resolve<ServerListenerService>();
                                 overlord.Start(GetLocalAddress(), 90, "LOCAL", "Local");
                                 Thread.Sleep(15);
                             }
@@ -260,7 +278,9 @@ namespace Fap.Domain.Services
                                 serverNode.Location = server.Location;
                                 network.Secret = IDService.CreateID();
 
-                                if (c.Execute(connect, serverNode, network.Secret))
+                                var session = connectionService.GetClientSession(serverNode);
+
+                                if (c.Execute(connect, session, network.Secret))
                                 {
                                     if (connect.Status == 0)
                                     {
@@ -282,6 +302,14 @@ namespace Fap.Domain.Services
                                         search.Secret = connect.Secret;
                                         search.State = ConnectionState.Connected;
                                         logger.AddWarning("Connected to local overlord on " + serverNode.Host + " (" + search.OverlordID + ")");
+
+                                        var serverDownlink = ucps.FindUplink(connect.Secret);
+                                        if (null == serverDownlink)
+                                            throw new Exception("No server link found");
+                                        uplink = new Uplink(serverNode, session, bufferService, logger);
+                                        uplink.OnDisconnect += new Uplink.Disconnect(uplink_OnDisconnect);
+                                        uplink.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(uplink_OnReceivedRequest);
+                                        uplink.Start(serverDownlink);
                                         break;
                                     }
                                 }
@@ -301,6 +329,47 @@ namespace Fap.Domain.Services
                 catch { }
                 Thread.Sleep(sleep);
             }
+        }
+
+        private FAPListenerRequestReturnStatus uplink_OnReceivedRequest(Request r, Socket s)
+        {
+            switch (r.Command)
+            {
+                case "CLIENT":
+                    HandleClientInfo(r, s);
+                    break;
+            }
+            return FAPListenerRequestReturnStatus.None;
+        }
+
+
+        private void HandleClientInfo(Request r, Socket s)
+        {
+          SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+          new Action(
+           delegate()
+           {
+               var search = model.Peers.Where(i => i.ID == r.Param).FirstOrDefault();
+               if (search == null)
+               {
+                   search = new Node();
+                   search.Network = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
+                   foreach (var param in r.AdditionalHeaders)
+                       search.SetData(param.Key, param.Value);
+                   model.Peers.Add(search);
+               }
+               else
+               {
+                   foreach (var param in r.AdditionalHeaders)
+                       search.SetData(param.Key, param.Value);
+               }
+           }
+          ));
+        }
+
+        private void uplink_OnDisconnect(Uplink s)
+        {
+
         }
 
         private void SyncWorker(object ox)
@@ -551,8 +620,6 @@ namespace Fap.Domain.Services
             {
                 get
                 {
-                    //TEMP HACK
-                    return false;
                     return banExpire > Environment.TickCount;
                 }
                 set

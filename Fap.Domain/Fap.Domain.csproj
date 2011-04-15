@@ -77,7 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BufferedFileReader.cs" />
-    <Compile Include="Controllers\OverlordController.cs" />
+    <Compile Include="Services\ServerListenerService.cs" />
     <Compile Include="Entity\CompareNode.cs" />
     <Compile Include="Entity\Conversation.cs" />
     <Compile Include="Entity\DownloadQueue.cs" />
@@ -97,10 +97,11 @@
     <Compile Include="Services\DownloadWorkerService.cs" />
     <Compile Include="Services\IconService.cs" />
     <Compile Include="Services\LANPeerConnectionService.cs" />
-    <Compile Include="Services\ServerService.cs" />
+    <Compile Include="Services\ClientListenerService.cs" />
     <Compile Include="Services\ServerUploadLimiterService.cs" />
     <Compile Include="Services\SocketHelper.cs" />
     <Compile Include="Services\ClientDownloadLimiterService.cs" />
+    <Compile Include="Services\UplinkConnectionPoolService.cs" />
     <Compile Include="Verbs\BrowseVerb.cs" />
     <Compile Include="Verbs\ChatVerb.cs" />
     <Compile Include="Verbs\ClientVerb.cs" />

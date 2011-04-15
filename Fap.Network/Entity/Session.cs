@@ -24,7 +24,7 @@ using Fap.Foundation;
 
 namespace Fap.Network.Entity
 {
-    public class Session : INotifyPropertyChanged
+    public class Session : INotifyPropertyChanged, IDisposable
     {
         private const int SessionExpireTime = 65000;//65 Seconds
         
@@ -99,5 +99,19 @@ namespace Fap.Network.Entity
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public void Dispose()
+        {
+            if (null != Socket)
+            {
+                try
+                {
+                    if (Socket.Connected)
+                        Socket.Disconnect(true);
+                    Socket.Close(10);
+                }
+                catch { }
+            }
+        }
     }
 }

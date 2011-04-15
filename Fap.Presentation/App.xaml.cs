@@ -146,6 +146,7 @@ namespace Fap.Presentation
                 builder.RegisterType<SharesController>().SingleInstance();
                 builder.RegisterType<WatchdogController>().SingleInstance();
                 builder.RegisterType<ServerUploadLimiterService>().SingleInstance();
+                builder.RegisterType<UplinkConnectionPoolService>().SingleInstance();
 
                 //UI
                 builder.RegisterType<MainWindow>().As<IMainWindow>();

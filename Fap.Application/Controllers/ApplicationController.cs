@@ -54,7 +54,7 @@ namespace Fap.Application.Controllers
         private readonly SharesController shareController;
         private readonly Logger logger;
         private readonly WatchdogController watchdog;
-        private readonly ServerService server;
+        private readonly ClientListenerService server;
         private readonly ConversationController chatController;
         private readonly DownloadController downloadController;
 
@@ -77,7 +77,7 @@ namespace Fap.Application.Controllers
             browser = container.Resolve<QueryViewModel>();
             watchdog = container.Resolve<WatchdogController>();
             trayIcon = container.Resolve<TrayIconViewModel>();
-            server = container.Resolve<ServerService>();
+            server = container.Resolve<ClientListenerService>();
             chatController = container.Resolve<ConversationController>();
             downloadController = container.Resolve<DownloadController>();
             logger.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(logger_CollectionChanged);

@@ -26,6 +26,6 @@ namespace Fap.Network
     public class BroadcastCommon : AsyncControllerBase
     {
         protected readonly IPAddress broadcastAddress = IPAddress.Parse("239.1.1.100");
-        protected readonly int broadcastPort = 15;
+        protected readonly int broadcastPort = 12;
     }
 }

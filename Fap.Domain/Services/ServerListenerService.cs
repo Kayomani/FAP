@@ -41,7 +41,7 @@ namespace Fap.Domain.Controllers
     /// Netsplit handling
     /// Node timeout
     /// </summary>
-    public class OverlordController : AsyncControllerBase
+    public class ServerListenerService : AsyncControllerBase
     {
         private bool running = false;
         private FAPListener listener;
@@ -67,7 +67,7 @@ namespace Fap.Domain.Controllers
         private SafeObservable<Node> externalNodes = new SafeObservable<Node>();
         private object sync = new object();
 
-        public OverlordController(IContainer c)
+        public ServerListenerService(IContainer c)
         {
             container = c;
             logService = c.Resolve<Logger>();
@@ -194,7 +194,7 @@ namespace Fap.Domain.Controllers
         /// <param name="r"></param>
         /// <param name="s"></param>
         /// <returns></returns>
-        private bool listener_OnReceiveRequest(Request r, Socket s)
+        private FAPListenerRequestReturnStatus listener_OnReceiveRequest(Request r, Socket s)
         {
             logService.AddInfo("Overlord RX " + r.Command + " " + r.Param);
             switch (r.Command)
@@ -223,10 +223,10 @@ namespace Fap.Domain.Controllers
                      s.Send(Mediator.Serialize(verb.ProcessRequest(r)));
                      break;
             }
-            return false;
+            return FAPListenerRequestReturnStatus.None;
         }
 
-        private bool HandlePing(Request r, Socket s)
+        private FAPListenerRequestReturnStatus HandlePing(Request r, Socket s)
         {
             PingVerb ping = new PingVerb(null);
 
@@ -241,14 +241,14 @@ namespace Fap.Domain.Controllers
                 ping.Status = 0;
             }
             s.Send(Mediator.Serialize(ping.ProcessRequest(r)));
-            return false;
+            return FAPListenerRequestReturnStatus.None;
         }
 
-        private bool HandleInfo(Request r, Socket s)
+        private FAPListenerRequestReturnStatus HandleInfo(Request r, Socket s)
         {
             InfoVerb info = new InfoVerb(model.Overlord);
             s.Send(Mediator.Serialize(info.ProcessRequest(r)));
-            return false;
+            return FAPListenerRequestReturnStatus.None;
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace Fap.Domain.Controllers
         /// <param name="r"></param>
         /// <param name="s"></param>
         /// <returns></returns>
-        private bool HandleDisconnect(Request r, Socket s)
+        private FAPListenerRequestReturnStatus HandleDisconnect(Request r, Socket s)
         {
             Response response = new Response();
             response.RequestID = r.RequestID;
@@ -269,8 +269,9 @@ namespace Fap.Domain.Controllers
                 {
                     search.Kill();
                     model.Overlord.Peers.Remove(search);
-                    search.OnDisconnect -= new PeerStream.Disconnect(peer_OnDisconnect);
-                    search.OnOverlordConnectionTimingout -= new PeerStream.OverlordConnectionTimingout(peer_OnOverlordConnectionTimingout);
+                    search.OnDisconnect -= new Uplink.Disconnect(peer_OnDisconnect);
+                    search.OnTxTimingout -= new Uplink.TxTimingout(peer_OnTxTimingout);
+                    search.OnReceivedRequest -= new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
                     TransmitToAll(r);
                     if (search.Node.NodeType == ClientType.Overlord)
                     {
@@ -297,7 +298,7 @@ namespace Fap.Domain.Controllers
                 }
             }
             s.Send(Mediator.Serialize(response));
-            return false;
+            return FAPListenerRequestReturnStatus.None;
         }
 
         /// <summary>
@@ -306,7 +307,7 @@ namespace Fap.Domain.Controllers
         /// <param name="r"></param>
         /// <param name="s"></param>
         /// <returns></returns>
-        private bool HandleChat(Request r, Socket s)
+        private FAPListenerRequestReturnStatus HandleChat(Request r, Socket s)
         {
             Response response = new Response();
             response.RequestID = r.RequestID;
@@ -325,7 +326,7 @@ namespace Fap.Domain.Controllers
                 }
             }
             s.Send(Mediator.Serialize(response));
-            return false;
+            return FAPListenerRequestReturnStatus.None;
         }
 
         /// <summary>
@@ -354,7 +355,7 @@ namespace Fap.Domain.Controllers
 
         private void HandleHeloAsync(object o)
         {
-            HelloVerb hello = o as HelloVerb;
+            /*HelloVerb hello = o as HelloVerb;
             if (null == hello)
                 return;
             try
@@ -364,7 +365,7 @@ namespace Fap.Domain.Controllers
                 node.ID = hello.ID;
                 //Unknown clients are not transmitted
                 node.NodeType = ClientType.Unknown;
-                PeerStream peer = null;
+                Uplink peer = null;
                 node.Location = hello.ListenLocation;
                 ConnectVerb connect = new ConnectVerb(model.Overlord);
                 connect.RemoteLocation = model.Overlord.Location;
@@ -375,9 +376,10 @@ namespace Fap.Domain.Controllers
                 var session = connectionService.GetClientSession(node);
                 if (session != null)
                 {
-                    peer = new PeerStream(node, session);
-                    peer.OnDisconnect += new PeerStream.Disconnect(peer_OnDisconnect);
-                    peer.OnOverlordConnectionTimingout += new PeerStream.OverlordConnectionTimingout(peer_OnOverlordConnectionTimingout);
+                    peer = new Uplink(node, session);
+                    peer.OnDisconnect += new Uplink.Disconnect(peer_OnDisconnect);
+                    peer.OnTxTimingout += new Uplink.TxTimingout(peer_OnTxTimingout);
+             *      search.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
                     model.Overlord.Peers.Add(peer);
                 }
                 Response response = new Response();
@@ -404,14 +406,19 @@ namespace Fap.Domain.Controllers
             finally
             {
                 connectingIDs.Remove(hello.ID);
-            }
+            }*/
+        }
+
+        private Request peer_OnTxTimingout()
+        {
+            return new PingVerb(model.Overlord).CreateRequest();
         }
 
         /// <summary>
         /// This is called from the network layer when a interoverlord comms session is timing out.  Just send a operation that does nothing.
         /// </summary>
         /// <param name="s"></param>
-        private void peer_OnOverlordConnectionTimingout(PeerStream s)
+        private void peer_OnOverlordConnectionTimingout(Uplink s)
         {
             ClientVerb verb = new ClientVerb(model.Overlord);
             Request r = verb.CreateRequest();
@@ -419,7 +426,7 @@ namespace Fap.Domain.Controllers
             s.AddMessage(r);
         }
 
-        private void peer_OnDisconnect(PeerStream s)
+        private void peer_OnDisconnect(Uplink s)
         {
             if (model.Overlord.Peers.Contains(s))
                 model.Overlord.Peers.Remove(s);
@@ -457,8 +464,9 @@ namespace Fap.Domain.Controllers
             {
 
             }
-            s.OnDisconnect -= new PeerStream.Disconnect(peer_OnDisconnect);
-            s.OnOverlordConnectionTimingout -= new PeerStream.OverlordConnectionTimingout(peer_OnOverlordConnectionTimingout);
+            s.OnDisconnect -= new Uplink.Disconnect(peer_OnDisconnect);
+            s.OnTxTimingout -= new Uplink.TxTimingout(peer_OnTxTimingout);
+            s.OnReceivedRequest -= new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
         }
 
         /// <summary>
@@ -501,7 +509,7 @@ namespace Fap.Domain.Controllers
         /// <param name="r"></param>
         /// <param name="s"></param>
         /// <returns></returns>
-        private bool HandleClient(Request r, Socket s)
+        private FAPListenerRequestReturnStatus HandleClient(Request r, Socket s)
         {
             var client = model.Overlord.Peers.Where(p => p.Node.ID == r.Param && r.RequestID == p.Node.Secret).FirstOrDefault();
             if (null != client)
@@ -561,7 +569,7 @@ namespace Fap.Domain.Controllers
                 }
             }
 
-            return false;
+            return FAPListenerRequestReturnStatus.None;
         }
 
         /// <summary>
@@ -570,7 +578,7 @@ namespace Fap.Domain.Controllers
         /// <param name="r"></param>
         /// <param name="s"></param>
         /// <returns></returns>
-        private bool HandleConnect(Request r, Socket s)
+        private FAPListenerRequestReturnStatus HandleConnect(Request r, Socket s)
         {
             Response response = new Response();
             try
@@ -596,16 +604,18 @@ namespace Fap.Domain.Controllers
                             {
                                 search.Kill();
                                 model.Overlord.Peers.Remove(search);
-                                search.OnDisconnect -= new PeerStream.Disconnect(peer_OnDisconnect);
-                                search.OnOverlordConnectionTimingout -= new PeerStream.OverlordConnectionTimingout(peer_OnOverlordConnectionTimingout);
+                                search.OnDisconnect -= new Uplink.Disconnect(peer_OnDisconnect);
+                                search.OnTxTimingout -= new Uplink.TxTimingout(peer_OnTxTimingout);
+                                search.OnReceivedRequest -= new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
                                 reconnect = true;
                             }
 
                             clientNode.LastUpdate = Environment.TickCount;
                             clientNode.OverlordID = model.Overlord.ID;
-                            search = new PeerStream(clientNode,session);
-                            search.OnDisconnect += new PeerStream.Disconnect(peer_OnDisconnect);
-                            search.OnOverlordConnectionTimingout += new PeerStream.OverlordConnectionTimingout(peer_OnOverlordConnectionTimingout);
+                            search = new Uplink(clientNode,session,bufferService,logService);
+                            search.OnDisconnect += new Uplink.Disconnect(peer_OnDisconnect);
+                            search.OnTxTimingout += new Uplink.TxTimingout(peer_OnTxTimingout);
+                            search.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
                             response.Status = 0;
 
                             //Transmit client info to other clients
@@ -630,6 +640,7 @@ namespace Fap.Domain.Controllers
                                 search.AddMessage(verb.CreateRequest());
                             }
                             ThreadPool.QueueUserWorkItem(new WaitCallback(ScanClientAsync), search.Node);
+                            search.Start(s);
                         }
                     }
                     else
@@ -652,7 +663,16 @@ namespace Fap.Domain.Controllers
             response.AdditionalHeaders.Add("Name", networkName);
             response.RequestID = r.RequestID;
             s.Send(Mediator.Serialize(response));
-            return false;
+
+            if (response.Status == 0)
+                return FAPListenerRequestReturnStatus.ExternalHandler;
+            return FAPListenerRequestReturnStatus.None;
+        }
+
+        private FAPListenerRequestReturnStatus search_OnReceivedRequest(Request r, Socket s)
+        {
+
+            return FAPListenerRequestReturnStatus.None;
         }
 
         private void ScanClientAsync(object o)

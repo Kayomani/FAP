@@ -54,7 +54,7 @@ namespace Fap.Domain.Services
             this.limiterService = limiterService;
         }
 
-        public bool HandleRequest(Request r, Socket s)
+        public FAPListenerRequestReturnStatus HandleRequest(Request r, Socket s)
         {
             logger.AddInfo("New downloader for " + r.Param);
 
@@ -193,7 +193,7 @@ namespace Fap.Domain.Services
                                         if (bfr.HasError)
                                         {
                                             s.Close();
-                                            return false;
+                                            return FAPListenerRequestReturnStatus.None;
                                         }
                                     }
                                 }
@@ -234,7 +234,7 @@ namespace Fap.Domain.Services
                 isComplete = true;
 
             }
-            return true;
+            return FAPListenerRequestReturnStatus.Disposed;
         }
 
 

@@ -24,7 +24,7 @@ namespace Fap.Network.Entity
 {
     public class Overlord: Node
     {
-        private SafeObservable<PeerStream> peers = new SafeObservable<PeerStream>();
+        private SafeObservable<Uplink> peers = new SafeObservable<Uplink>();
         private int strength;
         private int maxPeers;
 
@@ -54,7 +54,7 @@ namespace Fap.Network.Entity
             get { return maxPeers; }
         }
 
-        public SafeObservable<PeerStream> Peers
+        public SafeObservable<Uplink> Peers
         {
             set
             {
