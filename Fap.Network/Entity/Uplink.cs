@@ -21,7 +21,6 @@ using System.Text;
 using System.Threading;
 using Fap.Foundation;
 using Fap.Network.Services;
-using Fap.Foundation.Logging;
 using System.Net.Sockets;
 
 namespace Fap.Network.Entity
@@ -40,7 +39,7 @@ namespace Fap.Network.Entity
         public delegate void Disconnect(Uplink s);
         public event Disconnect OnDisconnect;
 
-          private bool running = true;
+        private bool running = true;
 
         // --------------------- TX ---------------------
         private BackgroundSafeObservable<Request> pendingRequests = new BackgroundSafeObservable<Request>();
@@ -56,11 +55,11 @@ namespace Fap.Network.Entity
 
         public event FapConnectionHandler.ReceiveRequest OnReceivedRequest;
 
-        public Uplink(Node n, Session s, BufferService b,Logger l )
+        public Uplink(Node n, Session s, BufferService b)
         {
             node = n;
             session = s;
-            rxHandler = new FapConnectionHandler(b, l);
+            rxHandler = new FapConnectionHandler(b);
             rxHandler.OnDisconnect += new FapConnectionHandler.Disconnect(rxHandler_OnDisconnect);
             rxHandler.OnReceiveRequest += new FapConnectionHandler.ReceiveRequest(rxHandler_OnReceiveRequest);
            
@@ -68,9 +67,19 @@ namespace Fap.Network.Entity
 
         public void Start(Socket rxSocket)
         {
-            rxHandler.HandleConnection(rxSocket);
+            lastRx = Environment.TickCount;
+            lastTx = Environment.TickCount;
             ThreadPool.QueueUserWorkItem(new WaitCallback(Process));
+            ThreadPool.QueueUserWorkItem(new WaitCallback(ListenAsync), rxSocket);
         }
+
+        private void ListenAsync(object o)
+        {
+            Socket s = o as Socket;
+            if(null!=s)
+                rxHandler.HandleConnection(s);
+        }
+
 
         /// <summary>
         /// Incoming commands from the server.
@@ -142,13 +151,13 @@ namespace Fap.Network.Entity
 
                     long now = Environment.TickCount;
                     //Check for tx time out
-                    if (lastTx + timeoutPeriod > now)
+                    if (lastTx + timeoutPeriod < now)
                     {
                         //Tx timeout - We shouldn't really ever get here!
                         running = false;
                         break;
                     }
-                    else if (lastTx + (timeoutPeriod * 0.8) > now)
+                    else if (lastTx + (timeoutPeriod * 0.8) < now)
                     {
                         if (null != OnTxTimingout)
                         {

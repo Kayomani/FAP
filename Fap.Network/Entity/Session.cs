@@ -107,7 +107,7 @@ namespace Fap.Network.Entity
                 try
                 {
                     if (Socket.Connected)
-                        Socket.Disconnect(true);
+                        Socket.Disconnect(false);
                     Socket.Close(10);
                 }
                 catch { }

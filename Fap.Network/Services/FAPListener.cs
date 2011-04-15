@@ -23,7 +23,7 @@ using System.Net;
 using Fap.Network.Entity;
 using System.Threading;
 using Fap.Foundation;
-using Fap.Foundation.Logging;
+using NLog;
 
 namespace Fap.Network.Services
 {
@@ -39,12 +39,12 @@ namespace Fap.Network.Services
         //Handler
         private FapConnectionHandler handler;
 
-        public FAPListener(BufferService b, Logger l, ConnectionService c)
+        public FAPListener(BufferService b, ConnectionService c)
         {
             bufferManager = b;
-            logger = l;
+            logger = LogManager.GetLogger("faplog");
             connectionService = c;
-            handler = new FapConnectionHandler(b,l);
+            handler = new FapConnectionHandler(b);
             handler.OnReceiveRequest += new FapConnectionHandler.ReceiveRequest(handler_OnReceiveRequest);
         }
 
@@ -106,7 +106,7 @@ namespace Fap.Network.Services
             }
             catch (Exception e)
             {
-                logger.LogException(e);
+                logger.ErrorException("Listener exception",e);
             }
         }
     }

@@ -47,7 +47,6 @@ namespace Fap.Application.ViewModels
         private ICommand compare;
         private ICommand userinfo;
         private ICommand changeSort;
-        private object logView;
         private object selectedClient;
         private string avatar;
         private string networkInfo;
@@ -230,16 +229,6 @@ namespace Fap.Application.ViewModels
             {
                 networkInfo = value;
                 RaisePropertyChanged("NetworkStatus");
-            }
-        }
-
-        public object LogView
-        {
-            get { return logView; }
-            set
-            {
-                logView = value;
-                RaisePropertyChanged("LogView");
             }
         }
 

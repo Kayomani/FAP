@@ -58,6 +58,10 @@
     <Reference Include="Autofac">
       <HintPath>..\libs\Autofac\Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\NLog\.NET Framework 3.5\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
@@ -98,7 +102,6 @@
     <Compile Include="ViewModels\PopUpWindowTab.cs" />
     <Compile Include="ViewModels\PopupWindowViewModel.cs" />
     <Compile Include="ViewModels\QueryViewModel.cs" />
-    <Compile Include="ViewModels\LoggerViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="ViewModels\SharesViewModel.cs" />

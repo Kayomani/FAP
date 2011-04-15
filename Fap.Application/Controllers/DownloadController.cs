@@ -24,7 +24,7 @@ using Fap.Foundation;
 using Fap.Domain.Services;
 using Fap.Network.Entity;
 using Fap.Network.Services;
-using Fap.Foundation.Logging;
+using NLog;
 
 namespace Fap.Application.Controllers
 {
@@ -38,12 +38,12 @@ namespace Fap.Application.Controllers
         private BufferService bufferService;
         private Logger logger;
 
-        public DownloadController(ConnectionService cs, Model m, BufferService bufferService, Logger logger)
+        public DownloadController(ConnectionService cs, Model m, BufferService bufferService)
         {
             model = m;
             connectionService = cs;
             this.bufferService = bufferService;
-            this.logger = logger;
+            this.logger = LogManager.GetLogger("faplog");
         }
 
         public void Start()
@@ -117,9 +117,9 @@ namespace Fap.Application.Controllers
                             {
                                 if (i >= workerlist.Count)
                                 {
-                                    logger.AddInfo("Added download to new downloader");
+                                    logger.Info("Added download to new downloader");
                                     //Add a new worker
-                                    var worker = new DownloadWorkerService(model, connectionService, client, item, bufferService, item,logger);
+                                    var worker = new DownloadWorkerService(model, connectionService, client, item, bufferService, item);
                                     worker.OnDownloaderFinished += new DownloadWorkerService.DownloaderFinished(worker_OnDownloaderFinished);
                                     workers.Add(worker);
                                     model.TransferSessions.Add(new TransferSession(worker) { Status = "Connecting..", User = client.Nickname, Size = item.Size, IsDownload = true });
@@ -132,7 +132,7 @@ namespace Fap.Application.Controllers
                                     //Is the worker busy? if no give it the request
                                     if (!workerlist[i].IsBusy)
                                     {
-                                        logger.AddInfo("Added download to existing downloader");
+                                        logger.Info("Added download to existing downloader");
                                         workerlist[i].AddDownload(item);
                                         addedDownload = true;
                                         break;

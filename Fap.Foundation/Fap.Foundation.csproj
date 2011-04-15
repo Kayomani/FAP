@@ -51,6 +51,10 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\NLog\.NET Framework 3.5\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
@@ -82,8 +86,6 @@
     <Compile Include="BaseEntity.cs" />
     <Compile Include="ContinousCollectionEx.cs" />
     <Compile Include="IconHelper.cs" />
-    <Compile Include="Logging\Log.cs" />
-    <Compile Include="Logging\Logger.cs" />
     <Compile Include="MemoryBuffer.cs" />
     <Compile Include="Networking\AsyncSocket.cs" />
     <Compile Include="Networking\AsyncSocketSession.cs" />

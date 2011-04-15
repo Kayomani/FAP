@@ -29,8 +29,8 @@ using Fap.Foundation;
 using Fap.Domain.Entity;
 using Fap.Network.Services;
 using Fap.Domain.Controllers;
-using Fap.Foundation.Logging;
 using Fap.Foundation.Services;
+using NLog;
 
 namespace Fap.Domain.Services
 {
@@ -74,7 +74,7 @@ namespace Fap.Domain.Services
             client = container.Resolve<BroadcastClient>();
             client.OnBroadcastCommandRx += new BroadcastClient.BroadcastCommandRx(client_OnBroadcastCommandRx);
             connectionService = container.Resolve<ConnectionService>();
-            logger = container.Resolve<Logger>();
+            logger = LogManager.GetLogger("faplog");
             model = container.Resolve<Model>();
             server = container.Resolve<BroadcastServer>();
             bufferService = container.Resolve<BufferService>();
@@ -85,7 +85,7 @@ namespace Fap.Domain.Services
         {
             network = local;
             local.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(local_PropertyChanged);
-            logger.AddWarning("Attempting to connect to the local FAP network..");
+            logger.Info("Attempting to connect to the local FAP network..");
             client.StartListener();
             //Find current servers
             ThreadPool.QueueUserWorkItem(new WaitCallback(SendWhoAsync));
@@ -110,7 +110,7 @@ namespace Fap.Domain.Services
                     Response response = new Response();
                     if (!c.Execute(request, session, out response) || response.Status != 0)
                     {
-                        logger.AddWarning("Failed to log off correctly.");
+                        logger.Error("Failed to log off correctly.");
                     }
                 }
             }
@@ -184,7 +184,7 @@ namespace Fap.Domain.Services
                     }
                     else
                     {
-                        if (freeSlots < (peers * 0.05) || serverCount<3)
+                        if (freeSlots < (peers * 0.05) || serverCount < 3)
                             requireNewServer = true;
                     }
 
@@ -214,14 +214,14 @@ namespace Fap.Domain.Services
                                         holdoff = r.Next(1500, 3000);
                                         break;
                                 }
-                                logger.AddInfo("Overlord hold off " + holdoff);
+                                logger.Info("Overlord hold off {0}", holdoff);
                                 overlord_creation_holdoff_timer = holdoff + Environment.TickCount;
                             }
                             else if (overlord_creation_holdoff_timer < Environment.TickCount)
                             {
                                 overlord_creation_holdoff_timer = 0;
                                 overlord_active = true;
-                                logger.AddWarning("Starting a local overlord..");
+                                logger.Info("Starting a local overlord..");
                                 overlord = container.Resolve<ServerListenerService>();
                                 overlord.Start(GetLocalAddress(), 90, "LOCAL", "Local");
                                 Thread.Sleep(15);
@@ -238,7 +238,7 @@ namespace Fap.Domain.Services
 
                             if (peers < 10)
                             {
-                                if (serverCount > 3 && freeSlots>5)
+                                if (serverCount > 3 && freeSlots > 5)
                                     requireRemoval = true;
                             }
                             else if (peers < 100)
@@ -259,7 +259,7 @@ namespace Fap.Domain.Services
                             }
                         }
                     }
-                    
+
                     //Handle connection to the network
                     if (network.State != ConnectionState.Connected)
                     {
@@ -268,6 +268,7 @@ namespace Fap.Domain.Services
 
                         foreach (var server in orderedList)
                         {
+                            logger.Trace("LAN Peer finder: Attempting connection to {0}", server.Location);
                             try
                             {
                                 ConnectVerb connect = new ConnectVerb(model.Node);
@@ -287,7 +288,7 @@ namespace Fap.Domain.Services
                                         if (string.IsNullOrEmpty(connect.OverlordID) || string.IsNullOrEmpty(connect.NetworkID))
                                         {
                                             //We didnt get back valid network info so try another server.
-                                            logger.AddWarning("Connect failed to return valid network info.");
+                                            logger.Warn("Connect failed to return valid network info.");
                                             continue;
                                         }
                                         var search = model.Networks.Where(n => n.ID == connect.NetworkID).FirstOrDefault();
@@ -301,12 +302,12 @@ namespace Fap.Domain.Services
                                         search.OverlordID = connect.OverlordID;
                                         search.Secret = connect.Secret;
                                         search.State = ConnectionState.Connected;
-                                        logger.AddWarning("Connected to local overlord on " + serverNode.Host + " (" + search.OverlordID + ")");
+                                        logger.Info("Connected to local overlord on  {0} ({1})" , serverNode.Host, search.OverlordID);
 
                                         var serverDownlink = ucps.FindUplink(connect.Secret);
                                         if (null == serverDownlink)
                                             throw new Exception("No server link found");
-                                        uplink = new Uplink(serverNode, session, bufferService, logger);
+                                        uplink = new Uplink(serverNode, session, bufferService);
                                         uplink.OnDisconnect += new Uplink.Disconnect(uplink_OnDisconnect);
                                         uplink.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(uplink_OnReceivedRequest);
                                         uplink.Start(serverDownlink);
@@ -315,7 +316,7 @@ namespace Fap.Domain.Services
                                 }
                                 else
                                 {
-                                    logger.AddWarning("Connection to  " + serverNode.Host + " timed out");
+                                    logger.Warn("Connection to  " + serverNode.Host + " timed out");
                                     server.IsBanned = true;
                                 }
                             }
@@ -326,19 +327,57 @@ namespace Fap.Domain.Services
                         }
                     }
                 }
-                catch { }
+                catch (Exception e)
+                {
+                    logger.WarnException("LAN Peer finder: Exception whilst connecting", e);
+                }
                 Thread.Sleep(sleep);
             }
         }
 
         private FAPListenerRequestReturnStatus uplink_OnReceivedRequest(Request r, Socket s)
         {
+            logger.Trace("Client server RX  {0} {1}", r.Command, r.Param);
             switch (r.Command)
             {
                 case "CLIENT":
                     HandleClientInfo(r, s);
                     break;
+                case "DISCONNECT":
+                    HandleDisconnect(r, s);
+                    break;
             }
+            return FAPListenerRequestReturnStatus.None;
+        }
+
+        private FAPListenerRequestReturnStatus HandleDisconnect(Request r, Socket s)
+        {
+
+            SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+              new Action(
+               delegate()
+               {
+                   var localNet = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
+                   if (null != localNet)
+                   {
+                       if (localNet.State == ConnectionState.Connected)
+                       {
+                           if (localNet.OverlordID == r.Param)
+                           {
+                               Disconnect();
+                               var peers = model.Peers.Where(p => p.Network == localNet).ToList();
+                               foreach (var p in peers)
+                                   model.Peers.Remove(p);
+                           }
+                           else
+                           {
+                               var search = model.Peers.Where(p => p.ID == r.Param).FirstOrDefault();
+                               if (null != search)
+                                   model.Peers.Remove(search);
+                           }
+                       }
+                   }
+               }));
             return FAPListenerRequestReturnStatus.None;
         }
 
@@ -369,7 +408,7 @@ namespace Fap.Domain.Services
 
         private void uplink_OnDisconnect(Uplink s)
         {
-
+            network.State = ConnectionState.Disconnected;
         }
 
         private void SyncWorker(object ox)
@@ -537,14 +576,14 @@ namespace Fap.Domain.Services
             Response response = new Response();
             if (!c.Execute(request, overlord, out response) || response.Status != 0)
             {
-                logger.AddError("Failed to send chat message, try again shortly.");
+                logger.Error("Failed to send chat message, try again shortly.");
                 if (network.State == ConnectionState.Connected)
                     network.State = ConnectionState.Disconnected;
             }
             else
             {
                 ping.ReceiveResponse(response);
-                logger.AddError("Ping time " + ping.Time);
+                logger.Error("Ping time " + ping.Time);
             }
         }
 
@@ -566,12 +605,12 @@ namespace Fap.Domain.Services
                 Response response = new Response();
                 if (!c.Execute(r, overlord, out response) || response.Status != 0)
                 {
-                    logger.AddError("Failed to send chat message, try again shortly.");
+                    logger.Error("Failed to send chat message, try again shortly.");
                 }
             }
             else
             {
-                logger.AddError("Failed to send chat message, you are currently not connected.");
+                logger.Error("Failed to send chat message, you are currently not connected.");
             }
         }
 
@@ -582,7 +621,7 @@ namespace Fap.Domain.Services
             {
                 if (local.State == ConnectionState.Connected)
                 {
-                    logger.AddWarning("Disconnected from local network");
+                    logger.Warn("Disconnected from local network");
                     local.Secret = IDService.CreateID();
 
                     var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();

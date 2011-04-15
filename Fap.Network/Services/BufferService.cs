@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Fap.Foundation;
-using Fap.Foundation.Logging;
+using NLog;
 
 namespace Fap.Network.Services
 {
@@ -35,9 +35,9 @@ namespace Fap.Network.Services
         private int largeCount = 10;
         private int smallCount = 10;
 
-        public BufferService(Logger log)
+        public BufferService()
         {
-            logger = log;
+            logger = LogManager.GetLogger("faplog");
         }
 
         public void Clean()
@@ -122,7 +122,7 @@ namespace Fap.Network.Services
             }
             else
             {
-                logger.AddWarning("Tried to free incorrectly sized arg with length: " + input.Data.Length);
+                logger.Warn("Tried to free incorrectly sized arg with length: {0}", input.Data.Length);
             }
         }
     }

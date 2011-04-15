@@ -23,7 +23,6 @@ using System.Waf.Applications;
 using Fap.Domain;
 using Fap.Domain.Entity;
 using Fap.Foundation;
-using Fap.Foundation.Logging;
 using Fap.Domain.Services;
 using System.IO;
 using System.Windows.Media.Imaging;
@@ -41,13 +40,13 @@ using Fap.Domain.Controllers;
 using System.Diagnostics;
 using Fap.Foundation.Services;
 using ContinuousLinq;
+using NLog;
 
 namespace Fap.Application.Controllers
 {
     public class ApplicationController : AsyncControllerBase
     {
         private readonly IContainer container;
-        private readonly LoggerViewModel loggerModel;
         private readonly PopupWindowController popupController;
         private readonly QueryViewModel browser;
         private readonly LANPeerConnectionService peerController;
@@ -70,8 +69,7 @@ namespace Fap.Application.Controllers
             this.container = container;
             peerController = container.Resolve<LANPeerConnectionService>();
             shareController = container.Resolve<SharesController>();
-            loggerModel = container.Resolve<LoggerViewModel>();
-            logger = container.Resolve<Logger>();
+            logger = LogManager.GetLogger("faplog");
             model = container.Resolve<Model>();
             popupController = container.Resolve<PopupWindowController>();
             browser = container.Resolve<QueryViewModel>();
@@ -80,30 +78,7 @@ namespace Fap.Application.Controllers
             server = container.Resolve<ClientListenerService>();
             chatController = container.Resolve<ConversationController>();
             downloadController = container.Resolve<DownloadController>();
-            logger.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(logger_CollectionChanged);
         }
-
-        void logger_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            foreach (Fap.Foundation.Logging.Log newmsg in e.NewItems)
-            {
-                if (newmsg.Type != Log.LogType.Info || System.Diagnostics.Debugger.IsAttached || manualDebugMode)
-                    QueueWork(new DelegateCommand(AsyncAddLog), newmsg);
-            }
-        }
-
-        private void AsyncAddLog(object o)
-        {
-            Fap.Foundation.Logging.Log list = o as Fap.Foundation.Logging.Log;
-            mainWindowModel.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
-             new Action(
-              delegate()
-              {
-                  mainWindowModel.ChatMessages.Add("LOG: " + list.DisplayString);
-              }
-             ));
-        }
-
 
         public void Initalise()
         {
@@ -113,7 +88,7 @@ namespace Fap.Application.Controllers
             }
             catch
             {
-                logger.AddInfo("Failed to read config file, using defaults");
+                logger.Warn("Failed to read config file, using defaults");
             }
 
             //If there is no avatar set then put in the default
@@ -167,6 +142,8 @@ namespace Fap.Application.Controllers
                 model.LocalNodeID = IDService.CreateID();
             }
 
+           
+
             //Load download queue
             try
             {
@@ -175,7 +152,7 @@ namespace Fap.Application.Controllers
             }
             catch
             {
-                logger.AddInfo("Failed to read download queue");
+                logger.Warn("Failed to read download queue");
             }
 
             if (model.MaxOverlordPeers == 0)
@@ -188,12 +165,8 @@ namespace Fap.Application.Controllers
             network.State = Network.ConnectionState.Disconnected;
             model.Networks.Add(network);
 
-           
-            //Logger
-            loggerModel.Logs = logger.Logs;
             shareController.Initalise();
             chatController.Initalise();
-            
             server.Start();
             peerController.Start(network);
             model.Peers.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(Peers_CollectionChanged);
@@ -210,6 +183,8 @@ namespace Fap.Application.Controllers
             trayIcon.OpenExternal = new DelegateCommand(OpenExternal);
             trayIcon.ShowIcon = true;
             model.Node.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Node_PropertyChanged);
+
+            logger.Info("Local node ID is {0}", model.Node.ID);
         }
 
 
@@ -365,7 +340,6 @@ namespace Fap.Application.Controllers
                 mainWindowModel.Chat = new DelegateCommand(Chat);
                 mainWindowModel.UserInfo = new DelegateCommand(showUserInfo);
                 mainWindowModel.ChangePeerSort = new DelegateCommand(ChangePeerSort);
-                mainWindowModel.LogView = loggerModel.View;
                 mainWindowModel.Avatar = model.Avatar;
                 mainWindowModel.Nickname = model.Nickname;
                 mainWindowModel.Description = model.Description;
@@ -610,7 +584,7 @@ namespace Fap.Application.Controllers
             if (string.Equals(mainWindowModel.CurrentChatMessage, "/debug", StringComparison.InvariantCultureIgnoreCase))
             {
                 manualDebugMode = !manualDebugMode;
-                logger.AddWarning("Debug mode is " + (manualDebugMode ? "Activated" : "Deactivated"));
+                logger.Info("Debug mode is " + (manualDebugMode ? "Activated" : "Deactivated"));
             }
             else
             {

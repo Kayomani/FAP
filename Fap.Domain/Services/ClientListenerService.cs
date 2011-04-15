@@ -29,7 +29,7 @@ using Fap.Foundation;
 using System.Threading;
 using Fap.Domain.Entity;
 using Fap.Domain.Controllers;
-using Fap.Foundation.Logging;
+using NLog;
 
 namespace Fap.Domain.Services
 {
@@ -49,7 +49,7 @@ namespace Fap.Domain.Services
             listener = c.Resolve<FAPListener>();
             peerController = c.Resolve<LANPeerConnectionService>();
             listener.OnReceiveRequest += new FAPListener.ReceiveRequest(listener_OnReceiveRequest);
-            logger = c.Resolve<Logger>();
+            logger = LogManager.GetLogger("faplog");
             bs = c.Resolve<BufferService>();
             limiter = c.Resolve<ServerUploadLimiterService>();
             ucps = c.Resolve<UplinkConnectionPoolService>();
@@ -57,21 +57,23 @@ namespace Fap.Domain.Services
 
         private FAPListenerRequestReturnStatus listener_OnReceiveRequest(Request r, Socket s)
         {
-            logger.AddInfo("Client RX " + r.Command + " " + r.Param);
+            logger.Trace("Client p2p RX  {0} {1}", r.Command, r.Param);
             switch (r.Command)
             {
                 case "CLIENT":
                     //Ignore this - Should only get these on server connections.
+                    logger.Error("Got Client command on p2p connection");
                     return FAPListenerRequestReturnStatus.None;
                 case "CHAT":
                     HandleChat(r, s);
                     break;
                 case "DISCONNECT":
-                    return HandleDisconnect(r, s);
+                    //Ignore this - Should only get these on server connections.
+                    return FAPListenerRequestReturnStatus.None;
                 case "UPLINK":
                     return HandleUplink(r, s);
                 case "GET":
-                    ServerUploaderService dl = new ServerUploaderService(model, logger, bs, limiter);
+                    ServerUploaderService dl = new ServerUploaderService(model, bs, limiter);
                     return dl.HandleRequest(r, s); 
                 default:
                     VerbFactory factory = new VerbFactory();
@@ -85,6 +87,8 @@ namespace Fap.Domain.Services
         private FAPListenerRequestReturnStatus HandleUplink(Request r, Socket s)
         {
             ucps.AddConnection(s, r.RequestID);
+            UplinkVerb verb = new UplinkVerb(model.Node);
+            s.Send(Mediator.Serialize(verb.ProcessRequest(r)));
             return FAPListenerRequestReturnStatus.ExternalHandler;
         }
 
@@ -164,10 +168,6 @@ namespace Fap.Domain.Services
                 model.Messages.Add(sb.ToString());
             }
         }
-
-
-       
-
 
         public void Start()
         {

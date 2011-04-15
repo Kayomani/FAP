@@ -22,12 +22,12 @@ using System.Threading;
 using Fap.Domain.Services;
 using Fap.Domain.Entity;
 using Fap.Network.Services;
-using Fap.Foundation.Logging;
 using Fap.Network.Entity;
 using Fap.Foundation;
 using Fap.Domain.Verbs;
 using Fap.Network;
 using System.Net.Sockets;
+using NLog;
 
 namespace Fap.Application.Controllers
 {
@@ -41,11 +41,11 @@ namespace Fap.Application.Controllers
         private LANPeerConnectionService peerService;
         private UplinkConnectionPoolService ucps;
 
-        public WatchdogController(ConnectionService cs, Model model, Logger log, BufferService bufferService, LANPeerConnectionService ps, UplinkConnectionPoolService u)
+        public WatchdogController(ConnectionService cs, Model model, BufferService bufferService, LANPeerConnectionService ps, UplinkConnectionPoolService u)
         {
             connectionService = cs;
             this.model = model;
-            logger = log;
+            logger = LogManager.GetLogger("faplog");
             this.bufferService = bufferService;
             peerService = ps;
             ucps = u;

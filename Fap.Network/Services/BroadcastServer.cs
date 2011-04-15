@@ -21,8 +21,8 @@ using System.Text;
 using System.Threading;
 using System.Net.Sockets;
 using System.Net;
-using Fap.Foundation.Logging;
 using Fap.Network.Entity;
+using NLog;
 
 namespace Fap.Network
 {
@@ -32,9 +32,9 @@ namespace Fap.Network
         private Socket broadcastSocket;
         private Logger logService;
 
-        public BroadcastServer(Logger log)
+        public BroadcastServer()
         {
-            logService = log;
+            logService = LogManager.GetLogger("faplog");
         }
 
         private void ConnectBroadcast()

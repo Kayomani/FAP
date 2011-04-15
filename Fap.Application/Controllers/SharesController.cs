@@ -25,8 +25,8 @@ using Fap.Domain.Services;
 using Fap.Domain.Entity;
 using Fap.Foundation;
 using Autofac;
-using Fap.Foundation.Logging;
 using System.Threading;
+using NLog;
 
 namespace Fap.Application.Controllers
 {
@@ -42,11 +42,11 @@ namespace Fap.Application.Controllers
 
         public SharesViewModel ViewModel { get { return viewModel; } }
 
-        public SharesController(IContainer c, SharesViewModel vm, QueryViewModel b, Logger log, Model m, QueryViewModel q, LANPeerConnectionService p)
+        public SharesController(IContainer c, SharesViewModel vm, QueryViewModel b, Model m, QueryViewModel q, LANPeerConnectionService p)
         {
             viewModel = vm;
             browser = b;
-            logger = log;
+            logger = LogManager.GetLogger("faplog");
             model = m;
             queryModel = q;
             peerController = p;
@@ -77,7 +77,7 @@ namespace Fap.Application.Controllers
 
                 if (model.Shares.Where(os => os.Path == folder).Count() > 0)
                 {
-                    logger.AddError("A share with this path already exists");
+                    logger.Error("A share with this path already exists");
                 }
 
                 try
@@ -129,7 +129,7 @@ namespace Fap.Application.Controllers
                 }
                 catch (Exception e)
                 {
-                    logger.LogException(e);
+                    logger.ErrorException("Add share error",e);
                 }
             }
         }

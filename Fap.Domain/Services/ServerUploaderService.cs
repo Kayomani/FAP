@@ -21,7 +21,6 @@ using System.Text;
 using Fap.Network.Entity;
 using System.Net.Sockets;
 using Fap.Domain.Entity;
-using Fap.Foundation.Logging;
 using System.Threading;
 using Fap.Network.Services;
 using Fap.Network;
@@ -29,6 +28,7 @@ using Fap.Domain.Verbs;
 using System.IO;
 using Fap.Foundation;
 using System.Net;
+using NLog;
 
 namespace Fap.Domain.Services
 {
@@ -45,10 +45,10 @@ namespace Fap.Domain.Services
         private long position = 0;
         private string status = string.Empty;
 
-        public ServerUploaderService(Model m, Logger l, BufferService b, ServerUploadLimiterService limiterService)
+        public ServerUploaderService(Model m, BufferService b, ServerUploadLimiterService limiterService)
         {
             model = m;
-            logger = l;
+            logger = LogManager.GetLogger("faplog");
             bufferService = b;
             msm = new NetworkSpeedMeasurement(NetSpeedType.Upload);
             this.limiterService = limiterService;
@@ -56,7 +56,7 @@ namespace Fap.Domain.Services
 
         public FAPListenerRequestReturnStatus HandleRequest(Request r, Socket s)
         {
-            logger.AddInfo("New downloader for " + r.Param);
+            logger.Info("New downloader for {0}", r.Param);
 
             DownloadVerb verb = new DownloadVerb();
             verb.ProcessRequest(r);

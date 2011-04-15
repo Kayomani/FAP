@@ -27,12 +27,12 @@ using Fap.Network;
 using System.Threading;
 using Fap.Domain.Verbs;
 using System.Net.Sockets;
-using Fap.Foundation.Logging;
 using System.Xml.Linq;
 using System.Xml;
 using Fap.Domain.Entity;
 using Fap.Foundation.Services;
 using System.Text.RegularExpressions;
+using NLog;
 
 namespace Fap.Domain.Controllers
 {
@@ -70,7 +70,7 @@ namespace Fap.Domain.Controllers
         public ServerListenerService(IContainer c)
         {
             container = c;
-            logService = c.Resolve<Logger>();
+            logService = LogManager.GetLogger("faplog");
             model = c.Resolve<Model>();
             model.Overlord.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Overlord_PropertyChanged);
         }
@@ -104,6 +104,7 @@ namespace Fap.Domain.Controllers
                 model.Overlord.Port = port;
                 model.Overlord.Nickname = "Overlord";
                 model.Overlord.ID = IDService.CreateID();
+                logService.Info("Overlord ID is {0}", model.Overlord.ID);
                 bclient.StartListener();
                 ThreadPool.QueueUserWorkItem(new WaitCallback(Process_announce));
             }
@@ -188,25 +189,43 @@ namespace Fap.Domain.Controllers
             }
         }
 
+
         /// <summary>
-        /// Unicast RX
+        /// Unicast RX (From connected clients)
+        /// </summary>
+        /// <param name="r"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        private FAPListenerRequestReturnStatus search_OnReceivedRequest(Request r, Socket s)
+        {
+            logService.Trace("Overlord client RX " + r.Command + " " + r.Param);
+            switch (r.Command)
+            {
+                case "CLIENT":
+                    return HandleClient(r, s);
+                case "PING":
+                    return HandlePing(r, s);
+                case "DISCONNECT":
+                    return HandleDisconnect(r, s);
+            }
+            return FAPListenerRequestReturnStatus.None;
+        }
+
+        /// <summary>
+        /// Unicast RX (P2P)
         /// </summary>
         /// <param name="r"></param>
         /// <param name="s"></param>
         /// <returns></returns>
         private FAPListenerRequestReturnStatus listener_OnReceiveRequest(Request r, Socket s)
         {
-            logService.AddInfo("Overlord RX " + r.Command + " " + r.Param);
+            logService.Info("Overlord p2p RX {0} {1} ", r.Command, r.Param);
             switch (r.Command)
             {
                 case "CONNECT":
                     return HandleConnect(r, s);
-                case "CLIENT":
-                    return HandleClient(r, s);
                 case "CHAT":
                     return HandleChat(r, s);
-                case "DISCONNECT":
-                    return HandleDisconnect(r, s);
                 case "INFO":
                     return HandleInfo(r, s);
                 case "PING":
@@ -514,7 +533,6 @@ namespace Fap.Domain.Controllers
             var client = model.Overlord.Peers.Where(p => p.Node.ID == r.Param && r.RequestID == p.Node.Secret).FirstOrDefault();
             if (null != client)
             {
-                logService.AddInfo("Overlord RX d client " + r.Param);
                 client.Node.LastUpdate = Environment.TickCount;
                 //Client is ok, replicate new info.
                 if (r.AdditionalHeaders.Count > 0)
@@ -535,7 +553,7 @@ namespace Fap.Domain.Controllers
                 {
                     //Received relayed information from a registered overlord, forward on again
                     overlord.Node.LastUpdate = Environment.TickCount;
-                    logService.AddInfo("Overlord foward client " + r.Param + " from " + overlord.Node.ID);
+                    logService.Trace("Overlord foward client {0} from {1}",  r.Param, overlord.Node.ID);
                     var search = externalNodes.Where(n => n.ID == r.Param).FirstOrDefault();
                     if (search != null)
                     {
@@ -560,7 +578,7 @@ namespace Fap.Domain.Controllers
                 }
                 else
                 {
-                    logService.AddInfo("Overlord unreg client " + r.Param);
+                    logService.Warn("Overlord unreg client {0}", r.Param);
                     //Unregisted client or invalid info.
                     Response response = new Response();
                     response.RequestID = r.RequestID;
@@ -585,7 +603,7 @@ namespace Fap.Domain.Controllers
             {
                 Client c = new Client(bufferService, connectionService);
                 Node clientNode = new Node();
-                InfoVerb info = new InfoVerb(clientNode);
+                UplinkVerb info = new UplinkVerb(clientNode);
 
                 clientNode.Location = r.Param;
                 clientNode.Secret = r.RequestID;
@@ -612,7 +630,7 @@ namespace Fap.Domain.Controllers
 
                             clientNode.LastUpdate = Environment.TickCount;
                             clientNode.OverlordID = model.Overlord.ID;
-                            search = new Uplink(clientNode,session,bufferService,logService);
+                            search = new Uplink(clientNode,session,bufferService);
                             search.OnDisconnect += new Uplink.Disconnect(peer_OnDisconnect);
                             search.OnTxTimingout += new Uplink.TxTimingout(peer_OnTxTimingout);
                             search.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
@@ -666,12 +684,6 @@ namespace Fap.Domain.Controllers
 
             if (response.Status == 0)
                 return FAPListenerRequestReturnStatus.ExternalHandler;
-            return FAPListenerRequestReturnStatus.None;
-        }
-
-        private FAPListenerRequestReturnStatus search_OnReceivedRequest(Request r, Socket s)
-        {
-
             return FAPListenerRequestReturnStatus.None;
         }
 

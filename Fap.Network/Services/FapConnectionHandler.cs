@@ -20,8 +20,8 @@ using System.Linq;
 using System.Text;
 using System.Net.Sockets;
 using Fap.Network.Entity;
-using Fap.Foundation.Logging;
 using Fap.Foundation;
+using NLog;
 
 namespace Fap.Network.Services
 {
@@ -38,10 +38,10 @@ namespace Fap.Network.Services
         public delegate void Disconnect();
         public event Disconnect OnDisconnect;
 
-        public FapConnectionHandler(BufferService b, Logger l)
+        public FapConnectionHandler(BufferService b)
         {
             bufferManager = b;
-            logger = l;
+            logger = LogManager.GetLogger("faplog");
         }
 
 
@@ -83,7 +83,7 @@ namespace Fap.Network.Services
             }
             catch (Exception e)
             {
-                logger.LogException(e);
+                logger.ErrorException("Connection handler exception", e);
             }
             if (null != OnDisconnect)
                 OnDisconnect();
@@ -106,7 +106,7 @@ namespace Fap.Network.Services
             }
             catch (Exception e)
             {
-                logger.LogException(e);
+                logger.ErrorException("Connection handler exception", e);
             }
         }
 

@@ -24,7 +24,6 @@ using Fap.Application.Controllers;
 using System.Reflection;
 using System.Collections;
 using System.Threading;
-using Fap.Foundation.Logging;
 using Fap.Domain.Services;
 using System.Windows.Markup;
 using System.Globalization;
@@ -35,6 +34,7 @@ using Fap.Domain.Entity;
 using Fap.Network;
 using Fap.Network.Services;
 using Fap.Application.ViewModels;
+using NLog;
 
 namespace Fap.Presentation
 {
@@ -100,8 +100,8 @@ namespace Fap.Presentation
             Console.WriteLine(e.Exception.Message);
             if (null != container)
             {
-                var logger = container.Resolve<Logger>();
-                logger.LogException(e.Exception);
+                var logger = LogManager.GetLogger("faplog");
+                logger.FatalException("Unhandled dispatcher exception",e.Exception);
             }
             e.Handled = true;
         }
@@ -111,9 +111,8 @@ namespace Fap.Presentation
             Console.WriteLine(e.Exception.Message);
             if (null != container)
             {
-                var logger = container.Resolve<Logger>();
-                logger.AddError("THE FOLLOWING EXCEPTION WAS UNHANDLED!!!");
-                logger.LogException(e.Exception);
+                var logger = LogManager.GetLogger("faplog");
+                logger.FatalException("Unhandled exception", e.Exception);
             }
             e.Handled = true;
         }
@@ -168,7 +167,6 @@ namespace Fap.Presentation
               //  builder.RegisterType<BroadcastServer>().SingleInstance();
              //   builder.RegisterType<ClientDownloadLimiterService>().SingleInstance();
                 builder.RegisterType<ConnectionService>().SingleInstance();
-                builder.RegisterType<Logger>().SingleInstance();
               
                // builder.RegisterType<BroadcastServer>().SingleInstance();
                 builder.RegisterType<BroadcastClient>().SingleInstance();

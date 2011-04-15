@@ -57,6 +57,10 @@
     <Reference Include="Autofac">
       <HintPath>..\libs\Autofac\Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\NLog\.NET Framework 3.5\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -91,9 +95,7 @@
     <Compile Include="Entity\Share.cs" />
     <Compile Include="Entity\TransferSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\ConnectionService.cs" />
     <Compile Include="Services\ServerUploaderService.cs" />
-    <Compile Include="Services\DownloadService.cs" />
     <Compile Include="Services\DownloadWorkerService.cs" />
     <Compile Include="Services\IconService.cs" />
     <Compile Include="Services\LANPeerConnectionService.cs" />
@@ -113,6 +115,7 @@
     <Compile Include="Verbs\HeloVerb.cs" />
     <Compile Include="Verbs\InfoVerb.cs" />
     <Compile Include="Verbs\PingVerb.cs" />
+    <Compile Include="Verbs\UplinkVerb.cs" />
     <Compile Include="Verbs\VerbBase.cs" />
     <Compile Include="Verbs\VerbFactory.cs" />
     <Compile Include="Verbs\WhoVerb.cs" />

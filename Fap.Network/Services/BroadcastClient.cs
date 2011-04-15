@@ -22,9 +22,9 @@ using System.Net.Sockets;
 using System.Net;
 using Fap.Foundation;
 using Fap.Network.Services;
-using Fap.Foundation.Logging;
 using Fap.Network.Entity;
 using System.Threading;
+using NLog;
 
 namespace Fap.Network
 {
@@ -37,10 +37,10 @@ namespace Fap.Network
         public delegate void BroadcastCommandRx(Request cmd);
         public event BroadcastCommandRx OnBroadcastCommandRx;
 
-        public BroadcastClient(BufferService bs, Logger log)
+        public BroadcastClient(BufferService bs)
         {
             manager = bs;
-            logger = log;
+            logger = LogManager.GetLogger("faplog");
         }
 
         private void ConnectListen()

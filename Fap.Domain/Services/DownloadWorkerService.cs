@@ -27,7 +27,7 @@ using System.IO;
 using Fap.Domain.Verbs;
 using Fap.Network;
 using System.Net.Sockets;
-using Fap.Foundation.Logging;
+using NLog;
 
 namespace Fap.Domain.Services
 {
@@ -53,9 +53,9 @@ namespace Fap.Domain.Services
         public delegate void DownloaderFinished();
         public event DownloaderFinished OnDownloaderFinished;
 
-        public DownloadWorkerService(Model m, ConnectionService s, Node n, DownloadRequest r, BufferService b, DownloadRequest req, Logger l)
+        public DownloadWorkerService(Model m, ConnectionService s, Node n, DownloadRequest r, BufferService b, DownloadRequest req)
         {
-            logger = l;
+            logger = LogManager.GetLogger("faplog");
             node = n;
             model = m;
             service = s;
@@ -329,7 +329,7 @@ namespace Fap.Domain.Services
             {
                 bufferService.FreeArg(arg);
                 service.FreeClientSession(session);
-                logger.AddInfo("Downloader quit");
+                logger.Trace("Downloader worker quit");
             }
         }
 
