@@ -35,6 +35,7 @@ using Fap.Network;
 using Fap.Network.Services;
 using Fap.Application.ViewModels;
 using NLog;
+using NLog.Config;
 
 namespace Fap.Presentation
 {
@@ -66,6 +67,8 @@ namespace Fap.Presentation
 
         protected override void OnStartup(StartupEventArgs e)
         {
+
+           
             //NetTest test = new NetTest();
            // test.Test();
             Fap.Foundation.SafeObservableStatic.Dispatcher = System.Windows.Application.Current.Dispatcher;
@@ -146,6 +149,7 @@ namespace Fap.Presentation
                 builder.RegisterType<WatchdogController>().SingleInstance();
                 builder.RegisterType<ServerUploadLimiterService>().SingleInstance();
                 builder.RegisterType<UplinkConnectionPoolService>().SingleInstance();
+                builder.RegisterType<LogService>().SingleInstance();
 
                 //UI
                 builder.RegisterType<MainWindow>().As<IMainWindow>();

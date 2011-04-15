@@ -100,8 +100,6 @@ namespace Fap.Network.Services
                 socket.SendBufferSize = BufferService.SmallBuffer;
                 socket.ReceiveBufferSize = BufferService.SmallBuffer * 2;
                 socket.ReceiveTimeout = 300 * 1000;
-                socket.Blocking = true;
-
                 handler.HandleConnection(socket);
             }
             catch (Exception e)

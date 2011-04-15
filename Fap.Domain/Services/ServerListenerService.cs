@@ -104,6 +104,7 @@ namespace Fap.Domain.Controllers
                 model.Overlord.Port = port;
                 model.Overlord.Nickname = "Overlord";
                 model.Overlord.ID = IDService.CreateID();
+                model.Overlord.Online = true;
                 logService.Info("Overlord ID is {0}", model.Overlord.ID);
                 bclient.StartListener();
                 ThreadPool.QueueUserWorkItem(new WaitCallback(Process_announce));
@@ -203,6 +204,8 @@ namespace Fap.Domain.Controllers
             {
                 case "CLIENT":
                     return HandleClient(r, s);
+                case "CHAT":
+                    return HandleChat(r, s);
                 case "PING":
                     return HandlePing(r, s);
                 case "DISCONNECT":
@@ -224,8 +227,6 @@ namespace Fap.Domain.Controllers
             {
                 case "CONNECT":
                     return HandleConnect(r, s);
-                case "CHAT":
-                    return HandleChat(r, s);
                 case "INFO":
                     return HandleInfo(r, s);
                 case "PING":
@@ -430,7 +431,11 @@ namespace Fap.Domain.Controllers
 
         private Request peer_OnTxTimingout()
         {
-            return new PingVerb(model.Overlord).CreateRequest();
+            //return new PingVerb(model.Overlord).CreateRequest();
+            ChatVerb verb = new ChatVerb();
+            verb.Nickname = "SYS";
+            verb.Message = "FFS";
+            return verb.CreateRequest();
         }
 
         /// <summary>
@@ -447,41 +452,28 @@ namespace Fap.Domain.Controllers
 
         private void peer_OnDisconnect(Uplink s)
         {
-            if (model.Overlord.Peers.Contains(s))
-                model.Overlord.Peers.Remove(s);
-
             lock (sync)
             {
-                //Notify other peers
-                DisconnectVerb verb = new DisconnectVerb(s.Node);
-                TransmitToAll(verb.CreateRequest());
-
-                //Onos netsplit!
-                if (s.Node.NodeType == ClientType.Overlord)
+                if (model.Overlord.Peers.Contains(s))
                 {
-                    var items = externalNodes.Where(n => n.OverlordID == s.Node.ID).ToList();
-                    foreach (var node in items)
+                    model.Overlord.Peers.Remove(s);
+
+                    //Notify other peers
+                    DisconnectVerb verb = new DisconnectVerb(s.Node);
+                    TransmitToAll(verb.CreateRequest());
+
+                    //Onos netsplit!
+                    if (s.Node.NodeType == ClientType.Overlord)
                     {
-                        DisconnectVerb disc = new DisconnectVerb(node);
-                        TransmitToAllNonOverlords(disc.CreateRequest());
-                        externalNodes.Remove(node);
+                        var items = externalNodes.Where(n => n.OverlordID == s.Node.ID).ToList();
+                        foreach (var node in items)
+                        {
+                            DisconnectVerb disc = new DisconnectVerb(node);
+                            TransmitToAllNonOverlords(disc.CreateRequest());
+                            externalNodes.Remove(node);
+                        }
                     }
                 }
-
-            }
-            //Try to send disconnect notification
-            try
-            {
-                DisconnectVerb verb = new DisconnectVerb(model.Overlord);
-                var session = connectionService.GetClientSession(s.Node);
-                var req = verb.CreateRequest();
-                req.RequestID = s.Node.Secret;
-                if(null!=session)
-                  session.Socket.Send(Mediator.Serialize(req));
-            }
-            catch
-            {
-
             }
             s.OnDisconnect -= new Uplink.Disconnect(peer_OnDisconnect);
             s.OnTxTimingout -= new Uplink.TxTimingout(peer_OnTxTimingout);
@@ -630,10 +622,11 @@ namespace Fap.Domain.Controllers
 
                             clientNode.LastUpdate = Environment.TickCount;
                             clientNode.OverlordID = model.Overlord.ID;
-                            search = new Uplink(clientNode,session,bufferService);
-                            search.OnDisconnect += new Uplink.Disconnect(peer_OnDisconnect);
-                            search.OnTxTimingout += new Uplink.TxTimingout(peer_OnTxTimingout);
-                            search.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
+                            clientNode.Online = true;
+                            Uplink newu = new Uplink(clientNode, session, bufferService,connectionService);
+                            newu.OnDisconnect += new Uplink.Disconnect(peer_OnDisconnect);
+                            newu.OnTxTimingout += new Uplink.TxTimingout(peer_OnTxTimingout);
+                            newu.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
                             response.Status = 0;
 
                             //Transmit client info to other clients
@@ -643,22 +636,22 @@ namespace Fap.Domain.Controllers
                                 DisconnectVerb disconnect = new DisconnectVerb(clientNode);
                                 TransmitToAll(disconnect.CreateRequest());
                             }
-                            model.Overlord.Peers.Add(search);
+                            model.Overlord.Peers.Add(newu);
 
                             ClientVerb verb = new ClientVerb(clientNode);
                             TransmitToAll(verb.CreateRequest());
 
                             //Transmit overlord info to the connecting client
                             verb = new ClientVerb(model.Overlord);
-                            search.AddMessage(verb.CreateRequest());
+                            newu.AddMessage(verb.CreateRequest());
                             //Transmit all known clients to the connecting node
                             foreach (var client in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType != ClientType.Unknown))
                             {
                                 verb = new ClientVerb(client.Node);
-                                search.AddMessage(verb.CreateRequest());
+                                newu.AddMessage(verb.CreateRequest());
                             }
-                            ThreadPool.QueueUserWorkItem(new WaitCallback(ScanClientAsync), search.Node);
-                            search.Start(s);
+                            ThreadPool.QueueUserWorkItem(new WaitCallback(ScanClientAsync), newu.Node);
+                            newu.Start(s);
                         }
                     }
                     else

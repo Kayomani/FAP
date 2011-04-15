@@ -308,10 +308,6 @@ namespace Fap.Network.Entity
             this.data.Set(key, data);
             NotifyChange(key);
 
-            if (data == "B260A9D0941348968A2427F82D234A5A")
-            {
-            }
-
             switch (key)
             {
                 case "Online":

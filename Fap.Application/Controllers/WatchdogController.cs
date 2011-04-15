@@ -69,7 +69,6 @@ namespace Fap.Application.Controllers
             Thread.CurrentThread.IsBackground = false;
 
             int speedCount = 0;
-            int pingCount = 0;
             long lastSave = Environment.TickCount;
 
             while (true)
@@ -79,17 +78,10 @@ namespace Fap.Application.Controllers
                     {
                         // logger.AddInfo("Processing watchdog");
                         //Disconnect sessions if needed
-                        DisconnectStaleSessions();
+                       // DisconnectStaleSessions();
                         //Clean up excess buffers
                         bufferService.Clean();
-                        //Send ping to local overlord if needed
-                        if (pingCount > 45)
-                        {
-                            peerService.SendPing();
-                            pingCount = 0;
-                        }
-                        else
-                            pingCount++;
+                        
                         //Remove completed download sessions from view
                         foreach (var session in model.TransferSessions.ToList())
                         {

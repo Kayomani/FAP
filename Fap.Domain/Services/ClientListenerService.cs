@@ -57,7 +57,7 @@ namespace Fap.Domain.Services
 
         private FAPListenerRequestReturnStatus listener_OnReceiveRequest(Request r, Socket s)
         {
-            logger.Trace("Client p2p RX  {0} {1}", r.Command, r.Param);
+            logger.Trace("Client p2p RX  {0} {1} [{2}]", r.Command, r.Param,r.AdditionalHeaders.Count);
             switch (r.Command)
             {
                 case "CLIENT":
@@ -65,7 +65,8 @@ namespace Fap.Domain.Services
                     logger.Error("Got Client command on p2p connection");
                     return FAPListenerRequestReturnStatus.None;
                 case "CHAT":
-                    HandleChat(r, s);
+                    //Ignore this - Should only get these on server connections.
+                    logger.Error("Got Chat command on p2p connection");
                     break;
                 case "DISCONNECT":
                     //Ignore this - Should only get these on server connections.
@@ -133,40 +134,6 @@ namespace Fap.Domain.Services
        }));
             }
             return FAPListenerRequestReturnStatus.None;
-        }
-
-
-        private void HandleChat(Request r, Socket s)
-        {
-            if (IsOverlordKey(r.RequestID))
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.Append(DateTime.Now.ToShortTimeString());
-                sb.Append(" ");
-
-                ChatVerb verb = new ChatVerb();
-                verb.ProcessRequest(r);
-                //No nickname supplied so try and find it
-                if (string.IsNullOrEmpty(verb.Nickname))
-                {
-                    var search = model.Peers.Where(i => i.ID == verb.SourceID).FirstOrDefault();
-                    if (search == null || string.IsNullOrEmpty(search.Nickname))
-                    {
-                        sb.Append(verb.SourceID);
-                    }
-                    else
-                    {
-                        sb.Append(search.Nickname);
-                    }
-                }
-                else
-                {
-                    sb.Append(verb.Nickname);
-                }
-                sb.Append(": ");
-                sb.Append(verb.Message);
-                model.Messages.Add(sb.ToString());
-            }
         }
 
         public void Start()

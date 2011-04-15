@@ -56,12 +56,11 @@ namespace Fap.Application.Controllers
         private readonly ClientListenerService server;
         private readonly ConversationController chatController;
         private readonly DownloadController downloadController;
+        private readonly LogService logReceiver;
 
         private MainWindowViewModel mainWindowModel;
         private Model model;
         private TrayIconViewModel trayIcon;
-
-        private bool manualDebugMode = false;
 
         public ApplicationController(IContainer container)
         {
@@ -78,6 +77,7 @@ namespace Fap.Application.Controllers
             server = container.Resolve<ClientListenerService>();
             chatController = container.Resolve<ConversationController>();
             downloadController = container.Resolve<DownloadController>();
+            logReceiver = container.Resolve<LogService>();
         }
 
         public void Initalise()
@@ -216,9 +216,6 @@ namespace Fap.Application.Controllers
             }
         }
 
-        
-
-
         void Node_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if(null!=mainWindowModel)
@@ -302,6 +299,9 @@ namespace Fap.Application.Controllers
                             gs.Append(" / ");
                             gs.Append(Utility.ConvertNumberToTextSpeed(model.Peers.Select(s => s.UploadSpeed).Sum()));
                             mainWindowModel.GlobalStats = gs.ToString();
+
+                            foreach (var line in logReceiver.GetLines())
+                                model.Messages.Add(line);
                         }
                        ));
                 }
@@ -583,8 +583,8 @@ namespace Fap.Application.Controllers
         {
             if (string.Equals(mainWindowModel.CurrentChatMessage, "/debug", StringComparison.InvariantCultureIgnoreCase))
             {
-                manualDebugMode = !manualDebugMode;
-                logger.Info("Debug mode is " + (manualDebugMode ? "Activated" : "Deactivated"));
+                logReceiver.MoreDebug = !logReceiver.MoreDebug;
+                logger.Info("Debug mode is " + (logReceiver.MoreDebug ? "Activated" : "Deactivated"));
             }
             else
             {

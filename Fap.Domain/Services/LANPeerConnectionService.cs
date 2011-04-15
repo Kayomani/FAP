@@ -108,6 +108,7 @@ namespace Fap.Domain.Services
                     request.RequestID = secret;
                     Client c = new Client(bufferService, connectionService);
                     Response response = new Response();
+                    session.Socket.SendTimeout = 2000;
                     if (!c.Execute(request, session, out response) || response.Status != 0)
                     {
                         logger.Error("Failed to log off correctly.");
@@ -302,14 +303,17 @@ namespace Fap.Domain.Services
                                         search.OverlordID = connect.OverlordID;
                                         search.Secret = connect.Secret;
                                         search.State = ConnectionState.Connected;
+                                        serverNode.Secret = connect.Secret;
+                                        serverNode.OverlordID = connect.OverlordID;
                                         logger.Info("Connected to local overlord on  {0} ({1})" , serverNode.Host, search.OverlordID);
 
                                         var serverDownlink = ucps.FindUplink(connect.Secret);
                                         if (null == serverDownlink)
                                             throw new Exception("No server link found");
-                                        uplink = new Uplink(serverNode, session, bufferService);
+                                        uplink = new Uplink(serverNode, session, bufferService,connectionService);
                                         uplink.OnDisconnect += new Uplink.Disconnect(uplink_OnDisconnect);
                                         uplink.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(uplink_OnReceivedRequest);
+                                        uplink.OnTxTimingout += new Uplink.TxTimingout(uplink_OnTxTimingout);
                                         uplink.Start(serverDownlink);
                                         break;
                                     }
@@ -335,19 +339,75 @@ namespace Fap.Domain.Services
             }
         }
 
+        private Request uplink_OnTxTimingout()
+        {
+           // PingVerb ping = new PingVerb(model.Node);
+           // return ping.CreateRequest();
+            ChatVerb verb = new ChatVerb();
+            verb.Nickname= "SYS";
+            verb.Message = "FFS";
+            return verb.CreateRequest();
+        }
+
         private FAPListenerRequestReturnStatus uplink_OnReceivedRequest(Request r, Socket s)
         {
-            logger.Trace("Client server RX  {0} {1}", r.Command, r.Param);
-            switch (r.Command)
+            if (r.RequestID == network.Secret)
             {
-                case "CLIENT":
-                    HandleClientInfo(r, s);
-                    break;
-                case "DISCONNECT":
-                    HandleDisconnect(r, s);
-                    break;
+                logger.Trace("Client server RX  {0} {1} [{2}]", r.Command, r.Param, r.AdditionalHeaders.Count);
+                switch (r.Command)
+                {
+                    case "CLIENT":
+                        HandleClientInfo(r, s);
+                        break;
+                    case "DISCONNECT":
+                        HandleDisconnect(r, s);
+                        break;
+                    case "CHAT":
+                        HandleChat(r, s);
+                        break;
+                    case "PING":
+                        VerbFactory factory = new VerbFactory();
+                        var verb = factory.GetVerb(r.Command, model);
+                        s.Send(Mediator.Serialize(verb.ProcessRequest(r)));
+                        return FAPListenerRequestReturnStatus.None;
+                }
+            }
+            else
+            {
+                logger.Trace("Invalid secret for => Client server RX  {0} {1} [{2}]", r.Command, r.Param, r.AdditionalHeaders.Count);
             }
             return FAPListenerRequestReturnStatus.None;
+        }
+
+
+        private void HandleChat(Request r, Socket s)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(DateTime.Now.ToShortTimeString());
+            sb.Append(" ");
+
+            ChatVerb verb = new ChatVerb();
+            verb.ProcessRequest(r);
+            //No nickname supplied so try and find it
+            if (string.IsNullOrEmpty(verb.Nickname))
+            {
+                var search = model.Peers.Where(i => i.ID == verb.SourceID).FirstOrDefault();
+                if (search == null || string.IsNullOrEmpty(search.Nickname))
+                {
+                    sb.Append(verb.SourceID);
+                }
+                else
+                {
+                    sb.Append(search.Nickname);
+                }
+            }
+            else
+            {
+                sb.Append(verb.Nickname);
+            }
+            sb.Append(": ");
+            sb.Append(verb.Message);
+            model.Messages.Add(sb.ToString());
         }
 
         private FAPListenerRequestReturnStatus HandleDisconnect(Request r, Socket s)
@@ -360,8 +420,6 @@ namespace Fap.Domain.Services
                    var localNet = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
                    if (null != localNet)
                    {
-                       if (localNet.State == ConnectionState.Connected)
-                       {
                            if (localNet.OverlordID == r.Param)
                            {
                                Disconnect();
@@ -375,7 +433,6 @@ namespace Fap.Domain.Services
                                if (null != search)
                                    model.Peers.Remove(search);
                            }
-                       }
                    }
                }));
             return FAPListenerRequestReturnStatus.None;
@@ -388,19 +445,26 @@ namespace Fap.Domain.Services
           new Action(
            delegate()
            {
-               var search = model.Peers.Where(i => i.ID == r.Param).FirstOrDefault();
-               if (search == null)
+               if (!string.IsNullOrEmpty(r.Param))
                {
-                   search = new Node();
-                   search.Network = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
-                   foreach (var param in r.AdditionalHeaders)
-                       search.SetData(param.Key, param.Value);
-                   model.Peers.Add(search);
-               }
-               else
-               {
-                   foreach (var param in r.AdditionalHeaders)
-                       search.SetData(param.Key, param.Value);
+                   var search = model.Peers.Where(i => i.ID == r.Param).FirstOrDefault();
+                   if (search == null)
+                   {
+                       //Dont allow partial updates to create clients.  Only full updates should contain the online flag.
+                       if (r.AdditionalHeaders.Where(h => h.Key == "Online").Count() == 1)
+                       {
+                           search = new Node();
+                           search.Network = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
+                           foreach (var param in r.AdditionalHeaders)
+                               search.SetData(param.Key, param.Value);
+                           model.Peers.Add(search);
+                       }
+                   }
+                   else
+                   {
+                       foreach (var param in r.AdditionalHeaders)
+                           search.SetData(param.Key, param.Value);
+                   }
                }
            }
           ));
@@ -408,7 +472,7 @@ namespace Fap.Domain.Services
 
         private void uplink_OnDisconnect(Uplink s)
         {
-            network.State = ConnectionState.Disconnected;
+            Disconnect();
         }
 
         private void SyncWorker(object ox)
@@ -502,134 +566,88 @@ namespace Fap.Domain.Services
         /// </summary>
         private void CheckModelChanges()
         {
-            Dictionary<string, string> data = new Dictionary<string, string>();
-            foreach (var entry in model.Node.Data)
+            if (network.State == ConnectionState.Connected)
             {
-                if (transmitted.IsKeySet(entry.Key))
+                Dictionary<string, string> data = new Dictionary<string, string>();
+                foreach (var entry in model.Node.Data)
                 {
-                    if (transmitted.GetData(entry.Key) != entry.Value)
+                    if (transmitted.IsKeySet(entry.Key))
+                    {
+                        if (transmitted.GetData(entry.Key) != entry.Value)
+                        {
+                            data.Add(entry.Key, entry.Value);
+                        }
+                    }
+                    else
                     {
                         data.Add(entry.Key, entry.Value);
                     }
                 }
-                else
-                {
-                    data.Add(entry.Key, entry.Value);
-                }
-            }
 
-            //Data has changed, transmit the changes.
-            if (data.Count > 0)
-            {
-                var network = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
-                if (null != network)
+                //Data has changed, transmit the changes.
+                if (data.Count > 0)
                 {
-                    var node = model.Peers.Where(p => p.ID == network.OverlordID).FirstOrDefault();
-                    if (null != node)
+                    var net = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
+                    if (null != network)
                     {
-                        Request request = new Request();
-                        request.RequestID = network.Secret;
-                        request.Command = "CLIENT";
-                        request.Param = model.Node.ID;
-                        foreach (var change in data)
+                        var node = model.Peers.Where(p => p.ID == net.OverlordID).FirstOrDefault();
+                        if (null != node)
                         {
-                            request.AdditionalHeaders.Add(change.Key, change.Value);
-                            transmitted.SetData(change.Key, change.Value);
-                        }
-
-                        Client client = new Client(bufferService, connectionService);
-                        Response response = null;
-                        if (!client.Execute(request, node, out response) || response.Status != 0)
-                        {
-                            network.State = ConnectionState.Disconnected;
+                            Request request = new Request();
+                            request.RequestID = net.Secret;
+                            request.Command = "CLIENT";
+                            request.Param = model.Node.ID;
+                            foreach (var change in data)
+                            {
+                                request.AdditionalHeaders.Add(change.Key, change.Value);
+                                transmitted.SetData(change.Key, change.Value);
+                            }
+                            if (uplink != null)
+                                uplink.AddMessage(request);
                         }
                     }
                 }
             }
         }
 
-
-
         public void SendChatMessage(string message)
         {
-            if (!string.IsNullOrEmpty(message))
-                ThreadPool.QueueUserWorkItem(new WaitCallback(SendChatMessageAsync), message);
-        }
-
-
-        public void SendPing()
-        {
-            if (network.State == ConnectionState.Connected)
-                ThreadPool.QueueUserWorkItem(new WaitCallback(SendPingAsync));
-        }
-
-
-        private void SendPingAsync(object o)
-        {
-            model.Node.LastUpdate = Environment.TickCount;
-            PingVerb ping = new PingVerb(model.Node);
-            string secret = string.Empty;
-            Session overlord = GetOverlordConnection(out secret);
-            var request = ping.CreateRequest();
-            request.RequestID = secret;
-            Client c = new Client(bufferService, connectionService);
-            Response response = new Response();
-            if (!c.Execute(request, overlord, out response) || response.Status != 0)
+            lock (sync)
             {
-                logger.Error("Failed to send chat message, try again shortly.");
                 if (network.State == ConnectionState.Connected)
-                    network.State = ConnectionState.Disconnected;
-            }
-            else
-            {
-                ping.ReceiveResponse(response);
-                logger.Error("Ping time " + ping.Time);
-            }
-        }
-
-        private void SendChatMessageAsync(object o)
-        {
-            string message = o as string;
-            string secret = string.Empty;
-            Session overlord = GetOverlordConnection(out secret);
-            if (null != overlord)
-            {
-                Request r = new Request();
-                r.RequestID = secret;
-                r.Command = "CHAT";
-                r.Param = model.Node.ID;
-                r.AdditionalHeaders.Add("Text", message);
-                r.AdditionalHeaders.Add("Name", model.Node.Nickname);
-
-                Client c = new Client(bufferService, connectionService);
-                Response response = new Response();
-                if (!c.Execute(r, overlord, out response) || response.Status != 0)
                 {
-                    logger.Error("Failed to send chat message, try again shortly.");
+                    Request r = new Request();
+                    r.Command = "CHAT";
+                    r.Param = model.Node.ID;
+                    r.AdditionalHeaders.Add("Text", message);
+                    r.AdditionalHeaders.Add("Name", model.Node.Nickname);
+                    uplink.AddMessage(r);
                 }
-            }
-            else
-            {
-                logger.Error("Failed to send chat message, you are currently not connected.");
             }
         }
 
         public void Disconnect()
         {
-            var local = model.Networks.Where(n=>n.ID == "LOCAL").FirstOrDefault();
-            if(null!=local)
+            lock (sync)
             {
-                if (local.State == ConnectionState.Connected)
+                var local = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
+                if (null != local)
                 {
-                    logger.Warn("Disconnected from local network");
-                    local.Secret = IDService.CreateID();
-
-                    var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
-                    if (null != currentOverlord)
+                    if (local.State == ConnectionState.Connected)
                     {
-                        currentOverlord.Ban(4000);
+                        logger.Warn("Disconnected from local network");
+                        local.Secret = IDService.CreateID();
+
+                        var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
+                        if (null != currentOverlord)
+                        {
+                            currentOverlord.Ban(4000);
+                        }
+                        var oldPeers = model.Peers.Where(p => p.OverlordID == currentOverlord.ID).ToList();
+                        foreach (var peer in oldPeers)
+                            model.Peers.Remove(peer);
+                        local.State = ConnectionState.Disconnected;
                     }
-                    local.State = ConnectionState.Disconnected;
                 }
             }
         }

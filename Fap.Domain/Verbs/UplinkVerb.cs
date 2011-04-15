@@ -26,15 +26,30 @@ namespace Fap.Domain.Verbs
 
         public Response ProcessRequest(Request r)
         {
-            Response response = new Response();
-            response.RequestID = r.RequestID;
-            return response;
+            InfoVerb i = new InfoVerb(model);
+            return i.ProcessRequest(r);
         }
 
         public bool ReceiveResponse(Network.Entity.Response r)
         {
-            Status = r.Status;
-            return true;
+            try
+            {
+                if (r.Status == 0 && r.ContentSize == 0)
+                {
+                    //If we don't have the full specification then fail the response.
+                    foreach (var data in r.AdditionalHeaders)
+                        model.SetData(data.Key, data.Value);
+                    return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        public Node Model
+        {
+            set { model = value; }
+            get { return model; }
         }
     }
 }

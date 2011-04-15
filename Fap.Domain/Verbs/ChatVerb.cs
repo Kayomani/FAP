@@ -28,7 +28,12 @@ namespace Fap.Domain.Verbs
 
         public Network.Entity.Request CreateRequest()
         {
-            throw new NotImplementedException();
+            Network.Entity.Request r = new Request();
+            r.AdditionalHeaders.Add("Name", Nickname);
+            r.AdditionalHeaders.Add("Text", Message);
+            r.Param = SourceID;
+            r.Command = "CHAT";
+            return r;
         }
 
         public Network.Entity.Response ProcessRequest(Network.Entity.Request r)

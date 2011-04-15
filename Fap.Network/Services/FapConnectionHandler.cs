@@ -44,6 +44,11 @@ namespace Fap.Network.Services
             logger = LogManager.GetLogger("faplog");
         }
 
+        public void Dispose()
+        {
+
+
+        }
 
         public void HandleConnection(Socket socket)
         {
@@ -54,8 +59,6 @@ namespace Fap.Network.Services
             {
                 socket.SendBufferSize = BufferService.SmallBuffer;
                 socket.ReceiveBufferSize = BufferService.SmallBuffer * 2;
-                socket.ReceiveTimeout = 300 * 1000;
-                socket.Blocking = true;
                 while (socket.Connected)
                 {
                     arg = bufferManager.GetSmallArg();
@@ -64,6 +67,7 @@ namespace Fap.Network.Services
                     if (rx == 0)
                     {
                         bufferManager.FreeArg(arg);
+                        throw new Exception("Dont get here..");
                     }
                     else
                     {

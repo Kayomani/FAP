@@ -31,7 +31,7 @@ namespace Fap.Network.Entity
     public class Uplink
     {
         //Timeout checking
-        private long timeoutPeriod = 80000;
+        private long timeoutPeriod = 150000;
         private long lastRx = Environment.TickCount;
         private long lastTx = Environment.TickCount;
 
@@ -52,12 +52,18 @@ namespace Fap.Network.Entity
         private AutoResetEvent workerEvent = new AutoResetEvent(true);
         // --------------------- RX ---------------------
         private FapConnectionHandler rxHandler;
+        private Socket socket;
+
+        private BufferService bufferService;
+        private ConnectionService connectionService;
 
         public event FapConnectionHandler.ReceiveRequest OnReceivedRequest;
 
-        public Uplink(Node n, Session s, BufferService b)
+        public Uplink(Node n, Session s, BufferService b,ConnectionService c)
         {
             node = n;
+            bufferService = b;
+            connectionService = c;
             session = s;
             rxHandler = new FapConnectionHandler(b);
             rxHandler.OnDisconnect += new FapConnectionHandler.Disconnect(rxHandler_OnDisconnect);
@@ -75,9 +81,9 @@ namespace Fap.Network.Entity
 
         private void ListenAsync(object o)
         {
-            Socket s = o as Socket;
-            if(null!=s)
-                rxHandler.HandleConnection(s);
+            socket = o as Socket;
+            if (null != socket)
+                rxHandler.HandleConnection(socket);
         }
 
 
@@ -89,6 +95,9 @@ namespace Fap.Network.Entity
         /// <returns></returns>
         private FAPListenerRequestReturnStatus rxHandler_OnReceiveRequest(Request r, Socket s)
         {
+            lastRx = Environment.TickCount;
+            if (!running)
+                return FAPListenerRequestReturnStatus.Disposed;
             if (null != OnReceivedRequest)
                 return OnReceivedRequest(r, s);
             throw new Exception("Received command with no active listener");
@@ -124,6 +133,7 @@ namespace Fap.Network.Entity
         {
             if (running)
                 pendingRequests.Add(r);
+            workerEvent.Set();
             return running;
         }
 
@@ -131,6 +141,13 @@ namespace Fap.Network.Entity
         {
             running = false;
             workerEvent.Set();
+            try
+            {
+                if (socket.Connected)
+                    socket.Disconnect(false);
+                socket.Close();
+            }
+            catch { }
         }
 
         private void Process(object o)
@@ -157,7 +174,7 @@ namespace Fap.Network.Entity
                         running = false;
                         break;
                     }
-                    else if (lastTx + (timeoutPeriod * 0.8) < now)
+                    else if (lastTx + (timeoutPeriod * 0.5) < now)
                     {
                         if (null != OnTxTimingout)
                         {
@@ -166,7 +183,7 @@ namespace Fap.Network.Entity
                         }
                     }
                     //Wait until there is work to do or 5 seconds have elapsed
-                    workerEvent.WaitOne(5000);
+                    workerEvent.WaitOne(1000);
                 }
             }
             catch { }

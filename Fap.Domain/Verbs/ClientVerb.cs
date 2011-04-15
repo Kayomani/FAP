@@ -34,6 +34,9 @@ namespace Fap.Domain.Verbs
 
         public Network.Entity.Request CreateRequest()
         {
+            if (string.IsNullOrEmpty(model.ID))
+                throw new Exception("No client ID passed to client verb");
+
             Request response = new Request();
             response.RequestID = model.ID;
             response.Command = "CLIENT";
