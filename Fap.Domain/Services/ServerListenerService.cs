@@ -33,6 +33,7 @@ using Fap.Domain.Entity;
 using Fap.Foundation.Services;
 using System.Text.RegularExpressions;
 using NLog;
+using Fap.Domain.Services;
 
 namespace Fap.Domain.Controllers
 {
@@ -50,6 +51,7 @@ namespace Fap.Domain.Controllers
         private BroadcastClient bclient;
         private ConnectionService connectionService;
         private BufferService bufferService;
+        private ShareInfoService shareInfo;
         private string listenLocation;
         private Logger logService;
 
@@ -72,6 +74,7 @@ namespace Fap.Domain.Controllers
             container = c;
             logService = LogManager.GetLogger("faplog");
             model = c.Resolve<Model>();
+            shareInfo = c.Resolve<ShareInfoService>();
             model.Overlord.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Overlord_PropertyChanged);
         }
 
@@ -232,7 +235,7 @@ namespace Fap.Domain.Controllers
                 case "PING":
                     return HandlePing(r, s);
                 case "BROWSE":
-                    BrowseVerb bverb = new BrowseVerb(model);
+                    BrowseVerb bverb = new BrowseVerb(model,shareInfo);
                     Response response = bverb.ProcessRequest(r);
                     response.AdditionalHeaders.Clear();
                     s.Send(Mediator.Serialize(response));

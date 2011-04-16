@@ -42,6 +42,7 @@ namespace Fap.Domain.Services
         private BufferService bs;
         private ServerUploadLimiterService limiter;
         private UplinkConnectionPoolService ucps;
+        private ShareInfoService shareInfo;
 
         public ClientListenerService(IContainer c)
         {
@@ -53,6 +54,7 @@ namespace Fap.Domain.Services
             bs = c.Resolve<BufferService>();
             limiter = c.Resolve<ServerUploadLimiterService>();
             ucps = c.Resolve<UplinkConnectionPoolService>();
+            shareInfo = c.Resolve<ShareInfoService>();
         }
 
         private FAPListenerRequestReturnStatus listener_OnReceiveRequest(Request r, Socket s)
@@ -76,6 +78,10 @@ namespace Fap.Domain.Services
                 case "GET":
                     ServerUploaderService dl = new ServerUploaderService(model, bs, limiter);
                     return dl.HandleRequest(r, s); 
+                case "BROWSE":
+                    BrowseVerb b = new BrowseVerb(model, shareInfo);
+                    s.Send(Mediator.Serialize(b.ProcessRequest(r)));
+                    return FAPListenerRequestReturnStatus.None;
                 default:
                     VerbFactory factory = new VerbFactory();
                     var verb = factory.GetVerb(r.Command, model);

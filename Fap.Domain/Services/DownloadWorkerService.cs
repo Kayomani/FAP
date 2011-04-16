@@ -205,7 +205,7 @@ namespace Fap.Domain.Services
 
                         if (currentItem.Request.IsFolder)
                         {
-                            BrowseVerb cmd = new BrowseVerb(model);
+                            BrowseVerb cmd = new BrowseVerb(model, null);
                             cmd.ReceiveResponse(response);
                             oustandingRequests--;
                             if (cmd.Status != 0)
@@ -379,7 +379,7 @@ namespace Fap.Domain.Services
                 item.Requested = true;
                 if (item.Request.IsFolder)
                 {
-                    BrowseVerb cmd = new BrowseVerb(model);
+                    BrowseVerb cmd = new BrowseVerb(model,null);
                     cmd.Path = item.Request.FullPath;
                     cmd.RequestID = item.UID;
                     s.Socket.Send(Mediator.Serialize(cmd.CreateRequest()));

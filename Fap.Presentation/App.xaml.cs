@@ -150,6 +150,7 @@ namespace Fap.Presentation
                 builder.RegisterType<ServerUploadLimiterService>().SingleInstance();
                 builder.RegisterType<UplinkConnectionPoolService>().SingleInstance();
                 builder.RegisterType<LogService>().SingleInstance();
+                builder.RegisterType<ShareInfoService>().SingleInstance();
 
                 //UI
                 builder.RegisterType<MainWindow>().As<IMainWindow>();

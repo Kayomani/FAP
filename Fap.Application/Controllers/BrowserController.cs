@@ -40,17 +40,19 @@ namespace Fap.Application.Controllers
         private Model model;
         private readonly BufferService bufferService;
         private readonly ConnectionService connectionService;
+        private readonly ShareInfoService shareInfo;
 
 
         public BrowserViewModel ViewModel { get { return bvm; } }
 
-        public BrowserController(BrowserViewModel bvm,  Model model, BufferService bufferService,  ConnectionService connectionService, Node client)
+        public BrowserController(BrowserViewModel bvm, Model model, BufferService bufferService, ConnectionService connectionService, Node client, ShareInfoService i)
         {
             this.client = client;
             this.model = model;
             this.bufferService = bufferService;
             this.connectionService = connectionService;
             this.bvm = bvm;
+            shareInfo = i;
         }
 
         public void Initalise()
@@ -127,7 +129,7 @@ namespace Fap.Application.Controllers
             {
                 fse.ClearItems();
                 Client c = new Client(bufferService, connectionService);
-                BrowseVerb cmd = new BrowseVerb(model);
+                BrowseVerb cmd = new BrowseVerb(model, shareInfo);
                 cmd.Path = fse.FullPath;
 
                 if (c.Execute(cmd, client))
@@ -152,7 +154,7 @@ namespace Fap.Application.Controllers
             else
             {
                 Client c = new Client(bufferService, connectionService);
-                BrowseVerb cmd = new BrowseVerb(model);
+                BrowseVerb cmd = new BrowseVerb(model, shareInfo);
 
                 if (c.Execute(cmd, client))
                 {
@@ -235,7 +237,7 @@ namespace Fap.Application.Controllers
         private void item_selected_async(object input)
         {
             Client c = new Client(bufferService, connectionService);
-            BrowseVerb cmd = new BrowseVerb(model);
+            BrowseVerb cmd = new BrowseVerb(model, shareInfo);
             FileSystemEntity ent = input as FileSystemEntity;
             if (null != ent)
                 cmd.Path = ent.FullPath;
@@ -272,7 +274,7 @@ namespace Fap.Application.Controllers
         {
             ExpandRequest req = input as ExpandRequest;
             Client c = new Client(bufferService, connectionService);
-            BrowseVerb cmd = new BrowseVerb(model);
+            BrowseVerb cmd = new BrowseVerb(model, shareInfo);
             cmd.Path = req.Path.FullPath;
             if (c.Execute(cmd, client))
             {

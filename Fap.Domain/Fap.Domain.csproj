@@ -102,6 +102,7 @@
     <Compile Include="Services\LANPeerConnectionService.cs" />
     <Compile Include="Services\ClientListenerService.cs" />
     <Compile Include="Services\ServerUploadLimiterService.cs" />
+    <Compile Include="Services\ShareInfoService.cs" />
     <Compile Include="Services\SocketHelper.cs" />
     <Compile Include="Services\ClientDownloadLimiterService.cs" />
     <Compile Include="Services\UplinkConnectionPoolService.cs" />

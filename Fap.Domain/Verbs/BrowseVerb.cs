@@ -22,18 +22,20 @@ using Fap.Network.Entity;
 using Fap.Domain.Entity;
 using System.IO;
 using Fap.Network;
+using Fap.Domain.Services;
 
 namespace Fap.Domain.Verbs
 {
     public class BrowseVerb : VerbBase, IVerb
     {
         private List<FileSystemEntity> results = new List<FileSystemEntity>();
-
+        private ShareInfoService infoService;
         private Model model;
 
-        public BrowseVerb(Model m)
+        public BrowseVerb(Model m, ShareInfoService i)
         {
             model = m;
+            infoService = i;
         }
 
 
@@ -61,7 +63,7 @@ namespace Fap.Domain.Verbs
                         if (share.LastRefresh == DateTime.MinValue)
                             response.AdditionalHeaders.Add(share.Name, "D|0|0");
                         else
-                            response.AdditionalHeaders.Add(share.Name, "D|0|" + share.LastRefresh.ToFileTime());
+                            response.AdditionalHeaders.Add(share.Name, "D|" + share.Size + "|" + share.LastRefresh.ToFileTime());
                     }
                 }
             }
@@ -72,10 +74,20 @@ namespace Fap.Domain.Verbs
                     string path = string.Empty;
                     if (ReplacePath(r.Param, out path))
                     {
+                        var scanInfo = infoService.GetPath(r.Param);
+                        if(null==scanInfo)
+                            scanInfo = new ShareInfoService.Directory();
+
                         DirectoryInfo directory = new DirectoryInfo(path);
                         DirectoryInfo[] directories = directory.GetDirectories();
                         foreach (var dir in directories)
-                            response.AdditionalHeaders.Add(dir.Name, "D|0|" + dir.LastWriteTime.ToFileTime());
+                        {
+                            var info = scanInfo.Directories.Where(d=>d.Name == dir.Name).FirstOrDefault();
+                            if(null!=info)
+                              response.AdditionalHeaders.Add(dir.Name, "D|"+ info.Size + "|" + dir.LastWriteTime.ToFileTime());
+                            else
+                              response.AdditionalHeaders.Add(dir.Name, "D|0|" + dir.LastWriteTime.ToFileTime());
+                        }
 
                         FileInfo[] files = directory.GetFiles();
                         foreach (var file in files)

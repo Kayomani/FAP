@@ -39,6 +39,7 @@ namespace Fap.Application.Controllers
         private QueryViewModel queryModel;
         private LANPeerConnectionService peerController;
         private IContainer container;
+        private ShareInfoService scanner;
 
         public SharesViewModel ViewModel { get { return viewModel; } }
 
@@ -51,6 +52,7 @@ namespace Fap.Application.Controllers
             queryModel = q;
             peerController = p;
             container = c;
+            scanner = c.Resolve<ShareInfoService>();
         }
         public void Initalise()
         {
@@ -140,49 +142,25 @@ namespace Fap.Application.Controllers
             if (null != s)
             {
                 s.Status = "Scanning..";
-                DirectoryInfo di = new DirectoryInfo(s.Path);
-                var state = GetDirectorySizeRecursive(di, true);
-                s.Size = state.Size;
-                s.FileCount = state.FileCount;
+                var info = scanner.RefreshPath(s);
+                s.Size = info.Size;
+                s.FileCount = info.FileCount;
                 s.Status = string.Empty;
                 s.LastRefresh = DateTime.Now;
                 RefreshClientStats();
             }
         }
 
-
-
-        private ScanInfo GetDirectorySizeRecursive(DirectoryInfo directory, bool includeSubdirectories)
+        public void RefreshShareInfo()
         {
-            ScanInfo info = new ScanInfo();
-            iGetDirectorySizeRecursive(info, directory, includeSubdirectories);
-            return info;
+            QueueWork(new DelegateCommand(AsyncRefreshShareInfo));
         }
 
-        private void iGetDirectorySizeRecursive(ScanInfo info, DirectoryInfo directory, bool includeSubdirectories)
+        private void AsyncRefreshShareInfo()
         {
-            try
-            {
-                // Examine all contained files.
-                FileInfo[] files = directory.GetFiles();
-                foreach (FileInfo file in files)
-                {
-                    info.Size += file.Length;
-                    info.FileCount++;
-                }
-
-                // Examine all contained directories.
-                if (includeSubdirectories)
-                {
-                    DirectoryInfo[] dirs = directory.GetDirectories();
-                    foreach (DirectoryInfo dir in dirs)
-                    {
-                        iGetDirectorySizeRecursive(info, dir, true);
-                    }
-                }
-
-            }
-            catch { }
+            foreach (var share in model.Shares.ToList().Where(s=>(DateTime.Now-s.LastRefresh).TotalMinutes>30).ToList())
+                AsyncRefresh(share);
+            RefreshClientStats();
         }
 
         private void RefreshCommand()
@@ -201,6 +179,7 @@ namespace Fap.Application.Controllers
         {
             if (null != viewModel.SelectedShare)
             {
+                scanner.RemoveShare(viewModel.SelectedShare.Name);
                 model.Shares.Remove(viewModel.SelectedShare);
             }
         }

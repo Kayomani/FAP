@@ -57,6 +57,7 @@ namespace Fap.Application.Controllers
         private readonly ConversationController chatController;
         private readonly DownloadController downloadController;
         private readonly LogService logReceiver;
+        private readonly ShareInfoService shareInfo;
 
         private MainWindowViewModel mainWindowModel;
         private Model model;
@@ -78,7 +79,7 @@ namespace Fap.Application.Controllers
             chatController = container.Resolve<ConversationController>();
             downloadController = container.Resolve<DownloadController>();
             logReceiver = container.Resolve<LogService>();
-
+            shareInfo = container.Resolve<ShareInfoService>();
         }
 
         public void Initalise()
@@ -143,7 +144,7 @@ namespace Fap.Application.Controllers
                 model.LocalNodeID = IDService.CreateID();
             }
 
-           
+            shareInfo.Load();
 
             //Load download queue
             try

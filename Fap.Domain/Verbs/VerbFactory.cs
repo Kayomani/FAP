@@ -34,8 +34,8 @@ namespace Fap.Domain.Verbs
                     return new InfoVerb(n.Node);
                 case "CONNECT":
                     return new ConnectVerb(n.Node);
-                case "BROWSE":
-                    return new BrowseVerb(n);
+               // case "BROWSE":
+                //    return new BrowseVerb(n);
                 case "COMPARE":
                     return new CompareVerb(n);
                 case "CONVERSATION":

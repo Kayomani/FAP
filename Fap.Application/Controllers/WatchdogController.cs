@@ -40,8 +40,9 @@ namespace Fap.Application.Controllers
         private Thread worker;
         private LANPeerConnectionService peerService;
         private UplinkConnectionPoolService ucps;
+        private SharesController shareController;
 
-        public WatchdogController(ConnectionService cs, Model model, BufferService bufferService, LANPeerConnectionService ps, UplinkConnectionPoolService u)
+        public WatchdogController(ConnectionService cs, Model model, BufferService bufferService, LANPeerConnectionService ps, UplinkConnectionPoolService u, SharesController shareController)
         {
             connectionService = cs;
             this.model = model;
@@ -49,6 +50,7 @@ namespace Fap.Application.Controllers
             this.bufferService = bufferService;
             peerService = ps;
             ucps = u;
+            this.shareController = shareController;
         }
 
         public void Run()
@@ -75,6 +77,8 @@ namespace Fap.Application.Controllers
             {
                 try
                 {
+                    
+
                     //Disconnect sessions if needed
                     DisconnectStaleSessions();
                     //Clean up excess buffers
@@ -86,7 +90,6 @@ namespace Fap.Application.Controllers
                         if (null != session.Worker && session.Worker.IsComplete)
                             model.TransferSessions.Remove(session);
                     }
-
                     //Update transfer stats every 4 seconds
                     if (speedCount > 3)
                     {
@@ -94,6 +97,8 @@ namespace Fap.Application.Controllers
                         //Check for disconnected server connections
                         model.Node.DownloadSpeed = NetworkSpeedMeasurement.TotalDownload.GetSpeed();
                         model.Node.UploadSpeed = NetworkSpeedMeasurement.TotalUpload.GetSpeed();
+
+                        shareController.RefreshShareInfo();
                     }
                     else
                         speedCount++;
