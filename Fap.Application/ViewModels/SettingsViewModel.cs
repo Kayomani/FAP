@@ -30,11 +30,18 @@ namespace Fap.Application.ViewModels
         private Model model;
         private ICommand editDownloadDir;
         private ICommand changeAvatar;
+        private ICommand resetInterface;
 
         public SettingsViewModel(ISettingsView view)
             : base(view)
         {
 
+        }
+
+        public ICommand ResetInterface
+        {
+            get { return resetInterface;}
+            set{ resetInterface = value; RaisePropertyChanged("ResetInterface");}
         }
 
          public ICommand EditDownloadDir

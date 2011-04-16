@@ -23,7 +23,7 @@
                 <Button Command="{Binding ChangeAvatar}" Content="Change" Height="23" HorizontalAlignment="Left" Margin="145,68,0,0" VerticalAlignment="Top" Width="65" />
             </Grid>
         </GroupBox>
-        <GroupBox Header="Client config" Height="160">
+        <GroupBox Header="Client config" Height="180">
             <Grid>
                 <Label Content="Download Directory" Height="20" HorizontalAlignment="Left" Margin="21,8,0,0" Name="label23" VerticalAlignment="Top" />
                 <TextBox Height="23" Margin="143,6,79,0" Name="textBox3" Text="{Binding Model.DownloadFolder}" VerticalAlignment="Top" IsReadOnly="True" IsEnabled="False" />
@@ -31,8 +31,10 @@
                 <Label Content="Incomplete Directory" Height="20" HorizontalAlignment="Left" Margin="21,37,0,0" Name="label1" VerticalAlignment="Top" />
                 <TextBox Height="23" IsEnabled="False" IsReadOnly="True" Margin="143,35,79,0" Name="textBox4" Text="{Binding Model.IncompleteFolder}" VerticalAlignment="Top" />
                 <Button Visibility="Collapsed" Command="{Binding EditDownloadDir}" Content="Edit" Height="23" HorizontalAlignment="Right" Margin="0,36,6,0" VerticalAlignment="Top" Width="65" />
-                <Label Content="Disable spec comparision" Height="22" HorizontalAlignment="Left" Margin="21,95,0,0" Name="label2" VerticalAlignment="Top" />
+                <Label Content="Disable spec comparision" Height="22" HorizontalAlignment="Left" Margin="21,92,0,0" Name="label2" VerticalAlignment="Top" />
                 <CheckBox Margin="164,95,0,0" IsChecked="{Binding Model.DisableComparision}" HorizontalAlignment="Left" Width="35" Height="22" VerticalAlignment="Top" />
+                <Label Content="Selected Interface" Height="22" HorizontalAlignment="Left" Margin="21,118,0,0"  VerticalAlignment="Top" />
+
                 <Label Content="Overlord host priority" Height="22" HorizontalAlignment="Left" Margin="21,65,0,0" Name="label3" VerticalAlignment="Top" />
                 <Border Margin="143,63,0,0" HorizontalAlignment="Left" BorderBrush="Black" BorderThickness="1" CornerRadius="2" Height="24" VerticalAlignment="Top" Width="131">
                     <ComboBox  Width="129" Name="overlordpri" SelectionChanged="overlordpri_SelectionChanged" >
@@ -41,7 +43,8 @@
                         <ComboBoxItem Content="Low" />
                     </ComboBox>
                 </Border>
-                
+                <TextBox Height="23" HorizontalAlignment="Left" Margin="143,115,0,0" Text="{Binding Model.IPAddress}" IsEnabled="False" VerticalAlignment="Top" Width="208" />
+                <Button Command="{Binding ResetInterface}" Content="Reset" Height="23" HorizontalAlignment="Left" Margin="362,115,0,0" VerticalAlignment="Top" Width="65" />
             </Grid>
         </GroupBox>
         <GroupBox Header="Transfer limits" Height="190">

@@ -32,30 +32,28 @@ namespace Fap.Application.Controllers
 {
     public class SharesController : AsyncControllerBase
     {
-        private readonly SharesViewModel viewModel;
-        private readonly QueryViewModel browser;
+        private  SharesViewModel viewModel;
+        private  QueryViewModel browser;
         private readonly Logger logger;
         private readonly Model model;
-        private QueryViewModel queryModel;
         private LANPeerConnectionService peerController;
         private IContainer container;
         private ShareInfoService scanner;
 
         public SharesViewModel ViewModel { get { return viewModel; } }
 
-        public SharesController(IContainer c, SharesViewModel vm, QueryViewModel b, Model m, QueryViewModel q, LANPeerConnectionService p)
+        public SharesController(IContainer c,  Model m, LANPeerConnectionService p)
         {
-            viewModel = vm;
-            browser = b;
             logger = LogManager.GetLogger("faplog");
             model = m;
-            queryModel = q;
             peerController = p;
             container = c;
             scanner = c.Resolve<ShareInfoService>();
         }
         public void Initalise()
         {
+            viewModel = container.Resolve<SharesViewModel>();
+            browser = container.Resolve<QueryViewModel>();
             viewModel.AddCommand = new DelegateCommand(AddCommand);
             viewModel.RefreshCommand = new DelegateCommand(RefreshCommand);
             viewModel.RemoveCommand = new DelegateCommand(RemoveCommand);

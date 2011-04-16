@@ -144,25 +144,8 @@ namespace Fap.Domain.Services
 
         public void Start()
         {
-            var address = GetLocalAddress();
-            model.Node.Port =listener.Start(address, 95);
-            model.Node.Host = address.ToString();
-        }
-
-        private IPAddress GetLocalAddress()
-        {
-            IPAddress[] localIPs = Dns.GetHostAddresses(Dns.GetHostName());
-            IPAddress a = localIPs[0];
-
-            foreach (var ip in localIPs)
-            {
-                if (!IPAddress.IsLoopback(ip) && ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    a = ip;
-                    break;
-                }
-            }
-            return a;
+            model.Node.Port =listener.Start(IPAddress.Parse(model.IPAddress), 95);
+            model.Node.Host = model.IPAddress;
         }
     }
 }

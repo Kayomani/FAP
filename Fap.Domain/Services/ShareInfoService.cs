@@ -47,6 +47,8 @@ namespace Fap.Domain.Services
                 shares.Add(share.Name, info);
             }
             info.Name = share.Name;
+            info.Size = 0;
+            info.FileCount = 0;
             info.Directories.Clear();
             GetDirectorySizeRecursive(new DirectoryInfo(share.Path), info);
             try

@@ -18,11 +18,9 @@ namespace Fap.Domain.Services
 
         public Socket FindUplink(string id)
         {
-            list.Lock();
             var item = list.Where(i => i.ID == id).FirstOrDefault();
             if (null != item)
                 list.Remove(item);
-            list.Unlock();
             return item.Socket;
         }
 
@@ -30,7 +28,6 @@ namespace Fap.Domain.Services
         {
             if (list.Count > 0)
             {
-                list.Lock();
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
                     if (list[i].TimeAdded + 60000 < Environment.TickCount)
@@ -52,7 +49,6 @@ namespace Fap.Domain.Services
                         }
                     }
                 }
-                list.Unlock();
             }
         }
 

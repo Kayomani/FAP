@@ -81,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BufferedFileReader.cs" />
+    <Compile Include="Entity\NetworkInterface.cs" />
     <Compile Include="Services\LogService.cs" />
     <Compile Include="Services\ServerListenerService.cs" />
     <Compile Include="Entity\CompareNode.cs" />

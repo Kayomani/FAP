@@ -129,6 +129,9 @@
     <Compile Include="InputWindow.xaml.cs">
       <DependentUpon>InputWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="InterfaceSelection.xaml.cs">
+      <DependentUpon>InterfaceSelection.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ListBoxAutoScroll.cs" />
     <Compile Include="ListViewCustomComparer.cs" />
     <Compile Include="ListViewSorter.cs" />
@@ -240,6 +243,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="InputWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="InterfaceSelection.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

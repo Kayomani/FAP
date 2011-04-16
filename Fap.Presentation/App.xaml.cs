@@ -36,6 +36,8 @@ using Fap.Network.Services;
 using Fap.Application.ViewModels;
 using NLog;
 using NLog.Config;
+using System.Waf.Applications.Services;
+using System.Waf.Presentation.Services;
 
 namespace Fap.Presentation
 {
@@ -69,8 +71,7 @@ namespace Fap.Presentation
         {
 
            
-            //NetTest test = new NetTest();
-           // test.Test();
+
             Fap.Foundation.SafeObservableStatic.Dispatcher = System.Windows.Application.Current.Dispatcher;
             this.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(App_DispatcherUnhandledException);
 
@@ -82,14 +83,17 @@ namespace Fap.Presentation
             base.OnStartup(e);
             if (Compose())
             {
-                //ThreadPool.SetMaxThreads(3, 3);
-             //   BufferTest bt = new BufferTest();
-              //  bt.Test(container);
-               // return;
+                if (e.Args.Length == 1 && e.Args[0] == "WAIT")
+                {
+                    //Delay the application starting up, used when restarting.
+                    Thread.Sleep(3000);
+                }
 
                 ApplicationController controller = new ApplicationController(container);
-                controller.Initalise();
-                controller.Run();
+                if (!controller.Initalise())
+                    Shutdown(1);
+                else
+                    controller.Run();
             }
             else
             {
@@ -166,6 +170,8 @@ namespace Fap.Presentation
                 builder.RegisterType<ComparePanel>().As<ICompareView>();
                 builder.RegisterType<Fap.Presentation.Panels.Conversation>().As<IConverstationView>();
                 builder.RegisterType<UserInfoPanel>().As<IUserInfo>();
+                builder.RegisterType<InterfaceSelection>().As<IInterfaceSelectionView>();
+                builder.RegisterType<MessageService>().As<IMessageService>();
                 
                 //Services
                 builder.RegisterType<DownloadController>().SingleInstance();

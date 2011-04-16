@@ -225,7 +225,7 @@ namespace Fap.Domain.Services
                                 overlord_active = true;
                                 logger.Info("Starting a local overlord..");
                                 overlord = container.Resolve<ServerListenerService>();
-                                overlord.Start(GetLocalAddress(), 90, "LOCAL", "Local");
+                                overlord.Start(IPAddress.Parse(model.IPAddress), 90, "LOCAL", "Local");
                                 Thread.Sleep(15);
                             }
                         }
@@ -535,25 +535,6 @@ namespace Fap.Domain.Services
                 }
             }
         }
-
-
-        private IPAddress GetLocalAddress()
-        {
-            IPAddress[] localIPs = Dns.GetHostAddresses(Dns.GetHostName());
-            IPAddress a = localIPs[0];
-
-            foreach (var ip in localIPs)
-            {
-                if (!IPAddress.IsLoopback(ip) && ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    a = ip;
-                    break;
-                }
-            }
-            return a;
-        }
-
-
 
 
         private void SendWhoAsync(object o)

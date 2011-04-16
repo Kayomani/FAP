@@ -52,7 +52,7 @@ namespace Fap.Presentation
         void MainWindow2_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             var c = (DataContext as MainWindowViewModel);
-            if (!c.AllowClose)
+            if (null!=c &&!c.AllowClose)
             {
                 e.Cancel = true;
                 c.Visible = false;

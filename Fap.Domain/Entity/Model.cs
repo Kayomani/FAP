@@ -43,6 +43,7 @@ namespace Fap.Domain.Entity
         private string downloadFolder;
         private string incompleteFolder;
         private bool disableCompare;
+        private string ipAddress;
 
         private SafeObservable<Session> sessions;
         private SafeObservable<TransferSession> transferSessions;
@@ -103,6 +104,13 @@ namespace Fap.Domain.Entity
         {
             set { messages = value; NotifyChange("Messages"); }
             get { return messages; }
+        }
+
+
+        public string IPAddress
+        {
+            set { ipAddress = value; NotifyChange("IPAddress"); }
+            get { return ipAddress; }
         }
 
         [XmlIgnore]
@@ -368,6 +376,7 @@ namespace Fap.Domain.Entity
                     MaxOverlordPeers = m.MaxOverlordPeers;
                     LocalNodeID = m.LocalNodeID;
                     DisableComparision = m.DisableComparision;
+                    IPAddress = m.IPAddress;
                 }
             }
             catch (Exception e)

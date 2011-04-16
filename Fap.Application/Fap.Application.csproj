@@ -90,6 +90,7 @@
     <Compile Include="Controllers\CompareController.cs" />
     <Compile Include="Controllers\DownloadController.cs" />
     <Compile Include="Controllers\DownloadQueueController.cs" />
+    <Compile Include="Controllers\InterfaceController.cs" />
     <Compile Include="Controllers\PopupWindowController.cs" />
     <Compile Include="Controllers\SharesController.cs" />
     <Compile Include="Controllers\WatchdogController.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="ViewModels\CompareViewModel.cs" />
     <Compile Include="ViewModels\ConversationViewModel.cs" />
     <Compile Include="ViewModels\DownloadQueueViewModel.cs" />
+    <Compile Include="ViewModels\InterfaceSelectionViewModel.cs" />
     <Compile Include="ViewModels\MessageBoxViewModel.cs" />
     <Compile Include="ViewModels\PopUpWindowTab.cs" />
     <Compile Include="ViewModels\PopupWindowViewModel.cs" />
@@ -111,6 +113,7 @@
     <Compile Include="Views\IConverstationView.cs" />
     <Compile Include="Views\ICompareView.cs" />
     <Compile Include="Views\IDownloadQueue.cs" />
+    <Compile Include="Views\IInterfaceSelectionView.cs" />
     <Compile Include="Views\IMessageBoxView.cs" />
     <Compile Include="Views\IPopupWindow.cs" />
     <Compile Include="Views\IQuery.cs" />

@@ -41,6 +41,9 @@ using System.Diagnostics;
 using Fap.Foundation.Services;
 using ContinuousLinq;
 using NLog;
+using Fap.Application.Views;
+using System.Waf.Applications.Services;
+using System.Reflection;
 
 namespace Fap.Application.Controllers
 {
@@ -58,6 +61,7 @@ namespace Fap.Application.Controllers
         private readonly DownloadController downloadController;
         private readonly LogService logReceiver;
         private readonly ShareInfoService shareInfo;
+        private readonly InterfaceController interfaceController;
 
         private MainWindowViewModel mainWindowModel;
         private Model model;
@@ -80,9 +84,10 @@ namespace Fap.Application.Controllers
             downloadController = container.Resolve<DownloadController>();
             logReceiver = container.Resolve<LogService>();
             shareInfo = container.Resolve<ShareInfoService>();
+            interfaceController = container.Resolve<InterfaceController>();
         }
 
-        public void Initalise()
+        public bool Initalise()
         {
             try
             {
@@ -93,6 +98,12 @@ namespace Fap.Application.Controllers
                 logger.Warn("Failed to read config file, using defaults");
             }
 
+            model.IPAddress = interfaceController.CheckAddress(model.IPAddress);
+            //User chose to quit rather than select an interface =s
+            if (string.IsNullOrEmpty(model.IPAddress))
+                return false;
+
+            logger.Info("Using local address: {0}", model.IPAddress);
             //If there is no avatar set then put in the default
             if (string.IsNullOrEmpty(model.Avatar))
             {
@@ -187,6 +198,7 @@ namespace Fap.Application.Controllers
             model.Node.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Node_PropertyChanged);
 
             logger.Info("Local node ID is {0}", model.Node.ID);
+            return true;
         }
 
 
@@ -449,24 +461,6 @@ namespace Fap.Application.Controllers
             mainWindowModel = null;
         }
 
-        private IPAddress GetLocalAddress()
-        {
-            IPAddress[] localIPs = Dns.GetHostAddresses(Dns.GetHostName());
-            IPAddress a = localIPs[0];
-
-            foreach (var ip in localIPs)
-            {
-                if (!IPAddress.IsLoopback(ip) && ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    a = ip;
-                    break;
-                }
-            }
-            return a;
-        }
-
-        
-
         private void Exit()
         {
             ThreadPool.QueueUserWorkItem(new WaitCallback(ShutDownAsync));
@@ -506,15 +500,23 @@ namespace Fap.Application.Controllers
             o.Model = model;
             o.EditDownloadDir = new DelegateCommand(SettingsEditDownloadDir);
             o.ChangeAvatar = new DelegateCommand(ChangeAvatar);
-            o.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(o_PropertyChanged);
+            o.ResetInterface = new DelegateCommand(ResetInterface);
             popupController.AddWindow(o.View, "Settings");
         }
 
-        void o_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void ResetInterface()
         {
+            model.IPAddress = null;
+            model.Save();
+            container.Resolve<IMessageService>().ShowWarning("Interface selection reset.  FAP will now restart.");
+            Process notePad = new Process();
+
+            notePad.StartInfo.FileName = Assembly.GetEntryAssembly().CodeBase;
+            notePad.StartInfo.Arguments = "WAIT";
+            notePad.Start();
+            Exit();
 
         }
-
 
         private void SettingsEditDownloadDir()
         {
@@ -634,7 +636,7 @@ namespace Fap.Application.Controllers
 
         public void ShutDownAsync(object param)
         {
-            
+
             model.Save();
             model.DownloadQueue.Save();
 
@@ -664,6 +666,9 @@ namespace Fap.Application.Controllers
                     break;
             }
 
+            //Kill the other foreground thread
+            watchdog.Stop();
+
             //Kill UI
             SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
             new Action(
@@ -675,11 +680,10 @@ namespace Fap.Application.Controllers
                      chatController.Close();
                      mainWindowModel.Close();
                      trayIcon.Dispose();
+                     System.Windows.Application.Current.Shutdown(0);
                  }
              }
             ));
-            //Kill the other foreground thread
-            watchdog.Stop();
         }
     }
 }
