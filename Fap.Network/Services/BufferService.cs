@@ -44,7 +44,7 @@ namespace Fap.Network.Services
         {
             lock (pool)
             {
-                while (pool.Count > largeCount)
+                while (pool.Count > largeCount*2)
                 {
                     MemoryBuffer arg = pool.Pop();
                     arg.Dispose();
@@ -52,7 +52,7 @@ namespace Fap.Network.Services
             }
             lock (smallPool)
             {
-                while (smallPool.Count > smallCount)
+                while (smallPool.Count > smallCount*2)
                 {
                     MemoryBuffer arg = smallPool.Pop();
                     arg.Dispose();

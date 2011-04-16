@@ -629,26 +629,23 @@ namespace Fap.Domain.Services
 
         public void Disconnect()
         {
-            lock (sync)
+            var local = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
+            if (null != local)
             {
-                var local = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
-                if (null != local)
+                if (local.State == ConnectionState.Connected)
                 {
-                    if (local.State == ConnectionState.Connected)
-                    {
-                        logger.Warn("Disconnected from local network");
-                        local.Secret = IDService.CreateID();
+                    logger.Warn("Disconnected from local network");
+                    local.Secret = IDService.CreateID();
 
-                        var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
-                        if (null != currentOverlord)
-                        {
-                            currentOverlord.Ban(4000);
-                        }
-                        var oldPeers = model.Peers.Where(p => p.OverlordID == currentOverlord.ID).ToList();
-                        foreach (var peer in oldPeers)
-                            model.Peers.Remove(peer);
-                        local.State = ConnectionState.Disconnected;
+                    var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
+                    if (null != currentOverlord)
+                    {
+                        currentOverlord.Ban(4000);
                     }
+                    var oldPeers = model.Peers.Where(p => p.OverlordID == currentOverlord.ID).ToList();
+                    foreach (var peer in oldPeers)
+                        model.Peers.Remove(peer);
+                    local.State = ConnectionState.Disconnected;
                 }
             }
         }

@@ -75,41 +75,38 @@ namespace Fap.Application.Controllers
             {
                 try
                 {
+                    //Disconnect sessions if needed
+                    DisconnectStaleSessions();
+                    //Clean up excess buffers
+                    bufferService.Clean();
+
+                    //Remove completed download sessions from view
+                    foreach (var session in model.TransferSessions.ToList())
                     {
-                        // logger.AddInfo("Processing watchdog");
-                        //Disconnect sessions if needed
-                       // DisconnectStaleSessions();
-                        //Clean up excess buffers
-                        bufferService.Clean();
-                        
-                        //Remove completed download sessions from view
-                        foreach (var session in model.TransferSessions.ToList())
-                        {
-                            if (null!=session.Worker && session.Worker.IsComplete)
-                                model.TransferSessions.Remove(session);
-                        }
-
-                        //Update transfer stats every 4 seconds
-                        if (speedCount > 3)
-                        {
-                            speedCount = 0;
-                            //Check for disconnected server connections
-                            model.Node.DownloadSpeed = NetworkSpeedMeasurement.TotalDownload.GetSpeed();
-                            model.Node.UploadSpeed = NetworkSpeedMeasurement.TotalUpload.GetSpeed();
-                        }
-                        else
-                            speedCount++;
-
-                        //Save config + queue every 5 minutes
-                        if (Environment.TickCount - lastSave > 1000 * 300)
-                        {
-                            lastSave = Environment.TickCount;
-                            model.Save();
-                            model.DownloadQueue.Save();
-                        }
-                        // Remove any old pooled server connections.
-                        ucps.CleanUp();
+                        if (null != session.Worker && session.Worker.IsComplete)
+                            model.TransferSessions.Remove(session);
                     }
+
+                    //Update transfer stats every 4 seconds
+                    if (speedCount > 3)
+                    {
+                        speedCount = 0;
+                        //Check for disconnected server connections
+                        model.Node.DownloadSpeed = NetworkSpeedMeasurement.TotalDownload.GetSpeed();
+                        model.Node.UploadSpeed = NetworkSpeedMeasurement.TotalUpload.GetSpeed();
+                    }
+                    else
+                        speedCount++;
+
+                    //Save config + queue every 5 minutes
+                    if (Environment.TickCount - lastSave > 1000 * 300)
+                    {
+                        lastSave = Environment.TickCount;
+                        model.Save();
+                        model.DownloadQueue.Save();
+                    }
+                    // Remove any old pooled server connections.
+                    ucps.CleanUp();
                 }
                 catch { }
                 Thread.Sleep(1000);

@@ -4,7 +4,7 @@
 	Title="{Binding WindowTitle}"
     mc:Ignorable="d"
     Icon="/Fap.Presentation;component/Images/folder-yellow.ico" WindowStartupLocation="CenterScreen"
-    MinWidth="350" MinHeight="700"
+    MinWidth="260" MinHeight="400"
 	Width="350" Height="900">
     <Window.Resources>
         <local:SessionTypeConverter x:Key="SessionTypeConverter" />
