@@ -59,7 +59,7 @@ namespace Fap.Application.ViewModels
         private bool allowClose = false;
         private Fap.Network.Entity.Network currentNetwork;
         private string networkStats;
-        private string overlordStatus;
+        private string nodeStatus;
         private Model model;
         private string localStats;
         private string globalStats;
@@ -99,15 +99,15 @@ namespace Fap.Application.ViewModels
 
 
 
-        public string OverlordStatus
+        public string NodeStatus
         {
-            get { return overlordStatus; }
+            get { return nodeStatus; }
             set
             {
-                if (overlordStatus != value)
+                if (nodeStatus != value)
                 {
-                    overlordStatus = value;
-                    RaisePropertyChanged("OverlordStatus");
+                    nodeStatus = value;
+                    RaisePropertyChanged("NodeStatus");
                 }
             }
         }

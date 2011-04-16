@@ -12,7 +12,10 @@ DispatcherUnhandledException="Application_DispatcherUnhandledException"
         <local:Base64Converter x:Key="base64Converter" />
         <local:SizeConverter x:Key="sizeConverter" />
         <local:CountConverter x:Key="countConverter" />
-    
+        <local:SpeedConverter x:Key="speedConverter" />
+
+        
+
         <LinearGradientBrush x:Key="TextBoxBorder" EndPoint="0,20" MappingMode="Absolute" StartPoint="0,0">
             <GradientStop Color="#ABADB3" Offset="0.05"/>
             <GradientStop Color="#E2E3EA" Offset="0.07"/>
@@ -3355,5 +3358,96 @@ DispatcherUnhandledException="Application_DispatcherUnhandledException"
         		</Setter.Value>
         	</Setter>
         </Style>
+        <Style x:Key="TransferProgressBar" TargetType="{x:Type ProgressBar}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ProgressBar}">
+                        <ControlTemplate.Resources>
+                            <Storyboard x:Key="IndeterminateOn">
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="IndeterminateGradientFill" Storyboard.TargetProperty="(Shape.Fill).(Brush.Transform).(TransformGroup.Children)[0].X" RepeatBehavior="Forever">
+                                    <SplineDoubleKeyFrame KeyTime="0" Value="0" />
+                                    <SplineDoubleKeyFrame KeyTime="00:00:2.4" Value="145" />
+                                </DoubleAnimationUsingKeyFrames>
+
+                            </Storyboard>
+                        </ControlTemplate.Resources>
+                        <Grid>
+                            <Border x:Name="PART_Track" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1" CornerRadius="0,0,0,0" Background="#FF24431B">
+                                <Border.BitmapEffect>
+                                    <OuterGlowBitmapEffect Opacity="0" GlowColor="{DynamicResource WhiteColor}" GlowSize="3" />
+                                </Border.BitmapEffect>
+                            </Border>
+                            <Border HorizontalAlignment="Left" x:Name="PART_Indicator" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1" CornerRadius="0,0,0,0" Background="#FF349519">
+
+                            </Border>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="25" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="90" />
+                                </Grid.ColumnDefinitions>
+                                <Image Grid.Column="0" Name="XferImg" DockPanel.Dock="Left" Source="Images/Download.png" Margin="0,0,5,0" Height="18" />
+                                <Label Grid.Column="1" DockPanel.Dock="Left" Foreground="{DynamicResource TextBoxBorder}" VerticalAlignment="Center"  ClipToBounds="True">
+                                    <TextBlock TextTrimming="CharacterEllipsis" Text="{Binding Status}" />
+                                </Label>
+                                <Label Grid.Column="2" HorizontalContentAlignment="Right" Margin="0,0,10,0"  Foreground="{DynamicResource TextBoxBorder}" VerticalAlignment="Center" Content="{Binding Speed, Converter={StaticResource speedConverter}}" />
+                            </Grid>
+                            <Border Background="#FF787878" Opacity="0" BorderThickness="1,1,1,1" BorderBrush="{DynamicResource DisabledBorderBrush}" x:Name="border"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" TargetName="border" Value="0.8"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsDownload}" Value="true">
+                                <Setter TargetName="XferImg" Property="Source" Value="Images/Download.png" />
+                                <Setter TargetName="PART_Track" Property="Background" Value="#FF24431B" />
+                                <Setter TargetName="PART_Indicator" Property="Background" Value="#FF349519" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsDownload}" Value="false">
+                                <Setter TargetName="XferImg" Property="Source" Value="Images/Upload.png" />
+                                <Setter TargetName="PART_Track" Property="Background" Value="#84A53232" />
+                                <Setter TargetName="PART_Indicator" Property="Background" Value="#FFA70000" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PeerListBoxItemPresenter" TargetType="{x:Type ListBoxItem}">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                        <Grid>
+                            <Border Background="{TemplateBinding Background}" />
+                            <Border Background="#0BFFFFFF" Margin="0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <Border Margin="0" Grid.Row="0" Background="#18FFFFFF" />
+                                </Grid>
+                            </Border>
+                            <ContentPresenter Margin="0" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                           <!-- <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsSelected" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" Value="#34F7F7F7" />
+                            </MultiTrigger>-->
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#77F7F7F7" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Application.Resources>
 </Application>

@@ -85,7 +85,7 @@ namespace Fap.Application.Controllers
                         //Remove completed download sessions from view
                         foreach (var session in model.TransferSessions.ToList())
                         {
-                            if (session.Worker.IsComplete)
+                            if (null!=session.Worker && session.Worker.IsComplete)
                                 model.TransferSessions.Remove(session);
                         }
 

@@ -78,6 +78,7 @@ namespace Fap.Application.Controllers
             chatController = container.Resolve<ConversationController>();
             downloadController = container.Resolve<DownloadController>();
             logReceiver = container.Resolve<LogService>();
+
         }
 
         public void Initalise()
@@ -256,6 +257,7 @@ namespace Fap.Application.Controllers
                         {
                             StringBuilder sb = new StringBuilder();
                             sb.Append("Stats: ");
+
                             int count = model.Peers.Where(n => n.NodeType != ClientType.Overlord).Count();
                             sb.Append(count);
                             if (count == 1)
@@ -271,8 +273,15 @@ namespace Fap.Application.Controllers
                             if (null != mainWindowModel)
                             {
                                 mainWindowModel.CurrentNetworkStatus = text;
+
+                                StringBuilder sbs = new StringBuilder();
+                                sbs.Append("Status: ");
+                                sbs.Append(mainWindowModel.CurrentNetwork.State);
+                                sbs.Append(" as ");
+                                sbs.Append(model.Nickname);
                                 if (peerController.IsOverlord)
-                                    mainWindowModel.OverlordStatus = " (Overlord host)";
+                                    sbs.Append(" (Server host)");
+                                mainWindowModel.NodeStatus = sbs.ToString();
                             }
 
                             foreach (var xfer in mainWindowModel.Sessions)
@@ -286,19 +295,39 @@ namespace Fap.Application.Controllers
                                 xfer.Status = xfer.Worker.Status;
                             }
                             //Local stats
-                            StringBuilder ls = new StringBuilder();
-                            ls.Append("You: ");
-                            ls.Append(Utility.ConvertNumberToTextSpeed(model.Node.DownloadSpeed));
-                            ls.Append(" / ");
-                            ls.Append(Utility.ConvertNumberToTextSpeed(model.Node.UploadSpeed));
-                            mainWindowModel.LocalStats = ls.ToString();
+                            if (model.Node.DownloadSpeed == 0)
+                            {
+                                mainWindowModel.LocalStats = "Local: No transfers";
+                            }
+                            else
+                            {
+                                StringBuilder ls = new StringBuilder();
+                                ls.Append("Local RX/TX: ");
+                                ls.Append(Utility.ConvertNumberToTextSpeed(model.Node.DownloadSpeed));
+                                ls.Append(" / ");
+                                ls.Append(Utility.ConvertNumberToTextSpeed(model.Node.UploadSpeed));
+                                mainWindowModel.LocalStats = ls.ToString();
+                            }
                             //Global stats
-                            StringBuilder gs = new StringBuilder();
-                            gs.Append("Network: ");
-                            gs.Append(Utility.ConvertNumberToTextSpeed(model.Peers.Select(s => s.DownloadSpeed).Sum()));
-                            gs.Append(" / ");
-                            gs.Append(Utility.ConvertNumberToTextSpeed(model.Peers.Select(s => s.UploadSpeed).Sum()));
-                            mainWindowModel.GlobalStats = gs.ToString();
+
+                            long upload = model.Peers.Select(s => s.DownloadSpeed).Sum();
+                            long download = model.Peers.Select(s => s.UploadSpeed).Sum();
+
+
+                            if (upload == 0 && download == 0)
+                            {
+                                mainWindowModel.GlobalStats = "Network: No transfers";
+                            }
+                            else
+                            {
+                                StringBuilder gs = new StringBuilder();
+                                gs.Append("Global RX/TX: ");
+                                gs.Append(Utility.ConvertNumberToTextSpeed(download));
+                                gs.Append(" / ");
+                                gs.Append(Utility.ConvertNumberToTextSpeed(upload));
+                                mainWindowModel.GlobalStats = gs.ToString();
+
+                            }
 
                             foreach (var line in logReceiver.GetLines())
                                 model.Messages.Add(line);
@@ -327,7 +356,7 @@ namespace Fap.Application.Controllers
             {
                 mainWindowModel = container.Resolve<MainWindowViewModel>();
                 mainWindowModel.CurrentNetwork = model.Networks.Where(n=>n.ID == "LOCAL").First();
-                mainWindowModel.WindowTitle = "FAP - 'Overkill' edition - Release " + Model.NetCodeVersion + "." + Model.ClientVersion +" Alpha 2";
+                mainWindowModel.WindowTitle = "FAP Alpha 4";
                 mainWindowModel.SendChatMessage = new DelegateCommand(sendChatMessage);
                 mainWindowModel.ViewShare = new DelegateCommand(viewShare);
                 mainWindowModel.EditShares = new DelegateCommand(EditShares);

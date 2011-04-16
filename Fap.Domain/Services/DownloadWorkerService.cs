@@ -59,7 +59,7 @@ namespace Fap.Domain.Services
             node = n;
             model = m;
             service = s;
-            status = "Connecting..";
+            status = r.Nickname +  " - Connecting..";
             bufferService =b;
             AddDownload(req);
             ThreadPool.QueueUserWorkItem(new WaitCallback(process));
@@ -211,7 +211,7 @@ namespace Fap.Domain.Services
                             if (cmd.Status != 0)
                             {
                                 sync.EnterWriteLock();
-                                status = "Download complete: " + currentItem.Request.FileName;
+                                status = currentItem.Request.Nickname + " -  Complete: " + currentItem.Request.FileName;
                                 currentItem.Request.State = DownloadRequestState.Downloaded;
                                 queue.Remove(currentItem);
                                 sync.ExitWriteLock();
@@ -219,7 +219,7 @@ namespace Fap.Domain.Services
                             else
                             {
                                 sync.EnterWriteLock();
-                                status = "Download complete: " + currentItem.Request.FileName;
+                                status = currentItem.Request.Nickname + " - Complete: " + currentItem.Request.FileName;
                                 currentItem.Request.State = DownloadRequestState.Downloaded;
                                 queue.Remove(currentItem);
                                 sync.ExitWriteLock();
@@ -258,17 +258,17 @@ namespace Fap.Domain.Services
                         else if (verb.InQueue)
                         {
                             sync.EnterWriteLock();
-                            status = "Queue position " + verb.QueuePosition + " for " + currentItem.Request.FileName;
+                            status = currentItem.Request.Nickname + " - Queue No " + verb.QueuePosition + " for " + currentItem.Request.FileName;
                             sync.ExitWriteLock();
                         }
                         else
                         {
                             sync.EnterWriteLock();
                             int count = queue.Count;
-                            if (count > 1)
-                                status = "Downloading " + currentItem.Request.FileName + " [Requested " + count + "]";
-                            else
-                                status = "Downloading " + currentItem.Request.FileName;
+                           // if (count > 1)
+                            //    status =currentItem.Request.Nickname + " - " + currentItem.Request.FileName + " [Requested " + count + "]";
+                        //    else
+                                status =currentItem.Request.Nickname + " - "  + currentItem.Request.FileName + " - " + Utility.FormatBytes(currentItem.Request.Size);
                             sync.ExitWriteLock();
                             try
                             {
@@ -289,7 +289,7 @@ namespace Fap.Domain.Services
                                 }
                             }
                             sync.EnterWriteLock();
-                            status = "Download complete: " + currentItem.Request.FileName;
+                            status = currentItem.Request.Nickname + " - Complete: " + currentItem.Request.FileName;
                             currentItem.Request.State = DownloadRequestState.Downloaded;
                             queue.Remove(currentItem);
                             sync.ExitWriteLock();
@@ -346,7 +346,6 @@ namespace Fap.Domain.Services
                 {
                     i.FileStream.Write(buffer.Data, buffer.StartLocation, buffer.DataSize);
                     received += buffer.DataSize;
-                    Console.WriteLine("pre buf for " + i.FileStream.Name);
                 }
                 token.ResetInputBuffer();
             }

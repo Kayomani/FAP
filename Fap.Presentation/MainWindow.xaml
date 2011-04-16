@@ -4,8 +4,8 @@
 	Title="{Binding WindowTitle}"
     mc:Ignorable="d"
     Icon="/Fap.Presentation;component/Images/folder-yellow.ico" WindowStartupLocation="CenterScreen"
-    MinWidth="880" MinHeight="500"
-	Width="880" Height="698">
+    MinWidth="350" MinHeight="700"
+	Width="350" Height="900">
     <Window.Resources>
         <local:SessionTypeConverter x:Key="SessionTypeConverter" />
     </Window.Resources>
@@ -15,16 +15,19 @@
 			<GradientStop Color="#FF3F4F56" Offset="0.869"/>
 		</LinearGradientBrush>
 	</Window.Background>
+
 		<Grid x:Name="LayoutRoot">
+
         
         <Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="300px" />
+				
 			</Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="110" />
-            <RowDefinition Height="2*" />
-            <RowDefinition Height="*" MinHeight="200" />
+            <RowDefinition Height="65" />
+            <RowDefinition Height="4*" />
+            <RowDefinition Height="2*" MinHeight="100" />
+            <RowDefinition Height="*" MinHeight="100" />
         </Grid.RowDefinitions>
 
         <Ellipse Margin="-101,-147,-558,-212" Stroke="#925DBCBE" StrokeThickness="20" Grid.Row="2" Grid.Column="1">
@@ -51,21 +54,12 @@
         	</Ellipse.Effect>
         </Ellipse>
 
-        <StackPanel Orientation="Vertical">
-            <DockPanel Height="110px" MinWidth="410">
-                    <Button Command="{Binding ChangeAvatar}">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid>
-                                    <Image HorizontalAlignment="Left" Height="100" Margin="5" VerticalAlignment="Top" Width="100" Source="{Binding Avatar, Converter={StaticResource imageConverter}}" />
-                                </Grid>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
+            <StackPanel Orientation="Vertical" Background="#dd3D3E3F">
+            <DockPanel LastChildFill="True">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" MinWidth="190" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="130" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition  Height="Auto" />
@@ -74,48 +68,93 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                  
+                    <Label Content="{Binding NodeStatus}" Foreground="White" Margin="0"  Grid.Row="0" Grid.ColumnSpan="2" />
+                    <Label Content="{Binding CurrentNetworkStatus}" Foreground="White" Margin="0" Grid.Row="1" Grid.ColumnSpan="2" />
+                    <Label Content="{Binding LocalStats}" Foreground="White" Margin="0"  Grid.Row="2" Grid.ColumnSpan="2" />
+                    <Label Content="{Binding GlobalStats}" Foreground="White" Margin="0"  DockPanel.Dock="Left"  Grid.Row="3" Grid.Column="0" />
 
-                    <Label Content="{Binding Nickname}" FontSize="24" Foreground="White" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" />
-                    <Label Content="{Binding Description}" FontSize="18" Foreground="Gray"  Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" />
-                    <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="2" >
-                        <Label Content="Status: " Foreground="White" Margin="0" />
-                        <Label Content="{Binding CurrentNetwork.State}" Margin="0" />
-                        <Label Content="{Binding OverlordStatus}" Margin="0" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="0" Grid.Row="3" Orientation="Horizontal">
-                        <Label Content="Network: " Foreground="White" Margin="0"  />
-                        <Label Content="{Binding CurrentNetwork.Name}" Foreground="White" Margin="0"/>
-                    </StackPanel>
 
-                    <Label Content="{Binding CurrentNetworkStatus}" Foreground="White" Margin="0" Grid.Column="0" Grid.Row="4"  Grid.ColumnSpan="2" />
 
-                    <Label Content="{Binding LocalStats}" Foreground="White" Margin="0" Grid.Column="1" Grid.Row="2" />
-                    <Label Content="{Binding GlobalStats}" Foreground="White" Margin="0" Grid.Column="1" Grid.Row="3" />
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom"  Grid.Row="2" Grid.Column="1" Grid.RowSpan="2">
+                            <!--<Button Content="Compare" Width="75" Height="27" VerticalAlignment="Bottom" Command="{Binding Compare}" />-->
+                            <Button  Width="30" Height="30" VerticalAlignment="Bottom" Command="{Binding ViewQueue}">
+                                <Image Source="/Fap.Presentation;component/Images/Drawer%20Closed.png" />
+                            </Button>
+                            <Button Width="30" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding EditShares}">
+                                <Image Source="/Fap.Presentation;component/Images/Folder%20Sync.png" />
+                            </Button>
+                            <Button  Width="30" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding Compare}">
+                                <Image Source="/Fap.Presentation;component/Images/Chart%20Bar.png" />
+                            </Button>
+                            <Button  Width="30" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding Settings}">
+                                <Image Source="/Fap.Presentation;component/Images/Cog.png" />
+                            </Button>
+                        </StackPanel>
                 </Grid>
-                    <StackPanel>
-                        <!--  <Label Content="Your stats: 0 Bytes TX, 0 Bytes RX and 0 Bytes Shared" Foreground="White"  Margin="0"/>-->
-                   
-                   
-                </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                    <!--<Button Content="Compare" Width="75" Height="27" VerticalAlignment="Bottom" Command="{Binding Compare}" />-->
-                    <Button Content="Queue" Width="75" Height="27" VerticalAlignment="Bottom" Command="{Binding ViewQueue}" />
-                    <Button Content="Shares" Width="75" Height="27" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding EditShares}" />
-                        <Button Content="Settings" Width="75" Height="27" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding Settings}" />
-                    </StackPanel>
-                </DockPanel>
+             </DockPanel>
             </StackPanel>
-			<DockPanel Grid.Row="1">
+
+            <DockPanel Grid.Row="2">
                     <DockPanel DockPanel.Dock="Bottom">
                     	<Button x:Name="sendText"  DockPanel.Dock="Right" Width="70px" Command="{Binding SendChatMessage}" Content="Send"/>
                         <TextBox x:Name="chatTextBox" Text="{Binding CurrentChatMessage}" Background="#7FFFFFFF" Margin="2" KeyDown="inputText_KeyDown" />
                     </DockPanel>
-            <!-- <ListBox x:Name="chatBox" Margin="2,2,0,0" ItemsSource="{Binding ChatMessages}" Background="#19FFFFFF" Foreground="White"  VirtualizingStackPanel.IsVirtualizing="False" >
-            </ListBox> -->
-          <ListBox x:Name="chatBox" Margin="2,2,0,0" ItemsSource="{Binding ChatMessages}" Background="Transparent" Foreground="White"  local:ListBox.AutoScroll="True" VirtualizingStackPanel.IsVirtualizing="False" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" />
-               
+                    <ListBox x:Name="chatBox" ItemsSource="{Binding ChatMessages}" Background="Transparent" Foreground="White"  local:ListBox.AutoScroll="True" VirtualizingStackPanel.IsVirtualizing="False" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" />
             </DockPanel>
-        <local:SortableListView  Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Margin="2,0,2,2" Background="#19FFFFFF" Foreground="White" ItemsSource="{Binding Sessions}"
+            
+        
+        <DockPanel ContextMenuOpening="DockPanel_ContextMenuOpening" Grid.Column="0" Grid.Row="1"  LastChildFill="True">
+            <ListBox ItemContainerStyle="{DynamicResource PeerListBoxItemPresenter}"  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="2,2,2,2" Background="#0CFFFFFF"  x:Name="clientListBox" DockPanel.Dock="Right" ItemsSource="{Binding Peers}"  MouseDoubleClick="listBox1_MouseDoubleClick" SelectedItem="{Binding SelectedClient}" >
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                       
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="60" />
+                                        <ColumnDefinition  />
+                                        <ColumnDefinition  />
+                                   <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Top"  Height="35px" Source="{Binding Avatar, Converter={StaticResource imageConverter}}" Margin="0,0,0,0" />
+                                <Label Grid.Column="1" Grid.Row="0" Content="{Binding Nickname}"  Margin="0,0,0,0"  />
+                                <Label Grid.Column="1" Grid.Row="1" Content="{Binding Host}"  Margin="0,0,0,0"  />
+                            <Label Grid.Column="2" Grid.Row="0" Content="{Binding ShareSize, Converter={StaticResource sizeConverter}}"    />
+                                <Label Grid.Column="2" Grid.Row="1" Content="{Binding Description}"    />
+                            </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+               
+            </ListBox>
+           
+			</DockPanel>
+
+        <StackPanel Grid.Row="3" >
+            
+            <ListBox ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemsSource="{Binding Sessions}" HorizontalContentAlignment="Stretch">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                            <ProgressBar BorderThickness="0" Value="{Binding Percent}" Style="{DynamicResource TransferProgressBar}" >
+                                <ProgressBar.Width>
+                                    <Binding Path="ActualWidth" 
+                         RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollContentPresenter}}" />
+                                </ProgressBar.Width>
+                                
+                            </ProgressBar>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
+            <!--<local:SortableListView Visibility="Collapsed" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Margin="2,0,2,2" Background="#19FFFFFF" Foreground="White" ItemsSource="{Binding Sessions}"
                                  x:Name="listView2" BorderBrush="Black"  ClipToBounds="True">
             <local:SortableListView.View>
                 <GridView>
@@ -132,43 +171,7 @@
                     <GridViewColumn Header="Speed" DisplayMemberBinding="{Binding Speed, Converter={StaticResource sizeConverter}}" Width="100px"/>
                     <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size, Converter={StaticResource sizeConverter}}" Width="100px"/>
                 </GridView>
-               </local:SortableListView.View>
-           </local:SortableListView>
-        <DockPanel ContextMenuOpening="DockPanel_ContextMenuOpening" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" LastChildFill="True">
-            <ListBox  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="2,2,2,2" Background="#0CFFFFFF"  x:Name="clientListBox" DockPanel.Dock="Right" ItemsSource="{Binding Peers}"  MouseDoubleClick="listBox1_MouseDoubleClick" SelectedItem="{Binding SelectedClient}" >
-                <ListBox.ContextMenu>
-                    <ContextMenu>
-                    </ContextMenu>
-                </ListBox.ContextMenu>
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                            <Grid>
-                            
-                                <Grid.ColumnDefinitions>
-                                        <ColumnDefinition  />
-                                        <ColumnDefinition  />
-                                        <ColumnDefinition  />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                </Grid.RowDefinitions>
-                                <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Top"  Height="35px" Source="{Binding Avatar, Converter={StaticResource imageConverter}}" Margin="0,0,5,0" />
-                                <Label Grid.Column="1" Grid.Row="0" Content="{Binding Nickname}"  Margin="10,0,10,0"  />
-                                <Label Grid.Column="1" Grid.Row="1" Content="{Binding Host}"  Margin="10,0,10,0"  />
-                            <Label Grid.Column="2" Grid.Row="0" Content="{Binding ShareSize, Converter={StaticResource sizeConverter}}"    />
-                                <Label Grid.Column="2" Grid.Row="1" Content="{Binding Description}"    />
-                            </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-               
-            </ListBox>
-           
-			</DockPanel>
-		</Grid>
+            </local:SortableListView.View>
+        </local:SortableListView>-->
+    </Grid>
 </Window>

@@ -98,7 +98,8 @@ namespace Fap.Domain.Services
         {
             if (network.State == ConnectionState.Connected)
             {
-                //Notify network of disconnect
+                uplink.Kill();
+              /*  //Notify network of disconnect
                 DisconnectVerb disconnect = new DisconnectVerb(model.Node);
                 string secret = string.Empty;
                 Session session = GetOverlordConnection(out secret);
@@ -113,7 +114,7 @@ namespace Fap.Domain.Services
                     {
                         logger.Error("Failed to log off correctly.");
                     }
-                }
+                }*/
             }
             if (IsOverlord)
                 overlord.Stop();
