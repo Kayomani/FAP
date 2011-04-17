@@ -70,7 +70,6 @@ namespace Fap.Application.Controllers
             worker = Thread.CurrentThread;
             Thread.CurrentThread.IsBackground = false;
 
-            int speedCount = 0;
             long lastSave = Environment.TickCount;
 
             while (true)
@@ -78,7 +77,7 @@ namespace Fap.Application.Controllers
                 try
                 {
                     //Disconnect sessions if needed
-                  //  DisconnectStaleSessions();//Temp disabled as ping is causing an error??
+                    //  DisconnectStaleSessions();//Temp disabled as ping is causing an error??
                     //Clean up excess buffers
                     bufferService.Clean();
 
@@ -88,18 +87,11 @@ namespace Fap.Application.Controllers
                         if (null != session.Worker && session.Worker.IsComplete)
                             model.TransferSessions.Remove(session);
                     }
-                    //Update transfer stats every 4 seconds
-                    if (speedCount > 3)
-                    {
-                        speedCount = 0;
-                        //Check for disconnected server connections
-                        model.Node.DownloadSpeed = NetworkSpeedMeasurement.TotalDownload.GetSpeed();
-                        model.Node.UploadSpeed = NetworkSpeedMeasurement.TotalUpload.GetSpeed();
+                    //Check for disconnected server connections
+                    model.Node.DownloadSpeed = NetworkSpeedMeasurement.TotalDownload.GetSpeed();
+                    model.Node.UploadSpeed = NetworkSpeedMeasurement.TotalUpload.GetSpeed();
 
-                        shareController.RefreshShareInfo();
-                    }
-                    else
-                        speedCount++;
+                    shareController.RefreshShareInfo();
 
                     //Save config + queue every 5 minutes
                     if (Environment.TickCount - lastSave > 1000 * 300)
@@ -112,7 +104,7 @@ namespace Fap.Application.Controllers
                     ucps.CleanUp();
                 }
                 catch { }
-                Thread.Sleep(1000);
+                Thread.Sleep(4000);
             }
         }
 

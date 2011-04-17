@@ -95,12 +95,16 @@ namespace Fap.Network.Services
         {
             try
             {
-                listener.BeginAcceptSocket(new AsyncCallback(handleClient), null);
                 Socket socket = listener.EndAcceptSocket(result);
+
+                listener.BeginAcceptSocket(new AsyncCallback(handleClient), null);
+
                 socket.SendBufferSize = BufferService.SmallBuffer;
                 socket.ReceiveBufferSize = BufferService.SmallBuffer * 2;
-                socket.ReceiveTimeout = 300 * 1000;
+                socket.ReceiveTimeout = 120000;
+                socket.SendTimeout = 120000;
                 handler.HandleConnection(socket);
+                socket = null;
             }
             catch (Exception e)
             {

@@ -42,6 +42,8 @@ namespace Fap.Domain.Verbs
                     return new ConversationVerb(n);
                 case "PING":
                     return new PingVerb(n.Node);
+                case "NOOP":
+                    return new NoopVerb();
                 default:
                     throw new Exception("Unknown command");
             }

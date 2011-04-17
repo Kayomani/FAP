@@ -56,7 +56,7 @@ namespace Fap.Network
                     ConnectBroadcast();
                 byte[] data = Mediator.Serialize(cmd);
                 broadcastSocket.SendTo(data, broadcastSocket.RemoteEndPoint);
-               // logService.AddInfo("Broadcast server tx: " + cmd.Command + " P: " + cmd.Param); 
+                data = null;
             }
         }
     }

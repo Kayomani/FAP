@@ -70,6 +70,9 @@ namespace Fap.Domain.Services
                     //Ignore this - Should only get these on server connections.
                     logger.Error("Got Chat command on p2p connection");
                     break;
+                case "NOOP":
+                    //Do nothing
+                    break;
                 case "DISCONNECT":
                     //Ignore this - Should only get these on server connections.
                     return FAPListenerRequestReturnStatus.None;

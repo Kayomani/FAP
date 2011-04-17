@@ -182,7 +182,6 @@ namespace Fap.Application.Controllers
             chatController.Initalise();
             server.Start();
             peerController.Start(network);
-            model.Peers.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(Peers_CollectionChanged);
             ThreadPool.QueueUserWorkItem(new WaitCallback(MainWindowUpdater));
             //Tray icon
             trayIcon.Exit = new DelegateCommand(Exit);
@@ -249,10 +248,6 @@ namespace Fap.Application.Controllers
         }
         }
 
-        private void Peers_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-           
-        }
 
         /// <summary>
         /// Bulk update the main UI if updated
@@ -343,7 +338,7 @@ namespace Fap.Application.Controllers
                             }
 
                             foreach (var line in logReceiver.GetLines())
-                                model.Messages.Add(line);
+                                model.Messages.AddRotate(line, 50);
                         }
                        ));
                 }
@@ -361,7 +356,6 @@ namespace Fap.Application.Controllers
                 popupController.AddWindow(o.View, "User info (" + n.Nickname + ")");
             }
         }
-
 
         private void ShowMainWindow()
         {
@@ -431,7 +425,6 @@ namespace Fap.Application.Controllers
                 }
             }
         }
-
 
         private void Chat(object o)
         {
@@ -528,8 +521,6 @@ namespace Fap.Application.Controllers
              }
         }
 
-
-
         private void ChangeAvatar()
         {
             string path = string.Empty;
@@ -542,18 +533,11 @@ namespace Fap.Application.Controllers
                     FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
                     ms.SetLength(stream.Length);
                     stream.Read(ms.GetBuffer(), 0, (int)stream.Length);
-
                     ms.Flush();
                     stream.Close();
-
-                    //byte[] img = new byte[ms.Length];
-                    //  ms.Read(img,0,(int)ms.Length);
-
                     //Resize
                     Bitmap bitmap = new Bitmap(ms);
-
                     Image thumbnail = ResizeImage(bitmap, 100, 100);
-
                     ms = new MemoryStream();
                     thumbnail.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
                     model.Avatar = Convert.ToBase64String(ms.ToArray());
@@ -565,7 +549,6 @@ namespace Fap.Application.Controllers
             }
         }
 
-
         private Image ResizeImage(Bitmap FullsizeImage, int NewWidth, int MaxHeight)
         {
             // Prevent using images internal thumbnail
@@ -573,9 +556,7 @@ namespace Fap.Application.Controllers
             FullsizeImage.RotateFlip(System.Drawing.RotateFlipType.Rotate180FlipNone);
 
             if (FullsizeImage.Width <= NewWidth)
-            {
                 NewWidth = FullsizeImage.Width;
-            }
 
             int NewHeight = FullsizeImage.Height * NewWidth / FullsizeImage.Width;
             if (NewHeight > MaxHeight)
@@ -586,10 +567,8 @@ namespace Fap.Application.Controllers
             }
 
             System.Drawing.Image NewImage = FullsizeImage.GetThumbnailImage(NewWidth, NewHeight, null, IntPtr.Zero);
-
             // Clear handle to original file so that we can overwrite it if necessary
             FullsizeImage.Dispose();
-
             // Save resized picture
             return NewImage;
         }
@@ -610,22 +589,24 @@ namespace Fap.Application.Controllers
             }
         }
 
-
         private void sendChatMessage()
         {
-            if (string.Equals(mainWindowModel.CurrentChatMessage, "/debug", StringComparison.InvariantCultureIgnoreCase))
+            switch (mainWindowModel.CurrentChatMessage)
             {
-                logReceiver.MoreDebug = !logReceiver.MoreDebug;
-                logger.Info("Debug mode is " + (logReceiver.MoreDebug ? "Activated" : "Deactivated"));
-            }
-            else
-            {
-                peerController.SendChatMessage(mainWindowModel.CurrentChatMessage);
-               
+                case "/debug":
+                    logReceiver.MoreDebug = !logReceiver.MoreDebug;
+                    logger.Info("Debug mode is " + (logReceiver.MoreDebug ? "Activated" : "Deactivated"));
+                    break;
+                case "/disconnect":
+                    peerController.Disconnect();
+                    break;
+                default:
+                    if (!string.IsNullOrEmpty(mainWindowModel.CurrentChatMessage))
+                        peerController.SendChatMessage(mainWindowModel.CurrentChatMessage);
+                    break;
             }
             mainWindowModel.CurrentChatMessage = string.Empty;
         }
-
 
         public void Run()
         {

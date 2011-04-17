@@ -67,7 +67,7 @@ namespace Fap.Network.Services
                     if (rx == 0)
                     {
                         bufferManager.FreeArg(arg);
-                        throw new Exception("Dont get here..");
+                        throw new Exception("Disconnected?");
                     }
                     else
                     {
@@ -95,18 +95,14 @@ namespace Fap.Network.Services
             {
                 if (status != FAPListenerRequestReturnStatus.Disposed)
                 {
+                    socket.ReceiveTimeout = 1000;
+                    socket.SendTimeout = 1000;
                     socket.Shutdown(SocketShutdown.Both);
                     socket.Close();
-                    //Free the associated session
-                    token.Dispose();
-                    //connectionService.RemoveServerSession(arg);
-                    bufferManager.FreeArg(arg);
                 }
-                else
-                {
-                    // connectionService.RemoveServerSession(arg);
-                    bufferManager.FreeArg(arg);
-                }
+                bufferManager.FreeArg(arg);
+                token.Dispose();
+                socket = null;
             }
             catch (Exception e)
             {

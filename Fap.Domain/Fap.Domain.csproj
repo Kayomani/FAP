@@ -117,6 +117,7 @@
     <Compile Include="Verbs\DownloadVerb.cs" />
     <Compile Include="Verbs\HeloVerb.cs" />
     <Compile Include="Verbs\InfoVerb.cs" />
+    <Compile Include="Verbs\NoopVerb.cs" />
     <Compile Include="Verbs\PingVerb.cs" />
     <Compile Include="Verbs\UplinkVerb.cs" />
     <Compile Include="Verbs\VerbBase.cs" />

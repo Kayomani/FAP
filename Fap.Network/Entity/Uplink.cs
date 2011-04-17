@@ -183,7 +183,7 @@ namespace Fap.Network.Entity
                         }
                     }
                     //Wait until there is work to do or 5 seconds have elapsed
-                    workerEvent.WaitOne(1000);
+                    workerEvent.WaitOne(5000);
                 }
             }
             catch { }

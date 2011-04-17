@@ -57,10 +57,8 @@ namespace Fap.Domain.Controllers
 
         //Announcer
         private Thread announcer;
-        private long lastAnnounce;
-        private long lastRequest;
-        private readonly long minAnnounceFreq = 10000;
-        private readonly long maxAnnounceFreq = 500;
+        private AutoResetEvent workerEvent = new AutoResetEvent(true);
+        private readonly int minAnnounceFreq = 10000;
 
         private string networkID;
         private string networkName;
@@ -188,7 +186,7 @@ namespace Fap.Domain.Controllers
                     break;
                 case "WHO":
                     lock (announcer)
-                        lastRequest = Environment.TickCount;
+                        workerEvent.Set();
                     break;
             }
         }
@@ -211,6 +209,9 @@ namespace Fap.Domain.Controllers
                     return HandleChat(r, s);
                 case "PING":
                     return HandlePing(r, s);
+                case "NOOP":
+                    //Do nothing
+                    break;
                 case "DISCONNECT":
                     return HandleDisconnect(r, s);
             }
@@ -234,6 +235,9 @@ namespace Fap.Domain.Controllers
                     return HandleInfo(r, s);
                 case "PING":
                     return HandlePing(r, s);
+                case "NOOP":
+                    //Do nothing
+                    break;
                 case "BROWSE":
                     BrowseVerb bverb = new BrowseVerb(model,shareInfo);
                     Response response = bverb.ProcessRequest(r);
@@ -435,9 +439,7 @@ namespace Fap.Domain.Controllers
         private Request peer_OnTxTimingout()
         {
             //return new PingVerb(model.Overlord).CreateRequest();
-            ChatVerb verb = new ChatVerb();
-            verb.Nickname = "SYS";
-            verb.Message = "FFS";
+            NoopVerb verb = new NoopVerb();
             return verb.CreateRequest();
         }
 
@@ -489,30 +491,12 @@ namespace Fap.Domain.Controllers
         private void Process_announce(object o)
         {
             announcer = Thread.CurrentThread;
-            int sleepTime = 25;
             while (true)
             {
-                bool doAnnounce = false;
-                lock (announcer)
-                {
-                    bool reqAnnounce = lastRequest != 0;
-                    bool timerExpired = lastAnnounce + minAnnounceFreq < Environment.TickCount;
-                    bool allowAnnounce = lastAnnounce + maxAnnounceFreq < Environment.TickCount;
-
-                    if ((reqAnnounce || timerExpired) && allowAnnounce)
-                    {
-                        doAnnounce = true;
-                        lastRequest = 0;
-                    }
-                }
-                if (doAnnounce)
-                {
-                    lastAnnounce = Environment.TickCount;
-                    HelloVerb helo = new HelloVerb(model.Overlord);
-                    helo.ListenLocation = listenLocation;
-                    bserver.SendCommand(helo.CreateRequest());
-                }
-                Thread.Sleep(sleepTime);
+                HelloVerb helo = new HelloVerb(model.Overlord);
+                helo.ListenLocation = listenLocation;
+                bserver.SendCommand(helo.CreateRequest());
+                workerEvent.WaitOne(minAnnounceFreq);
             }
         }
 

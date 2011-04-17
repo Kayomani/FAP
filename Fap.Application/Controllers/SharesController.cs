@@ -62,7 +62,6 @@ namespace Fap.Application.Controllers
             RefreshClientStats();
         }
 
-
         private void RefreshClientStats()
         {
             model.Node.ShareSize = model.Shares.Select(s => s.Size).Sum();

@@ -25,22 +25,17 @@ namespace Fap.Network
     public class ConnectionToken
     {
         private static readonly string TERMINATOR = "\n\n";
-
         private List<MemoryBuffer> inputBuffer = new List<MemoryBuffer>();
 
-        private string outputData = null;
-        private int outputDataLocation = 0;
+        public long InputBufferLength
+        {
+            get { return inputBuffer.Count; }
+        }
 
         public void Dispose()
         {
             inputBuffer.Clear();
             inputBuffer = null;
-            outputData = null;
-        }
-
-        public long InputBufferLength
-        {
-            get { return inputBuffer.Count; }
         }
 
         public string InputBuffer
@@ -49,13 +44,17 @@ namespace Fap.Network
             {
                 if (null == inputBuffer)
                     return string.Empty;
-
-                StringBuilder sb = new StringBuilder();
-
-                foreach (MemoryBuffer b in inputBuffer)
-                    sb.Append(Encoding.Unicode.GetString(b.Data, 0, b.DataSize));
-
-                return sb.ToString();
+                if (inputBuffer.Count == 1)
+                {
+                    return Encoding.Unicode.GetString(inputBuffer[0].Data, 0, inputBuffer[0].DataSize);
+                }
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    foreach (MemoryBuffer b in inputBuffer)
+                        sb.Append(Encoding.Unicode.GetString(b.Data, 0, b.DataSize));
+                    return sb.ToString();
+                }
             }
         }
 
@@ -64,14 +63,7 @@ namespace Fap.Network
             get { return inputBuffer; }
         }
 
-        public void SetOutputData(string data)
-        {
-            outputData = data;
-        }
-
         public void ResetInputBuffer() { inputBuffer = new List<MemoryBuffer>(); }
-        public void ResetOutputBuffer() { outputData = null; }
-
 
         /// <summary>
         /// Scan for two consecutive new line characters.  Unicode = 10,0,10,0
@@ -81,6 +73,8 @@ namespace Fap.Network
         {
             if (inputBuffer.Count == 0)
                 return false;
+            if (inputBuffer.Count == 1)
+                return Encoding.Unicode.GetString(inputBuffer[0].Data, inputBuffer[0].StartLocation, inputBuffer[0].DataSize).Contains(TERMINATOR);
             StringBuilder sb = new StringBuilder();
             foreach (var buffer in inputBuffer)
             {
@@ -100,11 +94,29 @@ namespace Fap.Network
             StringBuilder sb = new StringBuilder();
             List<MemoryBuffer> processed = new List<MemoryBuffer>();
 
+            if (inputBuffer.Count == 1)
+            {
+                string msg = Encoding.Unicode.GetString(inputBuffer[0].Data, inputBuffer[0].StartLocation, inputBuffer[0].DataSize);
+                int endIndex = msg.IndexOf(TERMINATOR);
+                if (endIndex + 2 != msg.Length)
+                {
+                    //We have a partial bit of the next request so leave that in the buffer.
+                    string substring = msg.Substring(0, endIndex + 2);
+                    byte[] data = Encoding.Unicode.GetBytes(substring);
+                    inputBuffer[0].SetDataLocation(inputBuffer[0].StartLocation + data.Length, inputBuffer[0].DataSize - data.Length);
+                    data = null;
+                    return substring;
+                }
+                else
+                {
+                    inputBuffer.RemoveAt(0);
+                    return msg;
+                }
+            }
 
             foreach (MemoryBuffer b in inputBuffer.ToList())
             {
                 string msg = Encoding.Unicode.GetString(b.Data, b.StartLocation, b.DataSize);
-              
                 if (msg.Contains(TERMINATOR))
                 {
                    
@@ -114,8 +126,8 @@ namespace Fap.Network
                         //We have a partial bit of the next request so leave that in the buffer.
                         string substring = msg.Substring(0,endIndex + 2);
                         byte[] data = Encoding.Unicode.GetBytes(substring);
-
                         b.SetDataLocation(b.StartLocation+data.Length, b.DataSize-data.Length);
+                        data = null;
                         sb.Append(substring);
                     }
                     else
@@ -131,33 +143,14 @@ namespace Fap.Network
                     sb.Append(msg);
                 }
             }
-
             foreach (var buff in processed)
                 inputBuffer.Remove(buff);
             return sb.ToString();
         }
 
-
         public void ReceiveData(MemoryBuffer buff)
         {
             inputBuffer.Add(buff);
-        }
-
-        public bool SendData(MemoryBuffer arg)
-        {
-            if (outputData.Length == 0)
-                return false;
-            int packetLength = outputData.Length - outputDataLocation;
-            if (packetLength > 0)
-            {
-                if (packetLength > arg.Data.Length)
-                    packetLength = arg.Data.Length;
-                int len = Encoding.Unicode.GetBytes(outputData, outputDataLocation, packetLength, arg.Data, 0);
-                arg.SetDataLocation(0, len);
-                outputDataLocation += packetLength;
-                return true;
-            }
-            return false;
         }
     }
 }

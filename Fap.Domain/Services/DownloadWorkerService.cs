@@ -135,11 +135,6 @@ namespace Fap.Domain.Services
         public void AddDownload(DownloadRequest req)
         {
             sync.EnterWriteLock();
-
-            if (req.State != DownloadRequestState.None)
-            {
-            }
-
             if (!complete)
             {
                 queue.Add(new DownloadItem() { Request = req, UID = (lastRequestID++).ToString() });
@@ -265,10 +260,7 @@ namespace Fap.Domain.Services
                         {
                             sync.EnterWriteLock();
                             int count = queue.Count;
-                           // if (count > 1)
-                            //    status =currentItem.Request.Nickname + " - " + currentItem.Request.FileName + " [Requested " + count + "]";
-                        //    else
-                                status =currentItem.Request.Nickname + " - "  + currentItem.Request.FileName + " - " + Utility.FormatBytes(currentItem.Request.Size);
+                            status =currentItem.Request.Nickname + " - "  + currentItem.Request.FileName + " - " + Utility.FormatBytes(currentItem.Request.Size);
                             sync.ExitWriteLock();
                             try
                             {
@@ -305,14 +297,14 @@ namespace Fap.Domain.Services
 
                         while (queue.Count == 0)
                         {
-                            Thread.Sleep(15);
+                            Thread.Sleep(25);
 
                             sync.EnterWriteLock();
                             if (queue.Count == 0 && Environment.TickCount - startTime > 1000)
                             {
                                 complete = true;
+                                sync.ExitWriteLock();
                                 break;
-
                             }
                             sync.ExitWriteLock();
                         }
@@ -327,6 +319,7 @@ namespace Fap.Domain.Services
             }
             finally
             {
+                sync.Dispose();
                 bufferService.FreeArg(arg);
                 service.FreeClientSession(session);
                 logger.Trace("Downloader worker quit");

@@ -342,11 +342,7 @@ namespace Fap.Domain.Services
 
         private Request uplink_OnTxTimingout()
         {
-           // PingVerb ping = new PingVerb(model.Node);
-           // return ping.CreateRequest();
-            ChatVerb verb = new ChatVerb();
-            verb.Nickname= "SYS";
-            verb.Message = "FFS";
+            NoopVerb verb = new NoopVerb();
             return verb.CreateRequest();
         }
 
@@ -365,6 +361,9 @@ namespace Fap.Domain.Services
                         break;
                     case "CHAT":
                         HandleChat(r, s);
+                        break;
+                    case "NOOP":
+                        //Do nothing
                         break;
                     case "PING":
                         VerbFactory factory = new VerbFactory();
@@ -394,21 +393,15 @@ namespace Fap.Domain.Services
             {
                 var search = model.Peers.Where(i => i.ID == verb.SourceID).FirstOrDefault();
                 if (search == null || string.IsNullOrEmpty(search.Nickname))
-                {
                     sb.Append(verb.SourceID);
-                }
                 else
-                {
                     sb.Append(search.Nickname);
-                }
             }
             else
-            {
                 sb.Append(verb.Nickname);
-            }
             sb.Append(": ");
             sb.Append(verb.Message);
-            model.Messages.Add(sb.ToString());
+            model.Messages.AddRotate(sb.ToString(),50);
         }
 
         private FAPListenerRequestReturnStatus HandleDisconnect(Request r, Socket s)

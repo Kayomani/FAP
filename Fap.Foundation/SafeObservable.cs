@@ -49,6 +49,34 @@ namespace Fap.Foundation
                 dispatcher.Invoke((Action)(() => { DoAdd(item); }));
         }
 
+        public void AddRotate(T item, int max)
+        {
+            if (Thread.CurrentThread == dispatcher.Thread)
+                DoAddRotate(item,max);
+            else
+                dispatcher.Invoke((Action)(() => { DoAddRotate(item,max); }));
+
+        }
+
+        private void DoAddRotate(T item, int max)
+        {
+            T removed = default(T);
+            sync.AcquireWriterLock(Timeout.Infinite);
+            collection.Add(item);
+            if (collection.Count > max && max>0)
+            {
+                removed = collection[0];
+                collection.RemoveAt(0);
+            }
+            sync.ReleaseWriterLock();
+            if (CollectionChanged != null && null != removed)
+                CollectionChanged(this,
+                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removed, 0));
+            if (CollectionChanged != null)
+                CollectionChanged(this,
+                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
+        }
+
         private delegate bool AddDele(T item);
 
         public bool AddUnique(T item)
