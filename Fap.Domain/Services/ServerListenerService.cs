@@ -757,10 +757,10 @@ namespace Fap.Domain.Controllers
                     {
                         try
                         {
-                            if (sb.Length > 0)
-                                sb.Append("|");
                             //Make sure its readable
                             System.IO.DirectoryInfo[] Flds = share.Root.GetDirectories();
+                            if (sb.Length > 0)
+                                sb.Append("|");
                             sb.Append(share.NetName);
 
                         }
