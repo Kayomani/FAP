@@ -196,6 +196,7 @@ namespace Fap.Application.Controllers
             trayIcon.ShowIcon = true;
             model.Node.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Node_PropertyChanged);
 
+            model.Messages.Add("Check https://code.google.com/p/fap for updates");
             logger.Info("Local node ID is {0}", model.Node.ID);
             return true;
         }
