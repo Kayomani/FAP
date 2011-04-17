@@ -612,10 +612,10 @@ namespace Fap.Domain.Services
                     local.Secret = IDService.CreateID();
 
                     var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
-                    if (null != currentOverlord)
+                    /*if (null != currentOverlord)
                     {
                         currentOverlord.Ban(4000);
-                    }
+                    }*/
                     var oldPeers = model.Peers.Where(p => p.OverlordID == currentOverlord.ID).ToList();
                     foreach (var peer in oldPeers)
                         model.Peers.Remove(peer);
