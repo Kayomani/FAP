@@ -45,7 +45,8 @@ namespace Fap.Domain.Entity
 
         public void ClearItems()
         {
-            subItems.Clear();
+            if (subItems.Count > 0)
+                subItems.Clear();
         }
 
         public ReadOnlyContinuousCollection<FileSystemEntity> Items

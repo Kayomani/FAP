@@ -616,9 +616,12 @@ namespace Fap.Domain.Services
                     {
                         currentOverlord.Ban(4000);
                     }*/
-                    var oldPeers = model.Peers.Where(p => p.OverlordID == currentOverlord.ID).ToList();
-                    foreach (var peer in oldPeers)
-                        model.Peers.Remove(peer);
+                    if (null != currentOverlord)
+                    {
+                        var oldPeers = model.Peers.Where(p => p.OverlordID == currentOverlord.ID).ToList();
+                        foreach (var peer in oldPeers)
+                            model.Peers.Remove(peer);
+                    }
                     local.State = ConnectionState.Disconnected;
                 }
             }

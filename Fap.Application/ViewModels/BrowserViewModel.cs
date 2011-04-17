@@ -39,11 +39,25 @@ namespace Fap.Application.ViewModels
         private ICommand refresh;
         private List<FileSystemEntity> lastSelectedEntity;
         private bool isBusy;
+        private bool noCache;
 
         public BrowserViewModel(IBrowserView view)
             : base(view)
         {
 
+        }
+
+        public bool NoCache
+        {
+            set
+            {
+                noCache = value;
+                RaisePropertyChanged("NoCache");
+            }
+            get
+            {
+                return noCache;
+            }
         }
 
         public bool IsBusy

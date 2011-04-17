@@ -111,7 +111,7 @@ namespace Fap.Presentation.Panels
             System.Windows.Controls.TreeViewItem src = e.OriginalSource as System.Windows.Controls.TreeViewItem;
 
             FileSystemEntity ent = src.DataContext as FileSystemEntity;
-            ent.ClearItems();
+            
             Model.CurrentPath = ent.FullPath;
         }
 
@@ -126,6 +126,9 @@ namespace Fap.Presentation.Panels
                 {
                     //Open the sub folder
                     Model.CurrentPath = item.FullPath;
+                    var container = foldersTree.ContainerFromItem(item);
+                    if (container != null)
+                        container.IsExpanded = true;
                 }
                 else
                 {
@@ -157,7 +160,7 @@ namespace Fap.Presentation.Panels
                 if (container != null)
                 {
                     container.IsSelected = true;
-                    container.IsExpanded = true;
+                  //  container.IsExpanded = true;
                     container.BringIntoView();
                 }
                 ignoreFolderTreeEvents = false;

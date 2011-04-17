@@ -132,7 +132,14 @@ namespace Fap.Network
             }
             catch
             {
-                connectionService.FreeClientSession(session);
+                //Something went wrong.  Try to clear the session.
+                try
+                {
+                    if (session.Socket.Connected)
+                        session.Socket.Shutdown(System.Net.Sockets.SocketShutdown.Both);
+                    session.Socket.Close();
+                }
+                catch { }
                 return false;
             }
         }

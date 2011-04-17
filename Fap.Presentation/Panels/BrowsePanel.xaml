@@ -120,7 +120,7 @@
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="230"/>
+                                <ColumnDefinition Width="350"/>
                             </Grid.ColumnDefinitions>
                         </Grid>
                     </ItemsPanelTemplate>
@@ -128,11 +128,13 @@
                <StatusBarItem Grid.Column="0">
                     <Label  Foreground="GhostWhite" Content="{Binding Status}"/>
                 </StatusBarItem>
-                <StatusBarItem Grid.Column="1">
+                <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Right">
                  <DockPanel LastChildFill="False">
-                  <Button IsEnabled="False" Content="Refresh" Width="100"  Margin="5,0,5,0" DockPanel.Dock="Right" Command="{Binding Refresh}"/>
+                  <Button VerticalContentAlignment="Center" IsEnabled="False" Content="Refresh" Width="100"  Margin="5,0,5,0" DockPanel.Dock="Right" Command="{Binding Refresh}"/>
                   <Button Height="25" Content="Download" Width="100"  Margin="5,0,5,0" DockPanel.Dock="Right" Command="{Binding Download}"/>
-                 </DockPanel>
+                        <CheckBox IsChecked="{Binding NoCache}" VerticalAlignment="Center" />
+                        <Label VerticalContentAlignment="Center" Margin="0,0,10,0">No cache</Label>
+                    </DockPanel>
                 </StatusBarItem>
             </StatusBar>
         </DockPanel>
