@@ -20,8 +20,11 @@ namespace Fap.Domain.Services
         {
             var item = list.Where(i => i.ID == id).FirstOrDefault();
             if (null != item)
+            {
                 list.Remove(item);
-            return item.Socket;
+                return item.Socket;
+            }
+            return null;
         }
 
         public void CleanUp()

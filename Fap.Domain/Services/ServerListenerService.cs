@@ -54,6 +54,7 @@ namespace Fap.Domain.Controllers
         private ShareInfoService shareInfo;
         private string listenLocation;
         private Logger logService;
+        private UplinkConnectionPoolService ucps;
 
         //Announcer
         private Thread announcer;
@@ -74,6 +75,7 @@ namespace Fap.Domain.Controllers
             model = c.Resolve<Model>();
             shareInfo = c.Resolve<ShareInfoService>();
             model.Overlord.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Overlord_PropertyChanged);
+            ucps = c.Resolve<UplinkConnectionPoolService>();
         }
 
         void Overlord_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -238,6 +240,8 @@ namespace Fap.Domain.Controllers
                 case "NOOP":
                     //Do nothing
                     break;
+                case "UPLINK":
+                    return HandleUplink(r, s);
                 case "BROWSE":
                     BrowseVerb bverb = new BrowseVerb(model,shareInfo);
                     Response response = bverb.ProcessRequest(r);
@@ -251,6 +255,14 @@ namespace Fap.Domain.Controllers
                      break;
             }
             return FAPListenerRequestReturnStatus.None;
+        }
+
+        private FAPListenerRequestReturnStatus HandleUplink(Request r, Socket s)
+        {
+            ucps.AddConnection(s, r.RequestID);
+            UplinkVerb verb = new UplinkVerb(model.Node);
+            s.Send(Mediator.Serialize(verb.ProcessRequest(r)));
+            return FAPListenerRequestReturnStatus.ExternalHandler;
         }
 
         private FAPListenerRequestReturnStatus HandlePing(Request r, Socket s)
@@ -357,23 +369,29 @@ namespace Fap.Domain.Controllers
         }
 
         /// <summary>
-        /// Receive a broadcast hello request.  These should only be received from other overlord peers.
+        /// Handle a broadcast hello request.  
         /// </summary>
         /// <param name="cmd"></param>
         private void HandleHello(Request cmd)
         {
-            //Check we don't know about the peer already.
             HelloVerb verb = new HelloVerb(model.Overlord);
-            verb.ProcessRequest(cmd);
-            var search = model.Overlord.Peers.Where(p => p.Node.ID == verb.ID).FirstOrDefault();
-            if (null != search)
-                return;
-            if (model.Overlord.ID == verb.ID)
-                return;
-            if (connectingIDs.Contains(verb.ID))
-                return;
-            connectingIDs.Add(verb.ID);
-
+            lock (connectingIDs)
+            {
+                //Check we don't know about the peer already.
+               
+                verb.ProcessRequest(cmd);
+                var search = model.Overlord.Peers.Where(p => p.Node.ID == verb.ID).FirstOrDefault();
+                //Do we know the node already?
+                if (null != search)
+                    return;
+                //Dont connect to ourselves..
+                if (model.Overlord.ID == verb.ID)
+                    return;
+                //Trying to connect to this node already.. 
+                if (connectingIDs.Contains(verb.ID))
+                    return;
+                connectingIDs.Add(verb.ID);
+            }
             //Connect remote client async as it may take time to fail.
             ThreadPool.QueueUserWorkItem(HandleHeloAsync, verb);
         }
@@ -382,7 +400,7 @@ namespace Fap.Domain.Controllers
 
         private void HandleHeloAsync(object o)
         {
-            /*HelloVerb hello = o as HelloVerb;
+            HelloVerb hello = o as HelloVerb;
             if (null == hello)
                 return;
             try
@@ -391,9 +409,10 @@ namespace Fap.Domain.Controllers
                 Node node = new Node();
                 node.ID = hello.ID;
                 //Unknown clients are not transmitted
-                node.NodeType = ClientType.Unknown;
+                node.NodeType = ClientType.Overlord;
                 Uplink peer = null;
                 node.Location = hello.ListenLocation;
+                node.Online = true;
                 ConnectVerb connect = new ConnectVerb(model.Overlord);
                 connect.RemoteLocation = model.Overlord.Location;
                 var request = connect.CreateRequest();
@@ -403,37 +422,30 @@ namespace Fap.Domain.Controllers
                 var session = connectionService.GetClientSession(node);
                 if (session != null)
                 {
-                    peer = new Uplink(node, session);
-                    peer.OnDisconnect += new Uplink.Disconnect(peer_OnDisconnect);
-                    peer.OnTxTimingout += new Uplink.TxTimingout(peer_OnTxTimingout);
-             *      search.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
-                    model.Overlord.Peers.Add(peer);
-                }
-                Response response = new Response();
-                if (c.Execute(request, node, out response) && response.Status == 0)
-                {
-                    //Registered ok, announce
-                    ClientVerb info = new ClientVerb(node);
-                    TransmitToAllNonOverlords(info.CreateRequest());
-
-                    //Transmit all clients to the new overlord
-                    foreach (var client in model.Overlord.Peers.ToList().Where(p => p.Node.ID != node.ID))
+                    Response response = new Response();
+                    if (c.Execute(request, node, out response) && response.Status == 0)
                     {
-                        info = new ClientVerb(client.Node);
-                        peer.AddMessage(info.CreateRequest());
+                        peer = new Uplink(node, session, bufferService, connectionService);
+                        peer.OnDisconnect += new Uplink.Disconnect(peer_OnDisconnect);
+                        peer.OnTxTimingout += new Uplink.TxTimingout(peer_OnTxTimingout);
+                        peer.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
+
+                        var serverDownlink = ucps.FindUplink(node.Secret);
+                        if (null == serverDownlink)
+                            return;
+                        peer.Start(serverDownlink);
+                        model.Overlord.Peers.Add(peer);
+                        //Registered ok, announce
+                        ClientVerb info = new ClientVerb(node);
+                        TransmitToAllNonOverlords(info.CreateRequest());
                     }
-                }
-                else
-                {
-                    //Something went wrong
-                    model.Overlord.Peers.Remove(peer);
                 }
             }
             catch { }
             finally
             {
                 connectingIDs.Remove(hello.ID);
-            }*/
+            }
         }
 
         private Request peer_OnTxTimingout()

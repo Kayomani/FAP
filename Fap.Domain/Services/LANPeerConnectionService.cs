@@ -174,9 +174,9 @@ namespace Fap.Domain.Services
                     //Does the network need an additional server?
                     bool requireNewServer = false;
 
-                    if (peers < 10)
+                    if (peers < 50)
                     {
-                        if (freeSlots < 2)
+                        if (freeSlots < 5)
                             requireNewServer = true;
                     }
                     else if (peers < 100)
