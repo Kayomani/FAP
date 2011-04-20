@@ -38,12 +38,25 @@ namespace Fap.Presentation
     /// </summary>
     public partial class TabWindow : Window, IPopupWindow
     {
+
         public TabWindow()
         {
             InitializeComponent();
             this.Closing += new System.ComponentModel.CancelEventHandler(TabWindow_Closing);
+            ResizeToScreen();
         }
 
+
+        public void ResizeToScreen()
+        {
+            double horSpace = Math.Max(SystemParameters.PrimaryScreenWidth * 0.1, 100);
+            double vertSpace = Math.Max(SystemParameters.PrimaryScreenHeight * 0.1, 100);
+
+            Top = vertSpace;
+            Left = horSpace;
+            Width = SystemParameters.PrimaryScreenWidth - horSpace * 2;
+            Height = SystemParameters.PrimaryScreenHeight - vertSpace * 2;
+        }
 
         void TabWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -52,6 +65,7 @@ namespace Fap.Presentation
                 Model.Close.Execute(null);
             }
         }
+
 
         private PopupWindowViewModel Model
         {

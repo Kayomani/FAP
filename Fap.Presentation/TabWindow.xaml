@@ -5,7 +5,7 @@
          xmlns:r="clr-namespace:Wpf.Controls"
         MinWidth="{Binding ElementName=CContent, Path=ActualWidth}"
         MinHeight="{Binding ElementName=CContent, Path=ActualHeight}"
-        xmlns:app="clr-namespace:Fap.Application.ViewModels;assembly=Fap.Application" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" >
+        xmlns:app="clr-namespace:Fap.Application.ViewModels;assembly=Fap.Application" WindowStartupLocation="Manual" WindowStyle="ToolWindow" >
     <Window.Resources>
         <Image x:Key="CloseSmallImage" x:Shared="False" Source="Images/Default_Avatar.png" Height="10" Width="11"/>
     </Window.Resources>

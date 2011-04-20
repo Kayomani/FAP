@@ -364,7 +364,7 @@ namespace Fap.Application.Controllers
             {
                 mainWindowModel = container.Resolve<MainWindowViewModel>();
                 mainWindowModel.CurrentNetwork = model.Networks.Where(n=>n.ID == "LOCAL").First();
-                mainWindowModel.WindowTitle = "FAP Alpha 4";
+                mainWindowModel.WindowTitle = "FAP Alpha 4.1";
                 mainWindowModel.SendChatMessage = new DelegateCommand(sendChatMessage);
                 mainWindowModel.ViewShare = new DelegateCommand(viewShare);
                 mainWindowModel.EditShares = new DelegateCommand(EditShares);

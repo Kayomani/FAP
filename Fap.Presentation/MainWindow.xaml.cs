@@ -42,7 +42,21 @@ namespace Fap.Presentation
 		public MainWindow()
 		{
 			this.InitializeComponent();
-			
+
+            //Position window
+            Left = SystemParameters.PrimaryScreenWidth - Width - 50;
+            double space = SystemParameters.PrimaryScreenHeight - Height;
+            if (space < 0)
+            {
+                Top = 0;
+                Height = SystemParameters.PrimaryScreenHeight;
+            }
+            else
+            {
+                Top = space / 2;
+                Height = SystemParameters.PrimaryScreenHeight - space;
+            }
+
 			// Insert code required on object creation below this point.
             this.DataContextChanged += new DependencyPropertyChangedEventHandler(MainWindow2_DataContextChanged);
             this.Closing += new System.ComponentModel.CancelEventHandler(MainWindow2_Closing);
