@@ -22,16 +22,17 @@ using Fap.Foundation;
 using Fap.Network.Entity;
 using System.ComponentModel;
 using ContinuousLinq;
+using System.Windows.Data;
+using System.Collections.ObjectModel;
 
 namespace Fap.Domain.Entity
 {
     public class FileSystemEntity : INotifyPropertyChanged
     {
-        private ContinuousCollection<FileSystemEntity> subItems = new ContinuousCollection<FileSystemEntity>();
-        private ReadOnlyContinuousCollection<FileSystemEntity> foldersSubItems;
+        private ObservableCollection<FileSystemEntity> subItems = new ObservableCollection<FileSystemEntity>();
         private FileSystemEntity temp;
 
-        public ContinuousCollection<FileSystemEntity> SubItems
+        public ObservableCollection<FileSystemEntity> Items
         {
             set { subItems = value; }
             get { return subItems; }
@@ -45,49 +46,21 @@ namespace Fap.Domain.Entity
 
         public void ClearItems()
         {
-            subItems.Clear();
+            subItems.Clear(); 
         }
 
-        public ReadOnlyContinuousCollection<FileSystemEntity> Items
-        {
-           
-            get
-            {
-                if (IsPopulated)
-                    return subItems.Select(s=>s); 
-                else
-                {
-                    if (subItems.Count == 0)
-                    {
-                        temp = new FileSystemEntity() { IsFolder = true };
-                        subItems.Add(temp);
-                    }
-                    return subItems.Select(s => s); 
-                }
-            }
-        }
-
-
-        public ReadOnlyContinuousCollection<FileSystemEntity> Folders
+        public FilteredObservableCollection<FileSystemEntity> Folders
         {
             get
             {
-                if (null == foldersSubItems)
-                    foldersSubItems = subItems.Where(f => f.IsFolder).Select(f => f);
-
-                if (IsPopulated)
+                if (!IsPopulated && subItems.Count == 0)
                 {
-                    return foldersSubItems;
+                    temp = new FileSystemEntity() { IsFolder = true };
+                    subItems.Add(temp);
                 }
-                else
-                {
-                    if (subItems.Count == 0)
-                    {
-                        temp = new FileSystemEntity() { IsFolder = true };
-                        subItems.Add(temp);
-                    }
-                    return foldersSubItems;
-                }
+                FilteredObservableCollection<FileSystemEntity> lcv = new FilteredObservableCollection<FileSystemEntity>(subItems);
+                lcv.Filter = i => ((FileSystemEntity)i).IsFolder;
+                return lcv;
             }
         }
 

@@ -85,6 +85,7 @@
     <Compile Include="BackgroundSafeObservable.cs" />
     <Compile Include="BaseEntity.cs" />
     <Compile Include="ContinousCollectionEx.cs" />
+    <Compile Include="FilteredObservableCollection.cs" />
     <Compile Include="IconHelper.cs" />
     <Compile Include="MemoryBuffer.cs" />
     <Compile Include="Networking\AsyncSocket.cs" />

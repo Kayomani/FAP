@@ -52,8 +52,8 @@
         This Style binds a TreeViewItem to a TreeViewItemViewModel. 
         -->
                 <Style TargetType="{x:Type TreeViewItem}">
-                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <!--<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />-->
                     <Setter Property="FontWeight" Value="Normal" />
                     <Style.Triggers>
                         <Trigger Property="IsSelected" Value="True">
@@ -87,13 +87,15 @@
         <base:SortableListView  Grid.Column="2"  Grid.Row="1"
  VirtualizingStackPanel.IsVirtualizing="True"
                                 VirtualizingStackPanel.VirtualizationMode="Recycling"
-  x:Name="listView2" BorderBrush="Black" ItemsSource="{Binding CurrentItem.SubItems}" ClipToBounds="True"  MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" SelectionChanged="listView2_SelectionChanged" MouseDoubleClick="listView2_MouseDoubleClick">
+  x:Name="listView2" BorderBrush="Black" ItemsSource="{Binding CurrentItem.Items}" ClipToBounds="True"  MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}}" SelectionChanged="listView2_SelectionChanged" MouseDoubleClick="listView2_MouseDoubleClick">
             <base:SortableListView.View>
                 <GridView>
                     <GridViewColumn Header="" Width="30px">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <Image  x:Name="img"  Width="15" Height="15"  Stretch="Fill" Source="{Binding ., Converter={StaticResource fileImageConverter}}"  Margin="0"   />
+                                <DockPanel>
+                                    <Image  x:Name="img" Height="16" Stretch="Uniform" Source="{Binding ., Converter={StaticResource fileImageConverter}}"  Margin="0"   />
+                                </DockPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

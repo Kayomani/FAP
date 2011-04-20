@@ -61,7 +61,7 @@ namespace Fap.Presentation.Panels
                 bar.PathChanged += new RoutedPropertyChangedEventHandler<string>(bar_PathChanged);
                 Model.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Model_PropertyChanged);
 
-                root.SubItems = Model.Root;
+                root.Items = Model.Root;
                 root.IsPopulated = true;
                 rootB.DataContext = root;
                 rootB.Header = "ROOT";
@@ -111,7 +111,6 @@ namespace Fap.Presentation.Panels
             System.Windows.Controls.TreeViewItem src = e.OriginalSource as System.Windows.Controls.TreeViewItem;
 
             FileSystemEntity ent = src.DataContext as FileSystemEntity;
-            ent.ClearItems();
             Model.CurrentPath = ent.FullPath;
         }
 

@@ -127,11 +127,9 @@ namespace Fap.Application.Controllers
             FileSystemEntity fse = o as FileSystemEntity;
             if (null != fse)
             {
-                fse.ClearItems();
                 Client c = new Client(bufferService, connectionService);
                 BrowseVerb cmd = new BrowseVerb(model, shareInfo);
                 cmd.Path = fse.FullPath;
-
                 if (c.Execute(cmd, client))
                 {
 
@@ -142,6 +140,7 @@ namespace Fap.Application.Controllers
                            bvm.Status = "Download complete (" + cmd.Results.Count + ").";
                            fse.IsPopulated = true;
                            fse.ClearItems();
+
                            foreach (var result in cmd.Results)
                                fse.AddItem(result);
                            bvm.CurrentItem = fse;

@@ -25,13 +25,15 @@ using Fap.Domain.Entity;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ContinuousLinq;
+using System.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace Fap.Application.ViewModels
 {
     public class BrowserViewModel: ViewModel<IBrowserView>
     {
 
-        private ContinuousCollection<FileSystemEntity> root = new ContinuousCollection<FileSystemEntity>();
+        private ObservableCollection<FileSystemEntity> root = new ObservableCollection<FileSystemEntity>();
         private FileSystemEntity currentItem;
         private string currentPath;
         private string status;
@@ -59,7 +61,7 @@ namespace Fap.Application.ViewModels
             }
         }
 
-        public ContinuousCollection<FileSystemEntity> Root
+        public ObservableCollection<FileSystemEntity> Root
         {
             set
             {

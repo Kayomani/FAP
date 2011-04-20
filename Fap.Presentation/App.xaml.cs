@@ -70,8 +70,6 @@ namespace Fap.Presentation
         protected override void OnStartup(StartupEventArgs e)
         {
 
-           
-
             Fap.Foundation.SafeObservableStatic.Dispatcher = System.Windows.Application.Current.Dispatcher;
             this.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(App_DispatcherUnhandledException);
 
