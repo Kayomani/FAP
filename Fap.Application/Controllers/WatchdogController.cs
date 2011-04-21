@@ -77,7 +77,7 @@ namespace Fap.Application.Controllers
                 try
                 {
                     //Disconnect sessions if needed
-                    //  DisconnectStaleSessions();//Temp disabled as ping is causing an error??
+                     DisconnectStaleSessions();
                     //Clean up excess buffers
                     bufferService.Clean();
 

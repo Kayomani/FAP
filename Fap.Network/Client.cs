@@ -45,7 +45,9 @@ namespace Fap.Network
                 response = null;
                 return false;
             }
-            return Execute(r, sess, out response);
+            var result = Execute(r, sess, out response);
+            connectionService.FreeClientSession(sess);
+            return result;
         }
 
         public bool Execute(Request r, Session session, out Response response)
@@ -91,7 +93,7 @@ namespace Fap.Network
                     }
                 }
                 Response resp = new Response();
-                connectionService.FreeClientSession(session);
+               
                 if (Mediator.Deserialize(token.GetCommand(), out resp))
                 {
                     response = resp;
@@ -114,7 +116,9 @@ namespace Fap.Network
             var sess = connectionService.GetClientSession(rc);
             if (null == sess)
                 return false;
-            return Execute(cmd, sess, requestid);
+            var result = Execute(cmd, sess, requestid);
+            connectionService.FreeClientSession(sess);
+            return result;
         }
 
         public bool Execute(IVerb cmd, Session session, string requestid)
