@@ -102,6 +102,8 @@ namespace Fap.Application.Controllers
                     }
                     // Remove any old pooled server connections.
                     ucps.CleanUp();
+
+                    System.GC.Collect();
                 }
                 catch { }
                 Thread.Sleep(4000);

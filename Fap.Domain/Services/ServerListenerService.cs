@@ -66,6 +66,7 @@ namespace Fap.Domain.Controllers
         private Model model;
 
         private SafeObservable<Node> externalNodes = new SafeObservable<Node>();
+        private BackgroundSafeObservable<string> connectingIDs = new BackgroundSafeObservable<string>();
         private object sync = new object();
 
         public ServerListenerService(IContainer c)
@@ -78,7 +79,7 @@ namespace Fap.Domain.Controllers
             ucps = c.Resolve<UplinkConnectionPoolService>();
         }
 
-        void Overlord_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void Overlord_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
             {
@@ -88,10 +89,12 @@ namespace Fap.Domain.Controllers
             }
         }
 
+        #region Startup / shutdown
         public void Start(IPAddress ip, int port, string id, string name)
         {
             if (!running)
             {
+                running = true;
                 networkID = id;
                 networkName = name;
                 listener = container.Resolve<FAPListener>();
@@ -107,27 +110,29 @@ namespace Fap.Domain.Controllers
                 model.Overlord.Port = port;
                 model.Overlord.Nickname = "Overlord";
                 model.Overlord.ID = IDService.CreateID();
+                model.Overlord.NodeType = ClientType.Overlord;
                 model.Overlord.Online = true;
                 logService.Info("Overlord ID is {0}", model.Overlord.ID);
                 bclient.StartListener();
                 ThreadPool.QueueUserWorkItem(new WaitCallback(Process_announce));
             }
             else
-                throw new Exception("Super node alrady running.");
+                throw new Exception("Overlord already running.");
         }
 
         public void Stop()
         {
             announcer.Abort();
             listener.Stop();
+            running = false;
             DisconnectVerb verb = new DisconnectVerb(model.Overlord);
             lock (sync)
             {
                 TransmitToAll(verb.CreateRequest());
                 int startTime = Environment.TickCount;
 
-                //Wait for outstanding streams to empty for up to 4 seconds.
-                while (model.Overlord.Peers.Where(p => p.Running).Select(p => p.PendingRequests).Sum() > 0 && Environment.TickCount - startTime < 4000)
+                //Wait for outstanding streams to empty for up to 3 seconds.
+                while (model.Overlord.Peers.ToList().Where(p => p.Running).Select(p => p.PendingRequests).Sum() > 0 && Environment.TickCount - startTime < 3000)
                     Thread.Sleep(25);
                 foreach (var p in model.Overlord.Peers)
                     p.Kill();
@@ -150,49 +155,46 @@ namespace Fap.Domain.Controllers
                     model.Overlord.Strength = r.Next(333, 666);
                     break;
             }
-
         }
+        #endregion
 
-        private void TransmitToAll(Request r)
+        #region Announcer worker
+
+        /// <summary>
+        /// Handles announcing presence via broadcast.
+        /// </summary>
+        private void Process_announce(object o)
         {
-            foreach (var peer in model.Overlord.Peers.ToList().Where(p=>p.Node.ID != model.Overlord.ID))
-                peer.AddMessage(r);
+            announcer = Thread.CurrentThread;
+            while (true)
+            {
+                HelloVerb helo = new HelloVerb(model.Overlord);
+                helo.ListenLocation = listenLocation;
+                bserver.SendCommand(helo.CreateRequest());
+                workerEvent.WaitOne(minAnnounceFreq);
+            }
         }
+        #endregion
 
-        private void TransmitToAllNonOverlords(Request r)
-        {
-            foreach (var peer in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType != ClientType.Overlord && 
-                                                                          p.Node.NodeType != ClientType.Unknown &&
-                                                                          p.Node.ID != model.Overlord.ID))
-                peer.AddMessage(r);
-        }
-
-        private void TransmitToAllOverlords(Request r)
-        {
-            foreach (var peer in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType == ClientType.Overlord &&
-                                                                          p.Node.ID != model.Overlord.ID))
-                peer.AddMessage(r);
-        }
-
+        #region Command handlers
         /// <summary>
         /// Broadcast RX
         /// </summary>
         /// <param name="cmd"></param>
         private void bclient_OnBroadcastCommandRx(Request cmd)
         {
-            //logService.AddInfo("Overlord rx: " + cmd.Command + " P: " + cmd.Param);
             switch (cmd.Command)
             {
                 case "HELLO":
+                    //Location announcements from other overlords
                     HandleHello(cmd);
                     break;
                 case "WHO":
-                    lock (announcer)
-                        workerEvent.Set();
+                    //Request from a local peer as to what severs exist - so announce.
+                    workerEvent.Set();
                     break;
             }
         }
-
 
         /// <summary>
         /// Unicast RX (From connected clients)
@@ -200,9 +202,9 @@ namespace Fap.Domain.Controllers
         /// <param name="r"></param>
         /// <param name="s"></param>
         /// <returns></returns>
-        private FAPListenerRequestReturnStatus search_OnReceivedRequest(Request r, Socket s)
+        private FAPListenerRequestReturnStatus localClient_OnReceivedRequest(Request r, Socket s)
         {
-            logService.Trace("Overlord client RX " + r.Command + " " + r.Param);
+            logService.Info("Overlord client RX {0} {1} ", r.Command, r.Param);
             switch (r.Command)
             {
                 case "CLIENT":
@@ -221,19 +223,21 @@ namespace Fap.Domain.Controllers
         }
 
         /// <summary>
-        /// Unicast RX (P2P)
+        /// Unicast RX (Non local client i.e p2p)
         /// </summary>
         /// <param name="r"></param>
         /// <param name="s"></param>
         /// <returns></returns>
         private FAPListenerRequestReturnStatus listener_OnReceiveRequest(Request r, Socket s)
         {
-            logService.Info("Overlord p2p RX {0} {1} ", r.Command, r.Param);
+            logService.Info("Overlord P2P RX {0} {1} ", r.Command, r.Param);
             switch (r.Command)
             {
                 case "CONNECT":
+                    //Connection request
                     return HandleConnect(r, s);
                 case "INFO":
+                    //Info on this node
                     return HandleInfo(r, s);
                 case "PING":
                     return HandlePing(r, s);
@@ -241,22 +245,49 @@ namespace Fap.Domain.Controllers
                     //Do nothing
                     break;
                 case "UPLINK":
+                    //Incoming uplink - local client on another overlord
                     return HandleUplink(r, s);
                 case "BROWSE":
-                    BrowseVerb bverb = new BrowseVerb(model,shareInfo);
+                    //Share request - We shouldnt get here..
+                    BrowseVerb bverb = new BrowseVerb(model, shareInfo);
                     Response response = bverb.ProcessRequest(r);
                     response.AdditionalHeaders.Clear();
                     s.Send(Mediator.Serialize(response));
                     break;
                 case "COMPARE":
-                     VerbFactory factory = new VerbFactory();
-                     var verb = factory.GetVerb(r.Command, model);
-                     s.Send(Mediator.Serialize(verb.ProcessRequest(r)));
-                     break;
+                    //Stats request
+                    VerbFactory factory = new VerbFactory();
+                    var verb = factory.GetVerb(r.Command, model);
+                    s.Send(Mediator.Serialize(verb.ProcessRequest(r)));
+                    break;
             }
             return FAPListenerRequestReturnStatus.None;
         }
+        #endregion
 
+        #region Helper methods
+        private void TransmitToAll(Request r)
+        {
+            foreach (var peer in model.Overlord.Peers.ToList().Where(p => p.Node.ID != model.Overlord.ID))
+                peer.AddMessage(r);
+        }
+
+        private void TransmitToLocalClients(Request r)
+        {
+            foreach (var peer in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType == ClientType.Client &&
+                                                                          p.Node.ID != model.Overlord.ID))
+                peer.AddMessage(r);
+        }
+
+        private void TransmitToAllOverlords(Request r)
+        {
+            foreach (var peer in model.Overlord.Peers.ToList().Where(p => p.Node.NodeType == ClientType.Overlord &&
+                                                                          p.Node.ID != model.Overlord.ID))
+                peer.AddMessage(r);
+        }
+        #endregion
+
+        #region Command handlers
         private FAPListenerRequestReturnStatus HandleUplink(Request r, Socket s)
         {
             ucps.AddConnection(s, r.RequestID);
@@ -268,17 +299,15 @@ namespace Fap.Domain.Controllers
         private FAPListenerRequestReturnStatus HandlePing(Request r, Socket s)
         {
             PingVerb ping = new PingVerb(null);
-
-            var search = model.Overlord.Peers.Where(p => p.Node.ID == r.Param && r.RequestID == p.Node.Secret).FirstOrDefault();
+            //Return status based on if the node is local or not
+            var search = model.Overlord.Peers.ToList().Where(p => p.Node.ID == r.Param && r.RequestID == p.Node.Secret).FirstOrDefault();
             if (null != search)
             {
                 search.Node.LastUpdate = Environment.TickCount;
                 ping.Status = 1;
             }
             else
-            {
                 ping.Status = 0;
-            }
             s.Send(Mediator.Serialize(ping.ProcessRequest(r)));
             return FAPListenerRequestReturnStatus.None;
         }
@@ -298,27 +327,23 @@ namespace Fap.Domain.Controllers
         /// <returns></returns>
         private FAPListenerRequestReturnStatus HandleDisconnect(Request r, Socket s)
         {
-            Response response = new Response();
-            response.RequestID = r.RequestID;
+           // Response response = new Response();
+           //  response.RequestID = r.RequestID;
+           // bool transmitResponse = false;
             lock (sync)
             {
-                var search = model.Overlord.Peers.Where(p => p.Node.Secret == r.RequestID && p.Node.ID == r.Param).FirstOrDefault();
+                var search = model.Overlord.Peers.ToList().Where(p => p.Node.Secret == r.RequestID && p.Node.ID == r.Param).FirstOrDefault();
 
                 if (null != search)
                 {
+                    //Local peer - Note this is not usually used, it is normal for a peer to just disconnect and this message gets raised.
                     search.Kill();
                     model.Overlord.Peers.Remove(search);
-                    search.OnDisconnect -= new Uplink.Disconnect(peer_OnDisconnect);
-                    search.OnTxTimingout -= new Uplink.TxTimingout(peer_OnTxTimingout);
-                    search.OnReceivedRequest -= new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
+                    search.OnDisconnect -= new Uplink.Disconnect(localClient_OnDisconnect);
+                    search.OnTxTimingout -= new Uplink.TxTimingout(localClient_OnTxTimingout);
+                    search.OnReceivedRequest -= new FapConnectionHandler.ReceiveRequest(localClient_OnReceivedRequest);
                     TransmitToAll(r);
-                    if (search.Node.NodeType == ClientType.Overlord)
-                    {
-                        //Remove any nodes associated with the disconnected overlord
-                        foreach (var node in externalNodes.Where(p => p.OverlordID == search.Node.OverlordID).ToList())
-                            externalNodes.Remove(node);
-                    }
-                    response.Status = 0;
+                 //   response.Status = 0;
                 }
                 else
                 {
@@ -327,16 +352,16 @@ namespace Fap.Domain.Controllers
                     if (null != osearch)
                     {
                         externalNodes.Remove(osearch);
-                        TransmitToAllNonOverlords(r);
-                        response.Status = 0;
+                        TransmitToLocalClients(r);
+                      //  response.Status = 0;
                     }
                     else
                     {
-                        response.Status = 1;
+                      //  response.Status = 1;
                     }
                 }
             }
-            s.Send(Mediator.Serialize(response));
+          //      s.Send(Mediator.Serialize(response));
             return FAPListenerRequestReturnStatus.None;
         }
 
@@ -355,16 +380,19 @@ namespace Fap.Domain.Controllers
                 var search = model.Overlord.Peers.Where(p => p.Node.Secret == r.RequestID && p.Node.ID == r.Param).FirstOrDefault();
                 if (null != search)
                 {
+                    //Received from a local client so transmit to the whole network
                     TransmitToAll(r);
                     search.Node.LastUpdate = Environment.TickCount;
-                    response.Status = 0;
+                    // response.Status = 0;
                 }
                 else
                 {
-                    response.Status = 1;
+                    //Received from remote overlord so only transmit to local clients
+                    TransmitToLocalClients(r);
+                    // response.Status = 1;
                 }
             }
-            s.Send(Mediator.Serialize(response));
+            //s.Send(Mediator.Serialize(response));
             return FAPListenerRequestReturnStatus.None;
         }
 
@@ -378,7 +406,6 @@ namespace Fap.Domain.Controllers
             lock (connectingIDs)
             {
                 //Check we don't know about the peer already.
-               
                 verb.ProcessRequest(cmd);
                 var search = model.Overlord.Peers.Where(p => p.Node.ID == verb.ID).FirstOrDefault();
                 //Do we know the node already?
@@ -387,7 +414,7 @@ namespace Fap.Domain.Controllers
                 //Dont connect to ourselves..
                 if (model.Overlord.ID == verb.ID)
                     return;
-                //Trying to connect to this node already.. 
+                //Are we trying to connect to this node already?
                 if (connectingIDs.Contains(verb.ID))
                     return;
                 connectingIDs.Add(verb.ID);
@@ -396,8 +423,10 @@ namespace Fap.Domain.Controllers
             ThreadPool.QueueUserWorkItem(HandleHeloAsync, verb);
         }
 
-        private BackgroundSafeObservable<string> connectingIDs = new BackgroundSafeObservable<string>();
-
+        /// <summary>
+        /// Handle connecting to a remote peer which was announced via broadcast.
+        /// </summary>
+        /// <param name="o"></param>
         private void HandleHeloAsync(object o)
         {
             HelloVerb hello = o as HelloVerb;
@@ -423,21 +452,26 @@ namespace Fap.Domain.Controllers
                 if (session != null)
                 {
                     Response response = new Response();
-                    if (c.Execute(request, node, out response) && response.Status == 0)
+                    if (c.Execute(request, session, out response) && response.Status == 0)
                     {
                         peer = new Uplink(node, session, bufferService, connectionService);
-                        peer.OnDisconnect += new Uplink.Disconnect(peer_OnDisconnect);
-                        peer.OnTxTimingout += new Uplink.TxTimingout(peer_OnTxTimingout);
-                        peer.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
+                        peer.OnDisconnect += new Uplink.Disconnect(localClient_OnDisconnect);
+                        peer.OnTxTimingout += new Uplink.TxTimingout(localClient_OnTxTimingout);
+                        peer.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(localClient_OnReceivedRequest);
 
                         var serverDownlink = ucps.FindUplink(node.Secret);
                         if (null == serverDownlink)
+                        {
+                            //The remote server couldnt connect to us yet still returned ok??
+                            serverDownlink.Shutdown(SocketShutdown.Both);
+                            serverDownlink.Close();
                             return;
+                        }
                         peer.Start(serverDownlink);
-                        model.Overlord.Peers.Add(peer);
-                        //Registered ok, announce
+                        //Conencted ok, announce
                         ClientVerb info = new ClientVerb(node);
-                        TransmitToAllNonOverlords(info.CreateRequest());
+                        TransmitToLocalClients(info.CreateRequest());
+                        model.Overlord.Peers.Add(peer);
                     }
                 }
             }
@@ -445,70 +479,6 @@ namespace Fap.Domain.Controllers
             finally
             {
                 connectingIDs.Remove(hello.ID);
-            }
-        }
-
-        private Request peer_OnTxTimingout()
-        {
-            //return new PingVerb(model.Overlord).CreateRequest();
-            NoopVerb verb = new NoopVerb();
-            return verb.CreateRequest();
-        }
-
-        /// <summary>
-        /// This is called from the network layer when a interoverlord comms session is timing out.  Just send a operation that does nothing.
-        /// </summary>
-        /// <param name="s"></param>
-        private void peer_OnOverlordConnectionTimingout(Uplink s)
-        {
-            ClientVerb verb = new ClientVerb(model.Overlord);
-            Request r = verb.CreateRequest();
-            r.AdditionalHeaders.Clear();
-            s.AddMessage(r);
-        }
-
-        private void peer_OnDisconnect(Uplink s)
-        {
-            lock (sync)
-            {
-                if (model.Overlord.Peers.Contains(s))
-                {
-                    model.Overlord.Peers.Remove(s);
-
-                    //Notify other peers
-                    DisconnectVerb verb = new DisconnectVerb(s.Node);
-                    TransmitToAll(verb.CreateRequest());
-
-                    //Onos netsplit!
-                    if (s.Node.NodeType == ClientType.Overlord)
-                    {
-                        var items = externalNodes.Where(n => n.OverlordID == s.Node.ID).ToList();
-                        foreach (var node in items)
-                        {
-                            DisconnectVerb disc = new DisconnectVerb(node);
-                            TransmitToAllNonOverlords(disc.CreateRequest());
-                            externalNodes.Remove(node);
-                        }
-                    }
-                }
-            }
-            s.OnDisconnect -= new Uplink.Disconnect(peer_OnDisconnect);
-            s.OnTxTimingout -= new Uplink.TxTimingout(peer_OnTxTimingout);
-            s.OnReceivedRequest -= new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
-        }
-
-        /// <summary>
-        /// Handles announcing presence via broadcast.
-        /// </summary>
-        private void Process_announce(object o)
-        {
-            announcer = Thread.CurrentThread;
-            while (true)
-            {
-                HelloVerb helo = new HelloVerb(model.Overlord);
-                helo.ListenLocation = listenLocation;
-                bserver.SendCommand(helo.CreateRequest());
-                workerEvent.WaitOne(minAnnounceFreq);
             }
         }
 
@@ -521,20 +491,20 @@ namespace Fap.Domain.Controllers
         /// <returns></returns>
         private FAPListenerRequestReturnStatus HandleClient(Request r, Socket s)
         {
-            var client = model.Overlord.Peers.Where(p => p.Node.ID == r.Param && r.RequestID == p.Node.Secret).FirstOrDefault();
+            var client = model.Overlord.Peers.ToList().Where(p => p.Node.ID == r.Param && r.RequestID == p.Node.Secret).FirstOrDefault();
             if (null != client)
             {
+                //Local client - Broadcast new info
                 client.Node.LastUpdate = Environment.TickCount;
-                //Client is ok, replicate new info.
                 if (r.AdditionalHeaders.Count > 0)
                 {
                     foreach (var info in r.AdditionalHeaders)
                         client.Node.SetData(info.Key, info.Value);
                     TransmitToAll(r);
-                    Response response = new Response();
-                    response.RequestID = r.RequestID;
-                    response.Status = 0;
-                    s.Send(Mediator.Serialize(response));
+                    //Response response = new Response();
+                    // response.RequestID = r.RequestID;
+                    // response.Status = 0;
+                    //s.Send(Mediator.Serialize(response));
                 }
             }
             else
@@ -542,12 +512,13 @@ namespace Fap.Domain.Controllers
                 var overlord = model.Overlord.Peers.Where(p => p.Node.NodeType == ClientType.Overlord && r.RequestID == p.Node.Secret).FirstOrDefault();
                 if (null != overlord)
                 {
-                    //Received relayed information from a registered overlord, forward on again
+                    //Received relayed information from a registered overlord, forward on 
                     overlord.Node.LastUpdate = Environment.TickCount;
-                    logService.Trace("Overlord foward client {0} from {1}",  r.Param, overlord.Node.ID);
+                    logService.Trace("Overlord foward client {0} from {1}", r.Param, overlord.Node.ID);
                     var search = externalNodes.Where(n => n.ID == r.Param).FirstOrDefault();
                     if (search != null)
                     {
+                        search.OverlordID = overlord.Node.ID;
                         foreach (var kn in r.AdditionalHeaders)
                             search.SetData(kn.Key, kn.Value);
                     }
@@ -560,24 +531,22 @@ namespace Fap.Domain.Controllers
                         foreach (var kn in r.AdditionalHeaders)
                             n.SetData(kn.Key, kn.Value);
                     }
-
-                    TransmitToAllNonOverlords(r);
-                    Response response = new Response();
-                    response.RequestID = r.RequestID;
-                    response.Status = 0;
-                    s.Send(Mediator.Serialize(response));
+                    TransmitToLocalClients(r);
+                    // Response response = new Response();
+                    // response.RequestID = r.RequestID;
+                    //response.Status = 0;
+                    //s.Send(Mediator.Serialize(response));
                 }
                 else
                 {
-                    logService.Warn("Overlord unreg client {0}", r.Param);
+                    logService.Warn("Overlord unreg client info for {0}", r.Param);
                     //Unregisted client or invalid info.
-                    Response response = new Response();
-                    response.RequestID = r.RequestID;
-                    response.Status = 1;
-                    s.Send(Mediator.Serialize(response));
+                    //Response response = new Response();
+                    // response.RequestID = r.RequestID;
+                    // response.Status = 1;
+                    //s.Send(Mediator.Serialize(response));
                 }
             }
-
             return FAPListenerRequestReturnStatus.None;
         }
 
@@ -598,6 +567,7 @@ namespace Fap.Domain.Controllers
 
                 clientNode.Location = r.Param;
                 clientNode.Secret = r.RequestID;
+                clientNode.NodeType = ClientType.Client;
 
                 if (c.Execute(info, clientNode, r.RequestID))
                 {
@@ -613,19 +583,20 @@ namespace Fap.Domain.Controllers
                             {
                                 search.Kill();
                                 model.Overlord.Peers.Remove(search);
-                                search.OnDisconnect -= new Uplink.Disconnect(peer_OnDisconnect);
-                                search.OnTxTimingout -= new Uplink.TxTimingout(peer_OnTxTimingout);
-                                search.OnReceivedRequest -= new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
+                                search.OnDisconnect -= new Uplink.Disconnect(localClient_OnDisconnect);
+                                search.OnTxTimingout -= new Uplink.TxTimingout(localClient_OnTxTimingout);
+                                search.OnReceivedRequest -= new FapConnectionHandler.ReceiveRequest(localClient_OnReceivedRequest);
                                 reconnect = true;
                             }
 
                             clientNode.LastUpdate = Environment.TickCount;
                             clientNode.OverlordID = model.Overlord.ID;
+
                             clientNode.Online = true;
-                            Uplink newu = new Uplink(clientNode, session, bufferService,connectionService);
-                            newu.OnDisconnect += new Uplink.Disconnect(peer_OnDisconnect);
-                            newu.OnTxTimingout += new Uplink.TxTimingout(peer_OnTxTimingout);
-                            newu.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(search_OnReceivedRequest);
+                            Uplink newu = new Uplink(clientNode, session, bufferService, connectionService);
+                            newu.OnDisconnect += new Uplink.Disconnect(localClient_OnDisconnect);
+                            newu.OnTxTimingout += new Uplink.TxTimingout(localClient_OnTxTimingout);
+                            newu.OnReceivedRequest += new FapConnectionHandler.ReceiveRequest(localClient_OnReceivedRequest);
                             response.Status = 0;
 
                             //Transmit client info to other clients
@@ -633,7 +604,7 @@ namespace Fap.Domain.Controllers
                             if (reconnect)
                             {
                                 DisconnectVerb disconnect = new DisconnectVerb(clientNode);
-                                TransmitToAll(disconnect.CreateRequest());
+                                TransmitToLocalClients(disconnect.CreateRequest());
                             }
                             model.Overlord.Peers.Add(newu);
 
@@ -678,12 +649,51 @@ namespace Fap.Domain.Controllers
                 return FAPListenerRequestReturnStatus.ExternalHandler;
             return FAPListenerRequestReturnStatus.None;
         }
+        #endregion
 
+        #region Action handlers
+        private Request localClient_OnTxTimingout()
+        {
+            //return new PingVerb(model.Overlord).CreateRequest();
+            NoopVerb verb = new NoopVerb();
+            return verb.CreateRequest();
+        }
+
+        private void localClient_OnDisconnect(Uplink s)
+        {
+            lock (sync)
+            {
+                if (model.Overlord.Peers.Contains(s))
+                {
+                    model.Overlord.Peers.Remove(s);
+
+                    //Notify other peers
+                    DisconnectVerb verb = new DisconnectVerb(s.Node);
+                    TransmitToAll(verb.CreateRequest());
+
+                    //Onos netsplit!
+                    if (s.Node.NodeType == ClientType.Overlord)
+                    {
+                        foreach (var node in externalNodes.Where(n => n.OverlordID == s.Node.ID).ToList())
+                            externalNodes.Remove(node);
+                        //This is figured out client side.
+                        // DisconnectVerb disc = new DisconnectVerb(node);
+                        //TransmitToLocalClients(disc.CreateRequest());
+                    }
+                }
+            }
+            s.OnDisconnect -= new Uplink.Disconnect(localClient_OnDisconnect);
+            s.OnTxTimingout -= new Uplink.TxTimingout(localClient_OnTxTimingout);
+            s.OnReceivedRequest -= new FapConnectionHandler.ReceiveRequest(localClient_OnReceivedRequest);
+        }
+
+        #endregion
+
+        #region Client port service scanner
         private void ScanClientAsync(object o)
         {
             ScanClient(o as Node);
         }
-
         /// <summary>
         /// Scan the client machine for services such as HTTP or samba shares
         /// </summary>
@@ -790,5 +800,6 @@ namespace Fap.Domain.Controllers
                 TransmitToAll(r);
             }
         }
+        #endregion
     }
 }

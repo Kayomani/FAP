@@ -97,8 +97,12 @@ namespace Fap.Network
                 if (Mediator.Deserialize(token.GetCommand(), out resp))
                 {
                     response = resp;
+                    token.Dispose();
+                    token = null;
                     return true;
                 }
+                token.Dispose();
+                token = null;
             }
             catch { }
             response = null;

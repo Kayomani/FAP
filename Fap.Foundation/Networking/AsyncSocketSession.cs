@@ -49,13 +49,13 @@ namespace Fap.Foundation.Networking
             // Get the message received from the client.
             String received = this.sb.ToString();
 
-
             Byte[] sendBuffer = Encoding.ASCII.GetBytes(received);
             args.SetBuffer(sendBuffer, 0, sendBuffer.Length);
 
             // Clear StringBuffer, so it can receive more data from a keep-alive connection client.
             sb.Length = 0;
             this.currentIndex = 0;
+            sendBuffer = null;
         }
 
         /// <summary>

@@ -19,6 +19,7 @@ namespace Fap.Domain.Services
 
         public LogService()
         {
+#if DEBUG
             LoggingConfiguration config = LogManager.Configuration;
             mtarget = new MemoryTarget();
             mtarget.Layout = "${logger} -  ${message}";
@@ -32,7 +33,7 @@ namespace Fap.Domain.Services
             config.LoggingRules.Add(rule);
 
             LogManager.Configuration = config;
-
+#endif
             if (Debugger.IsAttached)
                 moreDebug = true;
         }

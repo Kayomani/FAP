@@ -27,7 +27,6 @@ namespace Fap.Domain.Verbs
     {
         private Overlord node;
 
-
         public HelloVerb(Overlord n)
         {
             node = n;

@@ -45,11 +45,15 @@ namespace Fap.Presentation
             notifyIcon.DoubleClick += new EventHandler(notifyIcon_DoubleClick);
         }
 
-        void notifyIcon_DoubleClick(object sender, EventArgs e)
+        private void notifyIcon_DoubleClick(object sender, EventArgs e)
         {
-            MethodInfo mi = typeof(NotifyIcon).GetMethod("ShowContextMenu",
-             BindingFlags.Instance | BindingFlags.NonPublic);
-            mi.Invoke(notifyIcon, null);
+            try
+            {
+                MethodInfo mi = typeof(NotifyIcon).GetMethod("ShowContextMenu",
+                 BindingFlags.Instance | BindingFlags.NonPublic);
+                mi.Invoke(notifyIcon, null);
+            }
+            catch { }
         }
 
         private void contextMenu_Popup(object sender, EventArgs e)

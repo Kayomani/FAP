@@ -195,7 +195,12 @@ namespace Fap.Domain.Services
                         requireNewServer = orderedList.Count == 0;
                     }
 
-                    if (requireNewServer)
+                    bool singleServer = false;
+#if SINGLE_SERVER
+                    singleServer = true;
+#endif
+
+                    if (requireNewServer && !singleServer)
                     {
                         if (!overlord_active)
                         {
@@ -268,7 +273,7 @@ namespace Fap.Domain.Services
                         if (network.State != ConnectionState.Connecting)
                             network.State = ConnectionState.Connecting;
 
-                        foreach (var server in orderedList)
+                        foreach (var server in orderedList.ToList())
                         {
                             logger.Trace("LAN Peer finder: Attempting connection to {0}", server.Location);
                             try
@@ -283,6 +288,11 @@ namespace Fap.Domain.Services
 
                                 var session = connectionService.GetClientSession(serverNode);
 
+                                if (null == session)
+                                {
+                                    server.IsBanned = true;
+                                    continue;
+                                }
                                 if (c.Execute(connect, session, network.Secret))
                                 {
                                     if (connect.Status == 0)
@@ -426,6 +436,12 @@ namespace Fap.Domain.Services
                                var search = model.Peers.Where(p => p.ID == r.Param).FirstOrDefault();
                                if (null != search)
                                    model.Peers.Remove(search);
+                               //Remove associated peers
+                               if (search.NodeType == ClientType.Overlord)
+                               {
+                                   foreach (var peer in model.Peers.Where(o => o.OverlordID == search.ID).ToList())
+                                       model.Peers.Remove(peer);
+                               }
                            }
                    }
                }));
@@ -612,10 +628,10 @@ namespace Fap.Domain.Services
                     local.Secret = IDService.CreateID();
 
                     var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
-                    /*if (null != currentOverlord)
+                    if (null != currentOverlord)
                     {
                         currentOverlord.Ban(4000);
-                    }*/
+                    }
                     if (null != currentOverlord)
                     {
                         var oldPeers = model.Peers.Where(p => p.OverlordID == currentOverlord.ID).ToList();
@@ -652,6 +668,9 @@ namespace Fap.Domain.Services
             {
                 get
                 {
+#if SINGLE_SERVER
+                    return false;
+#endif
                     return banExpire > Environment.TickCount;
                 }
                 set

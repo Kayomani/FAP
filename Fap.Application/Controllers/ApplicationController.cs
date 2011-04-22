@@ -288,8 +288,20 @@ namespace Fap.Application.Controllers
                                 sbs.Append(mainWindowModel.CurrentNetwork.State);
                                 sbs.Append(" as ");
                                 sbs.Append(model.Nickname);
+
+                                var search = model.Peers.ToList().Where(p => p.ID == mainWindowModel.CurrentNetwork.OverlordID).FirstOrDefault();
+
+                                if (null != search)
+                                {
+                                    sbs.Append(" on ");
+                                    sbs.Append(search.Host);
+                                    sbs.Append(" ");
+                                }
+
                                 if (peerController.IsOverlord)
                                     sbs.Append(" (Server host)");
+                                
+                               
                                 mainWindowModel.NodeStatus = sbs.ToString();
                             }
 
@@ -364,7 +376,10 @@ namespace Fap.Application.Controllers
             {
                 mainWindowModel = container.Resolve<MainWindowViewModel>();
                 mainWindowModel.CurrentNetwork = model.Networks.Where(n=>n.ID == "LOCAL").First();
-                mainWindowModel.WindowTitle = "FAP Alpha 4.1";
+                mainWindowModel.WindowTitle = "FAP Alpha 4.2";
+#if SINGLE_SERVER
+                mainWindowModel.WindowTitle += " Client only mode";
+#endif
                 mainWindowModel.SendChatMessage = new DelegateCommand(sendChatMessage);
                 mainWindowModel.ViewShare = new DelegateCommand(viewShare);
                 mainWindowModel.EditShares = new DelegateCommand(EditShares);

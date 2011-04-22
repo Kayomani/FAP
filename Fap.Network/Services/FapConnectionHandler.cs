@@ -101,8 +101,9 @@ namespace Fap.Network.Services
                     socket.Close();
                 }
                 bufferManager.FreeArg(arg);
-                token.Dispose();
                 socket = null;
+                token.Dispose();
+                token = null;
             }
             catch (Exception e)
             {
