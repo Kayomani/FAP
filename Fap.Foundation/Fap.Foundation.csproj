@@ -146,10 +146,6 @@
     <Compile Include="WMI_Prototypes\Win32_VideoController.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libs\ContinousLinq\ContinuousLinq2\ContinuousLinq\ContinuousLinq.csproj">
-      <Project>{EFC0FA51-6547-4B90-A84E-905035227972}</Project>
-      <Name>ContinuousLinq</Name>
-    </ProjectReference>
     <ProjectReference Include="..\libs\LinqToWmi\LinqToWmi.Core\LinqToWmi.Core.csproj">
       <Project>{F4EC1E7F-A7F2-4D3B-B442-667BF8C6FE34}</Project>
       <Name>LinqToWmi.Core</Name>

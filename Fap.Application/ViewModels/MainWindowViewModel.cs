@@ -25,7 +25,6 @@ using Fap.Foundation;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Fap.Network.Entity;
-using ContinuousLinq;
 
 namespace Fap.Application.ViewModels
 {
@@ -54,7 +53,7 @@ namespace Fap.Application.ViewModels
         private string description;
         private string windowTitle;
         private Node node;
-        private ReadOnlyContinuousCollection<Node> peers;
+        private FilteredObservableCollection<Node> peers;
         private bool visible = false;
         private bool allowClose = false;
         private Fap.Network.Entity.Network currentNetwork;
@@ -182,7 +181,7 @@ namespace Fap.Application.ViewModels
             }
         }
 
-        public ReadOnlyContinuousCollection<Node> Peers
+        public FilteredObservableCollection<Node> Peers
         {
             get { return peers; }
             set

@@ -21,7 +21,6 @@ using System.Text;
 using Fap.Foundation;
 using Fap.Network.Entity;
 using System.ComponentModel;
-using ContinuousLinq;
 using System.Windows.Data;
 using System.Collections.ObjectModel;
 

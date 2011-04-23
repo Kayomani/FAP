@@ -24,7 +24,7 @@ using System.IO;
 using System.ComponentModel;
 using System.Net;
 using Fap.Network.Entity;
-using ContinuousLinq;
+using System.Collections.ObjectModel;
 
 namespace Fap.Domain.Entity
 {
@@ -49,7 +49,7 @@ namespace Fap.Domain.Entity
         private SafeObservable<Session> sessions;
         private SafeObservable<TransferSession> transferSessions;
         private Node node;
-        private ContinuousCollection<Node> peers;
+        private ObservableCollection<Node> peers;
         private SafeObservable<Share> shares;
         private SafeObservable<Fap.Network.Entity.Network> networks;
         private SafeObservable<string> messages;
@@ -69,7 +69,7 @@ namespace Fap.Domain.Entity
 
         public Model()
         {
-            peers = new ContinuousCollection<Node>();
+            peers = new ObservableCollection<Node>();
             shares = new SafeObservable<Share>();
             networks = new SafeObservable<Fap.Network.Entity.Network>();
             node = new Fap.Network.Entity.Node();
@@ -136,7 +136,7 @@ namespace Fap.Domain.Entity
         }
 
         [XmlIgnore]
-        public ContinuousCollection<Node> Peers
+        public ObservableCollection<Node> Peers
         {
             set { peers = value; NotifyChange("Peers"); }
             get { return peers; }

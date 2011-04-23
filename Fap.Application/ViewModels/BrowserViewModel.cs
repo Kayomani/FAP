@@ -24,7 +24,6 @@ using Fap.Foundation;
 using Fap.Domain.Entity;
 using System.Windows.Controls;
 using System.Windows.Input;
-using ContinuousLinq;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
 

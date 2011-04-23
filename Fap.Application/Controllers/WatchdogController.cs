@@ -104,6 +104,8 @@ namespace Fap.Application.Controllers
                     ucps.CleanUp();
 
                     System.GC.Collect();
+                    System.GC.WaitForPendingFinalizers();
+                    System.GC.Collect();
                 }
                 catch { }
                 Thread.Sleep(4000);

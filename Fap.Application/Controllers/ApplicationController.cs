@@ -39,7 +39,6 @@ using System.Net.Sockets;
 using Fap.Domain.Controllers;
 using System.Diagnostics;
 using Fap.Foundation.Services;
-using ContinuousLinq;
 using NLog;
 using Fap.Application.Views;
 using System.Waf.Applications.Services;
@@ -260,101 +259,130 @@ namespace Fap.Application.Controllers
                 var window = mainWindowModel;
                 if (null != window)
                 {
-                    mainWindowModel.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+                    window.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background,
                        new Action(
                         delegate()
                         {
-                            StringBuilder sb = new StringBuilder();
-                            sb.Append("Stats: ");
-
-                            int count = model.Peers.Where(n => n.NodeType != ClientType.Overlord).Count();
-                            sb.Append(count);
-                            if (count == 1)
-                                sb.Append(" client sharing ");
-                            else
-                                sb.Append(" clients sharing ");
-                            sb.Append(Utility.FormatBytes(model.Peers.Select(p => p.ShareSize).Sum()));
-                            sb.Append(" in ");
-                            sb.Append(Utility.ConverNumberToText(model.Peers.Select(p => p.FileCount).Sum()));
-                            sb.Append(" files.");
-                            string text = sb.ToString();
-
                             if (null != mainWindowModel)
                             {
-                                mainWindowModel.CurrentNetworkStatus = text;
-
-                                StringBuilder sbs = new StringBuilder();
-                                sbs.Append("Status: ");
-                                sbs.Append(mainWindowModel.CurrentNetwork.State);
-                                sbs.Append(" as ");
-                                sbs.Append(model.Nickname);
-
-                                var search = model.Peers.ToList().Where(p => p.ID == mainWindowModel.CurrentNetwork.OverlordID).FirstOrDefault();
-
-                                if (null != search)
+                                //Update status line
                                 {
-                                    sbs.Append(" on ");
-                                    sbs.Append(search.Host);
-                                    sbs.Append(" ");
+                                    StringBuilder sbs = new StringBuilder();
+                                    sbs.Append("Status: ");
+                                    sbs.Append(mainWindowModel.CurrentNetwork.State);
+                                    sbs.Append(" as ");
+                                    sbs.Append(model.Nickname);
+
+                                    var search = model.Peers.ToList().Where(p => p.ID == mainWindowModel.CurrentNetwork.OverlordID).FirstOrDefault();
+
+                                    if (null != search)
+                                    {
+                                        sbs.Append(" on ");
+                                        sbs.Append(search.Host);
+                                        sbs.Append(" ");
+                                    }
+
+                                    if (peerController.IsOverlord)
+                                        sbs.Append(" (Server host)");
+
+                                    window.NodeStatus = sbs.ToString();
+
+                                    sbs.Length = 0;
+                                    sbs = null;
                                 }
 
-                                if (peerController.IsOverlord)
-                                    sbs.Append(" (Server host)");
-                                
-                               
-                                mainWindowModel.NodeStatus = sbs.ToString();
-                            }
+                                //Update stats line
+                                {
+                                    StringBuilder sb = new StringBuilder();
+                                    sb.Append("Stats: ");
 
-                            foreach (var xfer in mainWindowModel.Sessions)
-                            {
-                                if (xfer.Worker.Length == 0)
-                                    xfer.Percent = 0;
-                                else
-                                    xfer.Percent = (int)(((double)xfer.Worker.Position / xfer.Worker.Length) * 100);
-                                xfer.Size = xfer.Worker.Length;
-                                xfer.Speed = xfer.Worker.Speed;
-                                xfer.Status = xfer.Worker.Status;
-                            }
-                            //Local stats
-                            if (model.Node.DownloadSpeed == 0)
-                            {
-                                mainWindowModel.LocalStats = "Local: No transfers";
-                            }
-                            else
-                            {
-                                StringBuilder ls = new StringBuilder();
-                                ls.Append("Local RX/TX: ");
-                                ls.Append(Utility.ConvertNumberToTextSpeed(model.Node.DownloadSpeed));
-                                ls.Append(" / ");
-                                ls.Append(Utility.ConvertNumberToTextSpeed(model.Node.UploadSpeed));
-                                mainWindowModel.LocalStats = ls.ToString();
-                            }
-                            //Global stats
+                                    int count = model.Peers.Where(n => n.NodeType != ClientType.Overlord).Count();
+                                    sb.Append(count);
+                                    if (count == 1)
+                                        sb.Append(" client sharing ");
+                                    else
+                                        sb.Append(" clients sharing ");
+                                    sb.Append(Utility.FormatBytes(model.Peers.Select(p => p.ShareSize).Sum()));
+                                    sb.Append(" in ");
+                                    sb.Append(Utility.ConverNumberToText(model.Peers.Select(p => p.FileCount).Sum()));
+                                    sb.Append(" files.");
 
-                            long upload = model.Peers.Select(s => s.DownloadSpeed).Sum();
-                            long download = model.Peers.Select(s => s.UploadSpeed).Sum();
+                                    window.CurrentNetworkStatus = sb.ToString();
+
+                                    sb.Length = 0;
+                                    sb = null;
+                                }
+
+                                // Update transfers
+                                foreach (var xfer in mainWindowModel.Sessions)
+                                {
+                                    if (xfer.Worker.Length == 0)
+                                        xfer.Percent = 0;
+                                    else
+                                        xfer.Percent = (int)(((double)xfer.Worker.Position / xfer.Worker.Length) * 100);
+                                    xfer.Size = xfer.Worker.Length;
+                                    xfer.Speed = xfer.Worker.Speed;
+                                    xfer.Status = xfer.Worker.Status;
+                                }
+
+                                //Local stats
+                                {
+                                    if (model.Node.DownloadSpeed == 0)
+                                    {
+                                        string t = "Local: No transfers";
+                                        if (mainWindowModel.LocalStats != t)
+                                            mainWindowModel.LocalStats = t;
+                                    }
+                                    else
+                                    {
+                                        StringBuilder ls = new StringBuilder();
+                                        ls.Append("Local RX/TX: ");
+                                        ls.Append(Utility.ConvertNumberToTextSpeed(model.Node.DownloadSpeed));
+                                        ls.Append(" / ");
+                                        ls.Append(Utility.ConvertNumberToTextSpeed(model.Node.UploadSpeed));
+
+                                        window.LocalStats = ls.ToString();
+
+                                        ls.Length = 0;
+                                        ls = null;
+                                    }
+                                }
+
+                                //Global stats
+                                {
+
+                                    long upload = model.Peers.Select(s => s.DownloadSpeed).Sum();
+                                    long download = model.Peers.Select(s => s.UploadSpeed).Sum();
 
 
-                            if (upload == 0 && download == 0)
-                            {
-                                mainWindowModel.GlobalStats = "Network: No transfers";
+                                    if (upload == 0 && download == 0)
+                                    {
+                                        string t = "Network: No transfers";
+                                        if (mainWindowModel.GlobalStats != t)
+                                            mainWindowModel.GlobalStats = t;
+                                    }
+                                    else
+                                    {
+                                        StringBuilder gs = new StringBuilder();
+                                        gs.Append("Global RX/TX: ");
+                                        gs.Append(Utility.ConvertNumberToTextSpeed(download));
+                                        gs.Append(" / ");
+                                        gs.Append(Utility.ConvertNumberToTextSpeed(upload));
+
+                                        window.GlobalStats = ToString();
+                                        gs.Length = 0;
+                                        gs = null;
+                                    }
+                                }
+
+                                //Add chat message
+                                foreach (var line in logReceiver.GetLines())
+                                    model.Messages.AddRotate(line, 50);
                             }
-                            else
-                            {
-                                StringBuilder gs = new StringBuilder();
-                                gs.Append("Global RX/TX: ");
-                                gs.Append(Utility.ConvertNumberToTextSpeed(download));
-                                gs.Append(" / ");
-                                gs.Append(Utility.ConvertNumberToTextSpeed(upload));
-                                mainWindowModel.GlobalStats = gs.ToString();
-
-                            }
-
-                            foreach (var line in logReceiver.GetLines())
-                                model.Messages.AddRotate(line, 50);
                         }
                        ));
                 }
+                window = null;
                 Thread.Sleep(333);
             }
         }
@@ -376,7 +404,7 @@ namespace Fap.Application.Controllers
             {
                 mainWindowModel = container.Resolve<MainWindowViewModel>();
                 mainWindowModel.CurrentNetwork = model.Networks.Where(n=>n.ID == "LOCAL").First();
-                mainWindowModel.WindowTitle = "FAP Alpha 4.2";
+                mainWindowModel.WindowTitle = "FAP Alpha 4.3";
 #if SINGLE_SERVER
                 mainWindowModel.WindowTitle += " Client only mode";
 #endif
@@ -424,10 +452,13 @@ namespace Fap.Application.Controllers
         {
             if (null != mainWindowModel)
             {
-                switch (mainWindowModel.PeerSortType)
+                /*  switch (mainWindowModel.PeerSortType)
                 {
-                    case PeerSortType.Address:
-                        mainWindowModel.Peers = model.Peers.Where(s=>s.NodeType!=ClientType.Overlord).Select(s => s).OrderBy(s=>s.Host);
+                  case PeerSortType.Address:
+                        FilteredObservableCollection<Node> filter = new FilteredObservableCollection<Node>();
+                        filter.Filter = s=>s.NodeType!=ClientType.Overlord
+
+                        mainWindowModel.Peers = model.Peers.Where().Select(s => s).OrderBy(s=>s.Host);
                         break;
                     case PeerSortType.Name:
                         mainWindowModel.Peers = model.Peers.Where(s => s.NodeType != ClientType.Overlord).Select(s => s).OrderBy(s => s.Nickname);
@@ -438,7 +469,10 @@ namespace Fap.Application.Controllers
                     case PeerSortType.Type:
                         mainWindowModel.Peers = model.Peers.Select(s => s).OrderBy(s => s.NodeType);
                         break;
-                }
+                }*/
+                FilteredObservableCollection<Node> f = new FilteredObservableCollection<Node>(model.Peers);
+                f.Filter = s => (true);
+                mainWindowModel.Peers =  f;
             }
         }
 
