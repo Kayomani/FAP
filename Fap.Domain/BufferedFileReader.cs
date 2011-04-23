@@ -131,6 +131,9 @@ namespace Fap.Domain
                     if (doWait)
                         OnreadEvent.WaitOne();
                 }
+                IsEOF = true;
+                if(null!=OnwriteEvent)
+                    OnwriteEvent.Set();
             }
             catch (Exception e)
             {
@@ -147,7 +150,6 @@ namespace Fap.Domain
 
             }
             IsEOF = true;
-            OnwriteEvent.Set();
         }
 
         public void Dispose()
@@ -163,7 +165,9 @@ namespace Fap.Domain
                 }
             }
             OnreadEvent.Close();
+            OnreadEvent = null;
             OnwriteEvent.Close();
+            OnwriteEvent = null;
         }
     }
 }
