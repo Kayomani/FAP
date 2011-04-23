@@ -44,6 +44,7 @@ namespace Fap.Domain.Entity
         private string incompleteFolder;
         private bool disableCompare;
         private string ipAddress;
+        private bool alwaysNoCacheBrowsing;
 
         private SafeObservable<Session> sessions;
         private SafeObservable<TransferSession> transferSessions;
@@ -91,6 +92,12 @@ namespace Fap.Domain.Entity
         {
             set { peerSortType = value; NotifyChange("PeerSortType"); }
             get { return peerSortType; }
+        }
+
+        public bool AlwaysNoCacheBrowsing
+        {
+            set { alwaysNoCacheBrowsing = value; NotifyChange("AlwaysNoCacheBrowsing"); }
+            get { return alwaysNoCacheBrowsing; }
         }
 
         public SafeObservable<Share> Shares
@@ -377,6 +384,7 @@ namespace Fap.Domain.Entity
                     LocalNodeID = m.LocalNodeID;
                     DisableComparision = m.DisableComparision;
                     IPAddress = m.IPAddress;
+                    AlwaysNoCacheBrowsing = m.AlwaysNoCacheBrowsing;
                 }
             }
             catch (Exception e)

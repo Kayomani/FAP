@@ -125,6 +125,9 @@ namespace Fap.Presentation.Panels
                 {
                     //Open the sub folder
                     Model.CurrentPath = item.FullPath;
+                    var container = foldersTree.ContainerFromItem(item);
+                    if (container != null)
+                        container.IsExpanded = true;
                 }
                 else
                 {
@@ -156,7 +159,7 @@ namespace Fap.Presentation.Panels
                 if (container != null)
                 {
                     container.IsSelected = true;
-                    container.IsExpanded = true;
+                  //  container.IsExpanded = true;
                     container.BringIntoView();
                 }
                 ignoreFolderTreeEvents = false;

@@ -53,6 +53,7 @@ namespace Fap.Application.Controllers
             this.connectionService = connectionService;
             this.bvm = bvm;
             shareInfo = i;
+            bvm.NoCache = model.AlwaysNoCacheBrowsing;
         }
 
         public void Initalise()
@@ -108,7 +109,7 @@ namespace Fap.Application.Controllers
                 }
             }
 
-            if (!parent.IsPopulated)
+            if (!parent.IsPopulated || bvm.NoCache)
             {
                 parent.ClearItems();
 
@@ -130,6 +131,7 @@ namespace Fap.Application.Controllers
                 Client c = new Client(bufferService, connectionService);
                 BrowseVerb cmd = new BrowseVerb(model, shareInfo);
                 cmd.Path = fse.FullPath;
+                cmd.NoCache = bvm.NoCache;
                 if (c.Execute(cmd, client))
                 {
 
@@ -154,6 +156,7 @@ namespace Fap.Application.Controllers
             {
                 Client c = new Client(bufferService, connectionService);
                 BrowseVerb cmd = new BrowseVerb(model, shareInfo);
+                cmd.NoCache = bvm.NoCache;
 
                 if (c.Execute(cmd, client))
                 {
@@ -237,6 +240,7 @@ namespace Fap.Application.Controllers
         {
             Client c = new Client(bufferService, connectionService);
             BrowseVerb cmd = new BrowseVerb(model, shareInfo);
+            cmd.NoCache = bvm.NoCache;
             FileSystemEntity ent = input as FileSystemEntity;
             if (null != ent)
                 cmd.Path = ent.FullPath;
@@ -275,6 +279,7 @@ namespace Fap.Application.Controllers
             Client c = new Client(bufferService, connectionService);
             BrowseVerb cmd = new BrowseVerb(model, shareInfo);
             cmd.Path = req.Path.FullPath;
+            cmd.NoCache = bvm.NoCache;
             if (c.Execute(cmd, client))
             {
                 /*  SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -307,6 +312,5 @@ namespace Fap.Application.Controllers
             public FileSystemEntity Path { set; get; }
             public TreeViewItem Item { set; get; }
         }
-
     }
 }

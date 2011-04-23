@@ -49,7 +49,7 @@ namespace Fap.Domain.Services
             info.Name = share.Name;
             info.Size = 0;
             info.FileCount = 0;
-            info.Directories.Clear();
+            info.Clean();
             GetDirectorySizeRecursive(new DirectoryInfo(share.Path), info);
             try
             {
@@ -59,7 +59,39 @@ namespace Fap.Domain.Services
             {
                 LogManager.GetLogger("faplog").WarnException("Failed save share info for "+ share.Name, e);
             }
+            System.GC.Collect();
             return info;
+        }
+
+
+        private void Test()
+        {
+            Dictionary<string, File> results = new Dictionary<string, File>();
+
+            string name = "james";
+
+            foreach (var share in shares)
+                SearchRecursive(share.Value, name, share.Value.Name, results);
+        }
+
+
+        private void SearchRecursive(Directory dir, string name, string currentPath, Dictionary<string, File> results)
+        {
+
+            foreach (var file in dir.Files)
+            {
+                if (file.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                    results.Add(currentPath + "/" + file.Name, file);
+            }
+
+            foreach (var d in dir.SubDirectories)
+            {
+                if (d.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                    results.Add(currentPath + "/" + d.Name, d);
+            }
+
+            foreach (var subdir in dir.SubDirectories)
+                SearchRecursive(subdir, name, currentPath + "/" + dir.Name, results);
         }
 
         private void GetDirectorySizeRecursive(DirectoryInfo directory, Directory model)
@@ -79,11 +111,20 @@ namespace Fap.Domain.Services
                 {
                     Directory sub = new Directory();
                     sub.Name = dir.Name;
+                    sub.LastModified = dir.LastWriteTime.ToFileTime();
                     GetDirectorySizeRecursive(dir, sub);
-                    model.Directories.Add(sub);
+                    model.SubDirectories.Add(sub);
                     //Add totals ot the parent
                     model.FileCount += sub.FileCount;
                     model.Size += sub.Size;
+                }
+                foreach(var file in directory.GetFiles())
+                {
+                    File sub = new File();
+                    sub.Name = file.Name;
+                    sub.Size = file.Length;
+                    sub.LastModified = file.LastWriteTime.ToFileTime();
+                    model.Files.Add(sub);
                 }
             }
             catch { }
@@ -94,8 +135,8 @@ namespace Fap.Domain.Services
             if (shares.ContainsKey(name))
                 shares.Remove(name);
             string path = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(name)) + ".dat";
-            if(File.Exists(path))
-                File.Delete(path);
+            if(System.IO.File.Exists(path))
+                System.IO.File.Delete(path);
         }
 
         public Directory GetPath(string path)
@@ -109,7 +150,7 @@ namespace Fap.Domain.Services
             {
                 if (null == dir)
                     break;
-                dir = dir.Directories.Where(d => d.Name == items[i]).FirstOrDefault();
+                dir = dir.SubDirectories.Where(d => d.Name == items[i]).FirstOrDefault();
             }
             return dir;
         }
@@ -123,14 +164,28 @@ namespace Fap.Domain.Services
         }
 
         [Serializable]
-        public class Directory
+        public class File
         {
             public string Name { set; get; }
             public long Size { set; get; }
-            public long FileCount { set; get; }
-            public List<Directory> Directories { set; get; }
-            public Directory() { Directories = new List<Directory>(); }
+            public long LastModified { set; get; }
+        }
 
+        [Serializable]
+        public class Directory : File
+        {
+            public long FileCount { set; get; }
+            public List<Directory> SubDirectories { set; get; }
+            public List<File> Files { set; get; }
+            public Directory() { SubDirectories = new List<Directory>(); Files = new List<File>(); }
+
+            public void Clean()
+            {
+                foreach (var dir in SubDirectories)
+                    dir.Clean();
+                SubDirectories.Clear();
+                Files.Clear();
+            }
 
             public void Save()
             {
@@ -157,7 +212,8 @@ namespace Fap.Domain.Services
                         Name = m.Name;
                         Size = m.Size;
                         FileCount = m.FileCount;
-                        Directories = m.Directories;
+                        SubDirectories = m.SubDirectories;
+                        Files = m.Files;
                     }
                 }
                 catch (Exception e)

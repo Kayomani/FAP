@@ -45,7 +45,8 @@ namespace Fap.Domain.Verbs
             request.Command = "BROWSE";
             request.Param = Path;
             request.RequestID = RequestID;
-           // request.AdditionalHeaders.Add("ID", model.Node.ID);
+            if(NoCache)
+                request.AdditionalHeaders.Add("NoCache", "true");
             return request;
         }
 
@@ -53,6 +54,8 @@ namespace Fap.Domain.Verbs
         {
             Response response = new Response();
             response.RequestID = r.RequestID;
+            NoCache = string.Equals(GetValueSafe(r.AdditionalHeaders,"NoCache"), "true", StringComparison.InvariantCultureIgnoreCase);
+
             if (string.IsNullOrEmpty(r.Param))
             {
                 //If we are given no path then provide a list of virtual directories
@@ -74,24 +77,33 @@ namespace Fap.Domain.Verbs
                     string path = string.Empty;
                     if (ReplacePath(r.Param, out path))
                     {
-                        var scanInfo = infoService.GetPath(r.Param);
-                        if(null==scanInfo)
-                            scanInfo = new ShareInfoService.Directory();
+                        var  scanInfo = infoService.GetPath(r.Param); ;
 
-                        DirectoryInfo directory = new DirectoryInfo(path);
-                        DirectoryInfo[] directories = directory.GetDirectories();
-                        foreach (var dir in directories)
+                        if (null != scanInfo && !NoCache)
                         {
-                            var info = scanInfo.Directories.Where(d=>d.Name == dir.Name).FirstOrDefault();
-                            if(null!=info)
-                              response.AdditionalHeaders.Add(dir.Name, "D|"+ info.Size + "|" + dir.LastWriteTime.ToFileTime());
-                            else
-                              response.AdditionalHeaders.Add(dir.Name, "D|0|" + dir.LastWriteTime.ToFileTime());
-                        }
 
-                        FileInfo[] files = directory.GetFiles();
-                        foreach (var file in files)
-                            response.AdditionalHeaders.Add(file.Name, "F|" + file.Length + "|" + file.LastWriteTime.ToFileTime());
+                            foreach (var file in scanInfo.Files)
+                                response.AdditionalHeaders.Add(file.Name, "F|" + file.Size + "|" + file.LastModified);
+                            foreach (var dir in scanInfo.SubDirectories)
+                                response.AdditionalHeaders.Add(dir.Name, "D|" + dir.Size + "|" + dir.LastModified);
+                        }
+                        else
+                        {
+                            DirectoryInfo directory = new DirectoryInfo(path);
+                            DirectoryInfo[] directories = directory.GetDirectories();
+                            foreach (var dir in directories)
+                            {
+                                var info = scanInfo.SubDirectories.Where(d => d.Name == dir.Name).FirstOrDefault();
+                                if (null != info)
+                                    response.AdditionalHeaders.Add(dir.Name, "D|" + info.Size + "|" + dir.LastWriteTime.ToFileTime());
+                                else
+                                    response.AdditionalHeaders.Add(dir.Name, "D|0|" + dir.LastWriteTime.ToFileTime());
+                            }
+
+                            FileInfo[] files = directory.GetFiles();
+                            foreach (var file in files)
+                                response.AdditionalHeaders.Add(file.Name, "F|" + file.Length + "|" + file.LastWriteTime.ToFileTime());
+                        }
                     }
                 }
                 catch { }
@@ -141,6 +153,7 @@ namespace Fap.Domain.Verbs
             return false;
         }
 
+        public bool NoCache { set; get; }
         public string Path { set; get; }
         public string RequestID { set; get; }
         public List<FileSystemEntity> Results
