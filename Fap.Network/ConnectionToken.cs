@@ -76,11 +76,18 @@ namespace Fap.Network
             if (inputBuffer.Count == 1)
                 return Encoding.Unicode.GetString(inputBuffer[0].Data, inputBuffer[0].StartLocation, inputBuffer[0].DataSize).Contains(TERMINATOR);
             StringBuilder sb = new StringBuilder();
+
+            long length = 0;
             foreach (var buffer in inputBuffer)
             {
                 sb.Append(Encoding.Unicode.GetString(buffer.Data, buffer.StartLocation, buffer.DataSize));
                 if (sb.ToString().Contains(TERMINATOR))
                     return true;
+                length += buffer.DataSize;
+
+                //Limit at 10mb.
+                if (length > 102400000)
+                    return false;
             }
             return false;
         }

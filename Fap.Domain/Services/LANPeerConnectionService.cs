@@ -435,12 +435,14 @@ namespace Fap.Domain.Services
                            {
                                var search = model.Peers.Where(p => p.ID == r.Param).FirstOrDefault();
                                if (null != search)
-                                   model.Peers.Remove(search);
-                               //Remove associated peers
-                               if (search.NodeType == ClientType.Overlord)
                                {
-                                   foreach (var peer in model.Peers.Where(o => o.OverlordID == search.ID).ToList())
-                                       model.Peers.Remove(peer);
+                                   model.Peers.Remove(search);
+                                   //Remove associated peers
+                                   if (search.NodeType == ClientType.Overlord)
+                                   {
+                                       foreach (var peer in model.Peers.Where(o => o.OverlordID == search.ID).ToList())
+                                           model.Peers.Remove(peer);
+                                   }
                                }
                            }
                    }
@@ -619,28 +621,32 @@ namespace Fap.Domain.Services
 
         public void Disconnect()
         {
-            var local = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
-            if (null != local)
+            try
             {
-                if (local.State == ConnectionState.Connected)
+                var local = model.Networks.Where(n => n.ID == "LOCAL").FirstOrDefault();
+                if (null != local)
                 {
-                    logger.Warn("Disconnected from local network");
-                    local.Secret = IDService.CreateID();
+                    if (local.State == ConnectionState.Connected)
+                    {
+                        logger.Warn("Disconnected from local network");
+                        local.Secret = IDService.CreateID();
 
-                    var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
-                    if (null != currentOverlord)
-                    {
-                        currentOverlord.Ban(4000);
+                        var currentOverlord = overlordList.Where(o => o.ID == local.OverlordID).FirstOrDefault();
+                        if (null != currentOverlord)
+                        {
+                            currentOverlord.Ban(4000);
+                        }
+                        if (null != currentOverlord)
+                        {
+                            var oldPeers = model.Peers.Where(p => p.OverlordID == currentOverlord.ID).ToList();
+                            foreach (var peer in oldPeers)
+                                model.Peers.Remove(peer);
+                        }
+                        local.State = ConnectionState.Disconnected;
                     }
-                    if (null != currentOverlord)
-                    {
-                        var oldPeers = model.Peers.Where(p => p.OverlordID == currentOverlord.ID).ToList();
-                        foreach (var peer in oldPeers)
-                            model.Peers.Remove(peer);
-                    }
-                    local.State = ConnectionState.Disconnected;
                 }
             }
+            catch { }
         }
 
 

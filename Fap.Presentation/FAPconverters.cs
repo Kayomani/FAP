@@ -14,10 +14,17 @@ namespace Fap.Presentation
         {
             if (value is string)
             {
-                string data = (string)value;
-                if(!string.IsNullOrEmpty(data))
+                try
                 {
-                    return System.Convert.FromBase64String(data);
+                    string data = (string)value;
+                    if (!string.IsNullOrEmpty(data))
+                    {
+                        return System.Convert.FromBase64String(data);
+                    }
+                }
+                catch
+                {
+
                 }
             }
             return new byte[0];

@@ -60,7 +60,7 @@ namespace Fap.Presentation
 			// Insert code required on object creation below this point.
             this.DataContextChanged += new DependencyPropertyChangedEventHandler(MainWindow2_DataContextChanged);
             this.Closing += new System.ComponentModel.CancelEventHandler(MainWindow2_Closing);
-            
+           
 		}
 
         void MainWindow2_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -80,6 +80,7 @@ namespace Fap.Presentation
              {
                  c.ChatMessages.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(ChatMessages_CollectionChanged);
                  c.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(c_PropertyChanged);
+                 sortSize_Click(null, null);
              }
         }
 
@@ -262,7 +263,7 @@ namespace Fap.Presentation
                 m.Foreground = Brushes.Black;
                 m.Header = "By name";
                 m.CommandParameter = PeerSortType.Name;
-                m.Command = Model.ChangePeerSort;
+                m.Click += new RoutedEventHandler(sortName_Click);
                 if (Model.PeerSortType == PeerSortType.Name)
                     m.FontWeight = FontWeights.DemiBold;
                 sort.Items.Add(m);
@@ -271,7 +272,8 @@ namespace Fap.Presentation
                 m.Foreground = Brushes.Black;
                 m.Header = "By size";
                 m.CommandParameter = PeerSortType.Size;
-                m.Command = Model.ChangePeerSort;
+                //m.Command = Model.ChangePeerSort;
+                m.Click += new RoutedEventHandler(sortSize_Click);
                 if (Model.PeerSortType == PeerSortType.Size)
                     m.FontWeight = FontWeights.DemiBold;
                 sort.Items.Add(m);
@@ -280,7 +282,7 @@ namespace Fap.Presentation
                 m.Foreground = Brushes.Black;
                 m.Header = "By address";
                 m.CommandParameter = PeerSortType.Address;
-                m.Command = Model.ChangePeerSort;
+                m.Click += new RoutedEventHandler(sortAddress_Click);
                 if (Model.PeerSortType == PeerSortType.Address)
                     m.FontWeight = FontWeights.DemiBold;
                 sort.Items.Add(m);
@@ -289,11 +291,47 @@ namespace Fap.Presentation
                 m.Foreground = Brushes.Black;
                 m.Header = "By type";
                 m.CommandParameter = PeerSortType.Type;
-                m.Command = Model.ChangePeerSort;
+                m.Click += new RoutedEventHandler(sortType_Click);
                 if (Model.PeerSortType == PeerSortType.Type)
                     m.FontWeight = FontWeights.DemiBold;
                 sort.Items.Add(m);
             }
+        }
+
+        private void sortSize_Click(object sender, RoutedEventArgs e)
+        {
+            clientListBox.Items.SortDescriptions.Clear();
+            clientListBox.Items.SortDescriptions.Add(
+                    new System.ComponentModel.SortDescription("ShareSize",
+                     System.ComponentModel.ListSortDirection.Descending));
+            Model.PeerSortType = PeerSortType.Size;
+        }
+
+        private void sortName_Click(object sender, RoutedEventArgs e)
+        {
+            clientListBox.Items.SortDescriptions.Clear();
+            clientListBox.Items.SortDescriptions.Add(
+                    new System.ComponentModel.SortDescription("Nickname",
+                     System.ComponentModel.ListSortDirection.Ascending));
+            Model.PeerSortType = PeerSortType.Name;
+        }
+
+        private void sortType_Click(object sender, RoutedEventArgs e)
+        {
+            clientListBox.Items.SortDescriptions.Clear();
+            clientListBox.Items.SortDescriptions.Add(
+                    new System.ComponentModel.SortDescription("NodeType",
+                     System.ComponentModel.ListSortDirection.Descending));
+            Model.PeerSortType = PeerSortType.Type;
+        }
+
+        private void sortAddress_Click(object sender, RoutedEventArgs e)
+        {
+            clientListBox.Items.SortDescriptions.Clear();
+            clientListBox.Items.SortDescriptions.Add(
+                    new System.ComponentModel.SortDescription("Host",
+                     System.ComponentModel.ListSortDirection.Ascending));
+            Model.PeerSortType = PeerSortType.Address;
         }
 
         void m_SubmenuOpened(object sender, RoutedEventArgs e)

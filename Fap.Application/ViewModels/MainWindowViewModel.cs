@@ -45,7 +45,6 @@ namespace Fap.Application.ViewModels
         private ICommand openExternal;
         private ICommand compare;
         private ICommand userinfo;
-        private ICommand changeSort;
         private object selectedClient;
         private string avatar;
         private string networkInfo;
@@ -308,16 +307,6 @@ namespace Fap.Application.ViewModels
             {
                 compare = value;
                 RaisePropertyChanged("Compare");
-            }
-        }
-
-        public ICommand ChangePeerSort
-        {
-            get { return changeSort; }
-            set
-            {
-                changeSort = value;
-                RaisePropertyChanged("ChangePeerSort");
             }
         }
 

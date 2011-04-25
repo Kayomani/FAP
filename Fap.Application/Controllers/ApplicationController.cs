@@ -369,7 +369,7 @@ namespace Fap.Application.Controllers
                                         gs.Append(" / ");
                                         gs.Append(Utility.ConvertNumberToTextSpeed(upload));
 
-                                        window.GlobalStats = ToString();
+                                        window.GlobalStats = gs.ToString();
                                         gs.Length = 0;
                                         gs = null;
                                     }
@@ -404,7 +404,7 @@ namespace Fap.Application.Controllers
             {
                 mainWindowModel = container.Resolve<MainWindowViewModel>();
                 mainWindowModel.CurrentNetwork = model.Networks.Where(n=>n.ID == "LOCAL").First();
-                mainWindowModel.WindowTitle = "FAP Alpha 4.3";
+                mainWindowModel.WindowTitle = "FAP Alpha 4.4";
 #if SINGLE_SERVER
                 mainWindowModel.WindowTitle += " Client only mode";
 #endif
@@ -419,7 +419,6 @@ namespace Fap.Application.Controllers
                 mainWindowModel.Compare = new DelegateCommand(Compare);
                 mainWindowModel.Chat = new DelegateCommand(Chat);
                 mainWindowModel.UserInfo = new DelegateCommand(showUserInfo);
-                mainWindowModel.ChangePeerSort = new DelegateCommand(ChangePeerSort);
                 mainWindowModel.Avatar = model.Avatar;
                 mainWindowModel.Nickname = model.Nickname;
                 mainWindowModel.Description = model.Description;
@@ -450,30 +449,9 @@ namespace Fap.Application.Controllers
 
         private void BindPeerList()
         {
-            if (null != mainWindowModel)
-            {
-                /*  switch (mainWindowModel.PeerSortType)
-                {
-                  case PeerSortType.Address:
-                        FilteredObservableCollection<Node> filter = new FilteredObservableCollection<Node>();
-                        filter.Filter = s=>s.NodeType!=ClientType.Overlord
-
-                        mainWindowModel.Peers = model.Peers.Where().Select(s => s).OrderBy(s=>s.Host);
-                        break;
-                    case PeerSortType.Name:
-                        mainWindowModel.Peers = model.Peers.Where(s => s.NodeType != ClientType.Overlord).Select(s => s).OrderBy(s => s.Nickname);
-                        break;
-                    case PeerSortType.Size:
-                        mainWindowModel.Peers = model.Peers.Where(s => s.NodeType != ClientType.Overlord).Select(s => s).OrderByDescending(s => s.ShareSize);
-                        break;
-                    case PeerSortType.Type:
-                        mainWindowModel.Peers = model.Peers.Select(s => s).OrderBy(s => s.NodeType);
-                        break;
-                }*/
-                FilteredObservableCollection<Node> f = new FilteredObservableCollection<Node>(model.Peers);
-                f.Filter = s => (true);
-                mainWindowModel.Peers =  f;
-            }
+            FilteredObservableCollection<Node> f = new FilteredObservableCollection<Node>(model.Peers);
+            f.Filter = s => s.NodeType != ClientType.Overlord;
+            mainWindowModel.Peers = f;
         }
 
         private void Chat(object o)
