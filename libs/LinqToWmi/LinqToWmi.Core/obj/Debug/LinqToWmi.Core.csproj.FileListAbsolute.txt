@@ -1,0 +1,10 @@
+I:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\bin\Debug\LinqToWmi.Core.dll
+I:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\bin\Debug\LinqToWmi.Core.pdb
+I:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\obj\Debug\ResolveAssemblyReference.cache
+I:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\obj\Debug\LinqToWmi.Core.dll
+I:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\obj\Debug\LinqToWmi.Core.pdb
+F:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\bin\Debug\LinqToWmi.Core.dll
+F:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\bin\Debug\LinqToWmi.Core.pdb
+F:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\obj\Debug\ResolveAssemblyReference.cache
+F:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\obj\Debug\LinqToWmi.Core.dll
+F:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\obj\Debug\LinqToWmi.Core.pdb

@@ -1,0 +1,255 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{363D4A84-957E-4CDA-ACB7-EEDE603FDD81}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HttpServer</RootNamespace>
+    <AssemblyName>HttpServer</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>httpserver.snk</AssemblyOriginatorKeyFile>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\HttpServer.XML</DocumentationFile>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DocumentationFile>bin\Debug\HttpServer.XML</DocumentationFile>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Debug\HttpServer.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\HttpServer.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AuthenticationRequiredException.cs" />
+    <Compile Include="Authentication\AuthenticationProvider.cs" />
+    <Compile Include="Authentication\BasicAuthentication.cs" />
+    <Compile Include="Authentication\DigestAuthentication.cs" />
+    <Compile Include="Authentication\IAuthenticationProvider.cs" />
+    <Compile Include="Authentication\IAuthenticator.cs" />
+    <Compile Include="Authentication\IUserProvider.cs" />
+    <Compile Include="BadRequestException.cs" />
+    <Compile Include="BodyDecoders\BodyDecoderCollection.cs" />
+    <Compile Include="BodyDecoders\DecodedData.cs" />
+    <Compile Include="BodyDecoders\Mono\HttpMultiPart.cs" />
+    <Compile Include="BodyDecoders\Mono\StrUtils.cs" />
+    <Compile Include="BodyDecoders\MultiPartDecoder.cs" />
+    <Compile Include="BodyDecoders\UrlDecoder.cs" />
+    <Compile Include="ComponentAttribute.cs" />
+    <Compile Include="ContentTypeHelper.cs" />
+    <Compile Include="ErrorPageEventArgs.cs" />
+    <Compile Include="ExceptionEventArgs.cs" />
+    <Compile Include="ForbiddenException.cs" />
+    <Compile Include="BodyDecoders\IBodyDecoder.cs" />
+    <Compile Include="Headers\AuthorizationHeader.cs" />
+    <Compile Include="Headers\CookieHeader.cs" />
+    <Compile Include="Headers\IHeaderCollection.cs" />
+    <Compile Include="Headers\Parsers\AuthorizationParser.cs" />
+    <Compile Include="Headers\Parsers\CookieParser.cs" />
+    <Compile Include="Helpers\PropertyAssigner.cs" />
+    <Compile Include="HttpFile.cs" />
+    <Compile Include="HttpFileCollection.cs" />
+    <Compile Include="IHttpListener.cs" />
+    <Compile Include="InternalServerException.cs" />
+    <Compile Include="IParameterCollection.cs" />
+    <Compile Include="IServiceResolver.cs" />
+    <Compile Include="Modules\FileModule.cs" />
+    <Compile Include="Modules\IModule.cs" />
+    <Compile Include="ArrayParameterCollection.cs" />
+    <Compile Include="NotFoundException.cs" />
+    <Compile Include="Headers\CacheControl.cs" />
+    <Compile Include="Headers\ConnectionHeader.cs" />
+    <Compile Include="Headers\ContentTypeHeader.cs" />
+    <Compile Include="Headers\DateHeader.cs" />
+    <Compile Include="Headers\HeaderCollection.cs" />
+    <Compile Include="Headers\HeaderParameterCollection.cs" />
+    <Compile Include="Headers\IHeader.cs" />
+    <Compile Include="Headers\NumericHeader.cs" />
+    <Compile Include="Headers\Parsers\ConnectionParser.cs" />
+    <Compile Include="Headers\Parsers\ContentTypeParser.cs" />
+    <Compile Include="Headers\Parsers\DateParser.cs" />
+    <Compile Include="Headers\Parsers\IHeaderParser.cs" />
+    <Compile Include="Headers\Parsers\NumericHeaderParser.cs" />
+    <Compile Include="Headers\Parsers\ParserForAttribute.cs" />
+    <Compile Include="Headers\Parsers\StringParser.cs" />
+    <Compile Include="Headers\StringHeader.cs" />
+    <Compile Include="HttpContext.cs" />
+    <Compile Include="HttpException.cs" />
+    <Compile Include="HttpFactory.cs" />
+    <Compile Include="HttpListener.cs" />
+    <Compile Include="IHttpContext.cs" />
+    <Compile Include="IHttpFactory.cs" />
+    <Compile Include="Messages\FactoryRequestEventArgs.cs" />
+    <Compile Include="Messages\RequestCookie.cs" />
+    <Compile Include="Messages\RequestCookiesCollection.cs" />
+    <Compile Include="Messages\ResponseCookie.cs" />
+    <Compile Include="Messages\ResponseCookieCollection.cs" />
+    <Compile Include="Messages\ResponseWriter.cs" />
+    <Compile Include="Method.cs" />
+    <Compile Include="ProcessingResult.cs" />
+    <Compile Include="ParameterCollection.cs" />
+    <Compile Include="RequestContext.cs" />
+    <Compile Include="RequestEventArgs.cs" />
+    <Compile Include="Resources\EmbeddedResourceLoader.cs" />
+    <Compile Include="Resources\FileResources.cs" />
+    <Compile Include="Resources\IResourceProvider.cs" />
+    <Compile Include="Resources\IResourceLoader.cs" />
+    <Compile Include="Resources\Resource.cs" />
+    <Compile Include="Resources\ResourceProvider.cs" />
+    <Compile Include="Routing\IRouter.cs" />
+    <Compile Include="Routing\RegExRouter.cs" />
+    <Compile Include="Routing\SimpleRouter.cs" />
+    <Compile Include="SecureHttpContext.cs" />
+    <Compile Include="IMessage.cs" />
+    <Compile Include="IRequest.cs" />
+    <Compile Include="IResponse.cs" />
+    <Compile Include="Logging\ConsoleLogFactory.cs" />
+    <Compile Include="Logging\ConsoleLogger.cs" />
+    <Compile Include="Logging\ILogFactory.cs" />
+    <Compile Include="Logging\ILogFilter.cs" />
+    <Compile Include="Logging\ILogger.cs" />
+    <Compile Include="Logging\LogFactory.cs" />
+    <Compile Include="Logging\LogFilter.cs" />
+    <Compile Include="Logging\LogLevel.cs" />
+    <Compile Include="Logging\NullLogFactory.cs" />
+    <Compile Include="Logging\NullLogWriter.cs" />
+    <Compile Include="Messages\Parser\BodyEventArgs.cs" />
+    <Compile Include="Messages\Parser\HeaderEventArgs.cs" />
+    <Compile Include="Headers\HeaderFactory.cs" />
+    <Compile Include="Messages\Parser\HttpParser.cs" />
+    <Compile Include="Messages\MessageFactory.cs" />
+    <Compile Include="Messages\MessageFactoryContext.cs" />
+    <Compile Include="Messages\Parser\ParserException.cs" />
+    <Compile Include="Messages\Request.cs" />
+    <Compile Include="Messages\Parser\RequestEventArgs.cs" />
+    <Compile Include="Messages\Parser\RequestLineEventArgs.cs" />
+    <Compile Include="Messages\Response.cs" />
+    <Compile Include="Messages\Parser\FactoryResponseEventArgs.cs" />
+    <Compile Include="Messages\Parser\ResponseLineEventArgs.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SecureHttpListener.cs" />
+    <Compile Include="Server.cs" />
+    <Compile Include="Sessions\ISessionProvider.cs" />
+    <Compile Include="Sessions\ISessionStore.cs" />
+    <Compile Include="Sessions\Session.cs" />
+    <Compile Include="Sessions\SessionFileStore.cs" />
+    <Compile Include="Sessions\SessionProvider.cs" />
+    <Compile Include="SimpleServer.cs" />
+    <Compile Include="SocketFilterEventArgs.cs" />
+    <Compile Include="Tools\BufferReader.cs" />
+    <Compile Include="Tools\ITextReader.cs" />
+    <Compile Include="Tools\ObjectPool.cs" />
+    <Compile Include="Tools\Properties\CachedProperty.cs" />
+    <Compile Include="Tools\Properties\EmitHelper.cs" />
+    <Compile Include="Tools\Properties\EmitReflector.cs" />
+    <Compile Include="Tools\Properties\PropertyProvider.cs" />
+    <Compile Include="Tools\Session.cs" />
+    <Compile Include="Tools\SessionProvider.cs" />
+    <Compile Include="Tools\StringReader.cs" />
+    <Compile Include="Tools\UrlParser.cs" />
+    <Compile Include="Transports\ClientCertificate.cs" />
+    <Compile Include="Transports\ResusableNetworkStream.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="httpserver.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

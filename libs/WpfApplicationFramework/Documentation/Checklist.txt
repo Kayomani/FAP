@@ -1,0 +1,38 @@
+Checklist
+---------
+
+
+New Project
+-----------
+
+1. Assembly Name and Default Namespace
+2. Assembly Information
+3. Debug build: 
+   - Treat warnings as errors: All
+4. Release build: 
+   - Treat warnings as errors: All
+   - XML documentation file
+   - Enable code analysis
+
+
+Release
+-------
+
+ 0. Search Solution for "TODO".
+
+ 1. Review Changelog.txt
+ 2. Review Version numbers
+
+ 3. Review class diagrams
+ 4. Review documentations
+
+ 5. Rebuild in Debug mode
+ 6. Run all unit tests in Debug mode
+
+ 7. Rebuild in Release mode
+ 8. Run all unit tests in Release mode
+ 9. Review unit test code coverage
+
+10. Change Solution back to Debug mode
+11. Remove "bin", "obj", "Output", "TestResult" folders
+12. Remove ".suo" file

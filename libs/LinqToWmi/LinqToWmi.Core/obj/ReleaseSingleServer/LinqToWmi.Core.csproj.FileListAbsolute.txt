@@ -1,0 +1,5 @@
+F:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\bin\ReleaseSingleServer\LinqToWmi.Core.dll
+F:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\bin\ReleaseSingleServer\LinqToWmi.Core.pdb
+F:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\obj\ReleaseSingleServer\ResolveAssemblyReference.cache
+F:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\obj\ReleaseSingleServer\LinqToWmi.Core.dll
+F:\src\gfap\trunk\libs\LinqToWmi\LinqToWmi.Core\obj\ReleaseSingleServer\LinqToWmi.Core.pdb
