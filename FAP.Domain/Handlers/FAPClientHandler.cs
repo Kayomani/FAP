@@ -10,6 +10,7 @@ using FAP.Domain.Verbs;
 using FAP.Network.Entities;
 using FAP.Network;
 using NLog;
+using Fap.Foundation;
 
 namespace FAP.Domain.Handlers
 {
@@ -34,6 +35,8 @@ namespace FAP.Domain.Handlers
                     return HandleNOOP(e);
                 case "DISCONNECT":
                     return HandleDisconnect(e);
+                case "UPDATE":
+                    return HandleUpdate(e,req);
             }
             return false;
         }
@@ -41,6 +44,29 @@ namespace FAP.Domain.Handlers
         public void Start()
         {
 
+        }
+
+        private bool HandleUpdate(RequestEventArgs e, NetworkRequest req)
+        {
+            UpdateVerb verb = new UpdateVerb();
+            verb.ReceiveResponse(req);
+            foreach (var node in verb.Nodes)
+            {
+                var search = model.Network.Nodes.Where(i => i.ID == node.ID).FirstOrDefault();
+                if (search == null)
+                {
+                    //Dont allow partial updates to create clients.  Only full updates should contain the online flag.
+                    if (node.ContainsKey("Online") && node.ContainsKey("Nickname") && node.ContainsKey("ID"))
+                        model.Network.Nodes.Add(node);
+                }
+                else
+                {
+                    foreach (var param in node.Data)
+                        search.SetData(param.Key, param.Value);
+                }
+            }
+            SendOk(e);
+            return true;
         }
 
         private bool HandleInfo(RequestEventArgs e)
@@ -60,9 +86,7 @@ namespace FAP.Domain.Handlers
 
         private bool HandleNOOP(RequestEventArgs e)
         {
-            e.Response.Status = HttpStatusCode.OK;
-            var generator = new ResponseWriter();
-            generator.SendHeaders(e.Context, e.Response);
+            SendOk(e);
             return true;
         }
 
@@ -70,6 +94,13 @@ namespace FAP.Domain.Handlers
         {
 
             return false;
+        }
+
+        private void SendOk(RequestEventArgs e)
+        {
+            e.Response.Status = HttpStatusCode.OK;
+            var generator = new ResponseWriter();
+            generator.SendHeaders(e.Context, e.Response);
         }
 
     }

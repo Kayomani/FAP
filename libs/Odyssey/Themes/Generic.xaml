@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:odc="clr-namespace:Odyssey.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/TreeViewStyle.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/Generic.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/OdcTextBox.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/ButtonTemplates.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Expander/Generic.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/OutlookBar/Generic.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Ribbon/Generic.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/Controls/DropDownButton.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>

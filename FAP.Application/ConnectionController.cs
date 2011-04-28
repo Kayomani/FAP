@@ -8,9 +8,9 @@ using FAP.Domain.Entities;
 using FAP.Domain.Verbs;
 using FAP.Domain;
 using System.Threading;
-using FAP.Domain.Network;
 using FAP.Domain.Verbs.Multicast;
 using NLog;
+using FAP.Domain.Net;
 
 namespace FAP.Application
 {
@@ -36,12 +36,11 @@ namespace FAP.Application
 
         private void setupLocalNetwork()
         {
-            Domain.Entities.Network network = new Domain.Entities.Network();
-            network.NetworkName = "Local";
-            network.NetworkID = "Local";
-            model.Networks.Add(network);
+           // Domain.Entities.Network network = new Domain.Entities.Network();
+            model.Network.NetworkName = "Local";
+            model.Network.NetworkID = "Local";
+           // model.Networks.Add(network);
         }
-
 
         private void mclient_OnMultiCastRX(string cmd)
         {
@@ -79,7 +78,7 @@ namespace FAP.Application
         private void ProcessLanConnection(object o)
         {
             mserver.AddMessage(WhoVerb.CreateRequest());
-            Domain.Entities.Network network = model.Networks.Where(n => n.NetworkID == "Local").First();
+            Domain.Entities.Network network = model.Network;
             network.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(network_PropertyChanged);
             while (true)
             {

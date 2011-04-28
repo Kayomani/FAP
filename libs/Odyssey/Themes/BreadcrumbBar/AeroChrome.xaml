@@ -1,0 +1,50 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:odc="clr-namespace:Odyssey.Controls"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/Brushes.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <ControlTemplate TargetType="{x:Type odc:AeroChrome}" x:Key="AeroChromeTemplate">
+        <Grid Margin="{TemplateBinding Padding}">
+            <Border x:Name="mouseOverBtn" Opacity="0" Background="{TemplateBinding MouseOverBackground}" Focusable="False"
+                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                <Border x:Name="innerButton" BorderThickness="1" BorderBrush="White" />
+            </Border>
+            <Border x:Name="mouseDownBtn" Opacity="0" Background="{TemplateBinding MousePressedBackground}" Focusable="False"
+                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                <Border x:Name="innerButton2" SnapsToDevicePixels="False" BorderThickness="1.2,1.2,0,0" BorderBrush="{StaticResource borderShadowBrush}" />
+            </Border>
+            <ContentPresenter ContentSource="Content" x:Name="content" VerticalAlignment="Center" HorizontalAlignment="Center" Focusable="False"
+                    Margin="4,2,4,2" ContentTemplate="{TemplateBinding ContentTemplate}" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="RenderMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="mouseOverBtn" Storyboard.TargetProperty="Opacity" Duration="0:0:0.15" To="1" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="mouseOverBtn" Storyboard.TargetProperty="Opacity" Duration="0:0:0.15" To="0" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <Trigger Property="RenderPressed" Value="True">
+                <Setter Property="Opacity" TargetName="mouseDownBtn" Value="1" />
+                <Setter Property="Margin" TargetName="content" Value="5,3,3,1" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style TargetType="{x:Type odc:AeroChrome}">
+        <Setter Property="MouseOverBackground" Value="{StaticResource mouseOverBtnBrush}" />
+        <Setter Property="MousePressedBackground" Value="{StaticResource mousePressedBtnBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource borderBrush}" />
+        <Setter Property="Template" Value="{StaticResource AeroChromeTemplate}" />
+    </Style>
+</ResourceDictionary>

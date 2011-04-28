@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Fap.Foundation;
+using Newtonsoft.Json;
 
 namespace FAP.Domain.Entities
 {
@@ -18,6 +19,7 @@ namespace FAP.Domain.Entities
             NodeType = ClientType.Overlord;
         }
 
+        [JsonIgnoreAttribute]
         public int Strength
         {
             set
@@ -28,6 +30,7 @@ namespace FAP.Domain.Entities
             get { return strength; }
         }
 
+        [JsonIgnoreAttribute]
         public int MaxPeers
         {
             set
@@ -38,6 +41,7 @@ namespace FAP.Domain.Entities
             get { return maxPeers; }
         }
 
+        [JsonIgnoreAttribute]
         public BackgroundSafeObservable<Node> Peers
         {
             set

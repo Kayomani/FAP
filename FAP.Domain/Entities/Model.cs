@@ -20,8 +20,11 @@ namespace FAP.Domain.Entities
         private readonly string saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
 
         private BackgroundSafeObservable<Share> shares = new BackgroundSafeObservable<Share>();
-        private BackgroundSafeObservable<Network> networks = new BackgroundSafeObservable<Network>();
+       
+        private SafeObservable<TransferSession> transferSessions = new SafeObservable<TransferSession>();
+        public SafeObservable<string> messages = new SafeObservable<string>();
 
+        private Network network = new Network();
         private int maxDownloads;
         private int maxDownloadsPerUser;
         private int maxUploads;
@@ -38,7 +41,7 @@ namespace FAP.Domain.Entities
 
         // private DownloadQueue downloadQueue;
         // private SafeObservable<Session> sessions;
-        // private SafeObservable<TransferSession> transferSessions;
+         
         //private Node node;
         // private ObservableCollection<Node> peers;
 
@@ -61,6 +64,16 @@ namespace FAP.Domain.Entities
         public Model()
         {
             node = new Node();
+        }
+
+        public SafeObservable<string> Messages
+        {
+            get { return messages; }
+            set
+            {
+                messages = value;
+                NotifyChange("Messages");
+            }
         }
 
         public string Nickname
@@ -115,10 +128,10 @@ namespace FAP.Domain.Entities
             get { return overlordPriority; }
         }
 
-        public BackgroundSafeObservable<Network> Networks
+        public Network Network
         {
-            set { networks = value; NotifyChange("Networks"); }
-            get { return networks; }
+            set { network = value; NotifyChange("Network"); }
+            get { return network; }
         }
 
         public BackgroundSafeObservable<Share> Shares
@@ -176,6 +189,12 @@ namespace FAP.Domain.Entities
             {
                 return disableCompare;
             }
+        }
+
+        [XmlIgnore]
+        public SafeObservable<TransferSession> TransferSessions
+        {
+            get { return transferSessions; }
         }
 
         public int MaxDownloads

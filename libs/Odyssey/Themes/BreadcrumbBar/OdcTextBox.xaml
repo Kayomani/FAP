@@ -1,0 +1,108 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib" xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero"
+        xmlns:odc="clr-namespace:Odyssey.Controls">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/AeroChrome.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/BreadcrumbButton.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/BreadcrumbItem.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/ProgressBar.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/ButtonTemplates.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    <SolidColorBrush x:Key="focusedBackground" Color="White" />
+    <Color x:Key="focusedBackgroundColor">White</Color>
+    <odc:EmptyStringVisibilityConverter x:Key="emptyStringVisibilityConverter" />
+
+    <sys:Double x:Key="mouseLostOpacity">0.65</sys:Double>
+    <Style TargetType="{x:Type TextBoxBase}" x:Key="OdcTextBoxStyle">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type odc:OdcTextBox}">
+                    <Grid>
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" Focusable="False" x:Name="outerBorder"
+                                BorderThickness="{TemplateBinding BorderThickness}" Opacity="{StaticResource mouseLostOpacity}" />
+
+                        <Border BorderBrush="White" BorderThickness="1" Focusable="False" Margin="1">
+                            <Grid Focusable="False">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <ScrollViewer Grid.Column="0" Margin="0" x:Name="PART_ContentHost" VerticalAlignment="Center" />
+                                <TextBlock x:Name="infoText" Text="{TemplateBinding Info}" Visibility="Collapsed" VerticalAlignment="Center" Grid.Column="0"
+                                        HorizontalAlignment="Stretch" IsHitTestVisible="False" Focusable="False" Margin="4,0,0,2" Foreground="Gray"
+                                        FontStyle="Italic" />
+                                <ItemsControl x:Name="buttons" Grid.Column="1" Margin="1,0,-1,0" Focusable="False" VerticalAlignment="Stretch"
+                                        ItemsSource="{Binding Buttons,RelativeSource={RelativeSource TemplatedParent} }">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" IsItemsHost="True" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <ControlTemplate.Resources>
+                        <Style TargetType="{x:Type Button}">
+                            <Setter Property="Template" Value="{StaticResource ButtonTemplate}" />
+                            <Setter Property="MinWidth" Value="21" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                            <Setter Property="Focusable" Value="False" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource {ComponentResourceKey odc:Skins, BorderBrush}}" />
+
+                        </Style>
+                    </ControlTemplate.Resources>
+
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Text" Value="" />
+                                <Condition Property="IsFocused" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Visibility" TargetName="infoText" Value="Visible" />
+                        </MultiTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="outerBorder" Storyboard.TargetProperty="Opacity" Duration="0:0:0.15" To="1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="outerBorder" Storyboard.TargetProperty="Opacity" Duration="0:0:0.15" From="1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <!--<Setter Property="Background" Value="{StaticResource focusedBackground}" />-->
+                            <Setter Property="Opacity" Value="1" TargetName="outerBorder" />
+                            <Setter Property="BitmapEffect" TargetName="outerBorder">
+                                <Setter.Value>
+                                    <OuterGlowBitmapEffect GlowSize="2" GlowColor="{DynamicResource {ComponentResourceKey odc:Skins, GlowColor}}" Opacity="1" />
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Background" Value="White" />
+
+        <Setter Property="Foreground" Value="Black" />
+        <Setter Property="BorderBrush" Value="{StaticResource borderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Focusable" Value="True" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {ComponentResourceKey odc:Skins, BorderBrush}}" />
+        <Setter Property="MinHeight" Value="24" />
+    </Style>
+
+    <Style TargetType="{x:Type odc:OdcTextBox}" BasedOn="{StaticResource OdcTextBoxStyle}" />
+</ResourceDictionary>

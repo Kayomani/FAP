@@ -1,0 +1,63 @@
+﻿<!-- Copyright (c) 2008 Thomas Gerber
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
+ to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:odc="clr-namespace:Odyssey.Controls">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary
+                Source="pack://application:,,,/Odyssey;Component/Themes/Expander/Aero.NormalColor.ExpandHeader.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    <LinearGradientBrush x:Key="MouseOverHeaderBackground" StartPoint="0,0" EndPoint="0,1">
+        <LinearGradientBrush.GradientStops>
+            <GradientStop Offset="0" Color="#FFE3F4FC" />
+            <GradientStop Offset="0.38" Color="#FFD8EFFC" />
+            <GradientStop Offset="0.38" Color="#FFBEE6FD" />
+            <GradientStop Offset="1" Color="#FFA6D9F4" />
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="PressedHeaderBackground" StartPoint="0,0" EndPoint="0,1">
+        <LinearGradientBrush.GradientStops>
+            <GradientStop Offset="0" Color="#FFC2E4F6" />
+            <GradientStop Offset="0.5" Color="#FFC2E4F6" />
+            <GradientStop Offset="0.5" Color="#FFA8D8F2" />
+            <GradientStop Offset="1" Color="#FF92CCEB" />
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+    <Style TargetType="{x:Type odc:ExplorerBar}">
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" Focusable="False">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </Border>
+                    <ControlTemplate.Resources>
+                        <Style TargetType="{x:Type odc:OdcExpander}">
+                            <Setter Property="Padding" Value="12" />
+                            <Setter Property="HeaderBorderThickness" Value="1" />
+                            <Setter Property="Background" Value="#A0FFFFFF" />
+                            <Setter Property="HeaderBackground" Value="#A0FFFFFF" />
+                            <Setter Property="CornerRadius" Value="0" />
+                            <Setter Property="ShowEllipse" Value="False" />
+                            <Setter Property="MouseOverHeaderBackground"
+                                    Value="{StaticResource MouseOverHeaderBackground}" />
+                            <Setter Property="MouseOverHeaderForeground" Value="Black" />
+                            <Setter Property="PressedHeaderBackground" Value="{StaticResource PressedHeaderBackground}" />
+                            <Setter Property="Margin" Value="8" />
+                        </Style>                                                
+                    </ControlTemplate.Resources>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+    </Style>
+</ResourceDictionary>

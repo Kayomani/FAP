@@ -125,7 +125,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegexEx.cs" />
     <Compile Include="SafeDictionary.cs" />
+    <Compile Include="SafeFilteredObservingCollection.cs" />
     <Compile Include="SafeObservable.cs" />
+    <Compile Include="SafeObservedCollection.cs" />
+    <Compile Include="SafeObservingCollection.cs" />
     <Compile Include="Services\IDService.cs" />
     <Compile Include="SambaShare.cs" />
     <Compile Include="SimpleCrypt.cs" />

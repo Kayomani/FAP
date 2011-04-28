@@ -1,0 +1,190 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:odc="clr-namespace:Odyssey.Controls"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Duration x:Key="animTime">0:0:0.15</Duration>
+
+    <LinearGradientBrush x:Key="{ComponentResourceKey odc:Skins, ItemSelectedBgBrush}" StartPoint="0,0" EndPoint="0,1">
+        <LinearGradientBrush.GradientStops>
+            <GradientStop Color="#FFDCEBFC" Offset="0" />
+            <GradientStop Color="#FFC1DBFC" Offset="1" />
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="{ComponentResourceKey odc:Skins, ItemSelectedBorderBrush}" Color="#FF7DA2CE" />
+
+    <LinearGradientBrush x:Key="{ComponentResourceKey odc:Skins, DeactiveItemSelectedBgBrush}" StartPoint="0,0" EndPoint="0,1">
+        <LinearGradientBrush.GradientStops>
+            <GradientStop Color="#FFFAFAFA" Offset="0" />
+            <GradientStop Color="#FFE5E5E5" Offset="1" />
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="{ComponentResourceKey odc:Skins, DeactiveItemSelectedBorderBrush}" Color="#FFD9D9D9" />
+
+    <SolidColorBrush x:Key="{ComponentResourceKey odc:Skins, ItemMouseOverBorderBrush}" Color="#607DA2CE" />
+
+    <LinearGradientBrush x:Key="{ComponentResourceKey odc:Skins, ItemMouseOverBgBrush}" StartPoint="0,0" EndPoint="0,1">
+        <LinearGradientBrush.GradientStops>
+            <GradientStop Color="#60DCEBFC" Offset="0" />
+            <GradientStop Color="#60C1DBFC" Offset="1" />
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="GlyphBrush" Color="White" />
+    <SolidColorBrush x:Key="CheckedGlyphBrush" Color="Black" />
+
+    <Style x:Key="ExpandCollapseToggleStyle" TargetType="ToggleButton">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid Width="15" Height="13" Background="Transparent">
+                        <Path x:Name="ExpandPath" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="1,1,1,1" Stroke="#FFA5A5A5"
+                                Fill="{StaticResource GlyphBrush}" Data="M 4 0 L 8 4 L 4 8 Z" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter Property="Data" TargetName="ExpandPath" Value="M 3 5 L 8 5 L 8 0 Z" />
+                            <Setter Property="Fill" TargetName="ExpandPath" Value="{StaticResource CheckedGlyphBrush}" />
+                            <Setter Property="Stroke" TargetName="ExpandPath" Value="{StaticResource CheckedGlyphBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Stroke" TargetName="ExpandPath" Value="#FF1CC4F7" />
+                            <Setter Property="Fill" TargetName="ExpandPath" Value="#FF82DFFB" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <ControlTemplate TargetType="{x:Type TreeViewItem}" x:Key="{ComponentResourceKey odc:Skins, TreeViewItemTemplate}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="12" Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <ToggleButton x:Name="Expander" Style="{StaticResource ExpandCollapseToggleStyle}" IsChecked="{Binding Path=IsExpanded,
+                              RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press" Focusable="False" />
+            <odc:RibbonChrome Grid.Column="1" Grid.ColumnSpan="2" x:Name="border" HorizontalContentAlignment="Stretch"
+                    RenderMouseOver="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" CornerRadius="3"
+                    MouseOverBackground="{DynamicResource {ComponentResourceKey odc:Skins, TransparentMouseOverBtnBrush}}">
+                <ContentPresenter x:Name="PART_Header" ContentSource="Header" />
+            </odc:RibbonChrome>
+            <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Opacity="{Binding ElementName=decorator, Path=AnimationOpacity}"
+                    HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
+                <odc:AnimationDecorator x:Name="decorator" Duration="{StaticResource animTime}" AnimateOnContentHeightChanged="False"
+                        IsExpanded="{Binding RelativeSource={RelativeSource TemplatedParent},Path=IsExpanded}">
+                    <ItemsPresenter x:Name="ItemsHost" KeyboardNavigation.DirectionalNavigation="Contained" />
+                </odc:AnimationDecorator>
+            </Border>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="HasItems" Value="false">
+                <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
+            </Trigger>
+
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="RenderFlat" Value="False" TargetName="border" />
+                <Setter Property="RenderMouseOver" Value="False" TargetName="border" />
+            </Trigger>
+            <Trigger Property="IsSelectionActive" Value="False">
+                <Setter TargetName="border" Property="Background"
+                        Value="{DynamicResource {ComponentResourceKey odc:Skins, DeactiveItemSelectedBgBrush}}" />
+                <Setter TargetName="border" Property="BorderBrush"
+                        Value="{DynamicResource {ComponentResourceKey odc:Skins, DeactiveItemSelectedBorderBrush}}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="{ComponentResourceKey odc:Skins, ListViewItemTemplate}" TargetType="{x:Type ListViewItem}">
+        <odc:RibbonChrome x:Name="border" RenderMouseOver="{TemplateBinding IsMouseOver}" CornerRadius="3"
+                HorizontalContentAlignment="Stretch"
+                MouseOverBackground="{DynamicResource {ComponentResourceKey odc:Skins, TransparentMouseOverBtnBrush}}">
+            <ContentPresenter x:Name="PART_Content" ContentSource="Content" />
+        </odc:RibbonChrome>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="RenderFlat" Value="False" TargetName="border" />
+                <Setter Property="RenderMouseOver" Value="False" TargetName="border" />
+            </Trigger>
+            <Trigger Property="IsFocused" Value="False">
+                <Setter TargetName="border" Property="Background"
+                        Value="{DynamicResource {ComponentResourceKey odc:Skins, DeactiveItemSelectedBgBrush}}" />
+                <Setter TargetName="border" Property="BorderBrush"
+                        Value="{DynamicResource {ComponentResourceKey odc:Skins, DeactiveItemSelectedBorderBrush}}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate TargetType="{x:Type odc:ClickableTreeViewItem}" x:Key="{ComponentResourceKey odc:Skins, ClickableTreeViewItemTemplate}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="12" Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <ToggleButton x:Name="Expander" Style="{StaticResource ExpandCollapseToggleStyle}" IsChecked="{Binding Path=IsExpanded,
+                              RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press" Focusable="False" odc:RibbonOption.CloseDropDownOnClick="False" />
+            <odc:RibbonChrome Grid.Column="1" Grid.ColumnSpan="2" x:Name="border" HorizontalContentAlignment="Stretch"
+                    RenderMouseOver="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" CornerRadius="3"
+                    MouseOverBackground="{DynamicResource {ComponentResourceKey odc:Skins, TransparentMouseOverBtnBrush}}">
+                <ContentPresenter x:Name="PART_Header" ContentSource="Header" />
+            </odc:RibbonChrome>
+            <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Opacity="{Binding ElementName=decorator, Path=AnimationOpacity}"
+                    HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
+                <odc:AnimationDecorator x:Name="decorator" Duration="{StaticResource animTime}" AnimateOnContentHeightChanged="False"
+                        IsExpanded="{Binding RelativeSource={RelativeSource TemplatedParent},Path=IsExpanded}">
+                    <ItemsPresenter x:Name="ItemsHost" KeyboardNavigation.DirectionalNavigation="Contained" />
+                </odc:AnimationDecorator>
+            </Border>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="HasItems" Value="false">
+                <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
+            </Trigger>
+
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="RenderFlat" Value="False" TargetName="border" />
+                <Setter Property="RenderMouseOver" Value="False" TargetName="border" />
+            </Trigger>
+            <Trigger Property="IsFocused" Value="False">
+                <Setter TargetName="border" Property="Background"
+                        Value="{DynamicResource {ComponentResourceKey odc:Skins, DeactiveItemSelectedBgBrush}}" />
+                <Setter TargetName="border" Property="BorderBrush"
+                        Value="{DynamicResource {ComponentResourceKey odc:Skins, DeactiveItemSelectedBorderBrush}}" />
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsPressed" Value="True" />
+                    <Condition Property="IsMouseOver" Value="True" />
+                </MultiTrigger.Conditions>
+                <Setter Property="RenderPressed" Value="True" TargetName="border" />
+                <Setter Property="RenderMouseOver" Value="False" TargetName="border" />
+            </MultiTrigger>           
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style x:Key="{ComponentResourceKey odc:Skins, TreeViewItemStyle}" TargetType="TreeViewItem">
+        <Setter Property="Template" Value="{DynamicResource {ComponentResourceKey odc:Skins, TreeViewItemTemplate}}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    </Style>
+    <Style x:Key="{ComponentResourceKey odc:Skins, ListViewItemStyle}" TargetType="ListViewItem">
+        <Setter Property="Template" Value="{DynamicResource {ComponentResourceKey odc:Skins, ListViewItemTemplate}}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    </Style>
+
+    <Style TargetType="{x:Type odc:ClickableTreeViewItem}">
+        <Setter Property="Template" Value="{DynamicResource {ComponentResourceKey odc:Skins, ClickableTreeViewItemTemplate}}" />
+
+        <!--don't use the default lined rectangle focus for an item:-->
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    </Style>
+
+</ResourceDictionary>

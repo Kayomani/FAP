@@ -1,0 +1,9 @@
+﻿<UserControl
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="clr-namespace:Fap.Presentation"
+    xmlns:odc="clr-namespace:Odyssey.Controls;assembly=Odyssey"
+    xmlns:domain="clr-namespace:FAP.Domain.Entities.FileSystem;assembly=FAP.Domain"
+    xmlns:local="clr-namespace:Fap.Presentation.Panels" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Fap.Presentation.Panels.BrowsePanel"
+    ClipToBounds="True" d:DesignWidth="901" d:DesignHeight="427.96" >
+</UserControl>

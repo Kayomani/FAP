@@ -9,12 +9,13 @@ using FAP.Domain.Verbs;
 using System.Net;
 using System.IO;
 using HttpServer.Messages;
-using FAP.Domain.Network;
 using FAP.Network.Services;
 using FAP.Network.Entities;
 using FAP.Network;
 using NLog;
 using FAP.Domain.Verbs.Multicast;
+using FAP.Domain.Net;
+using Fap.Foundation.Services;
 
 namespace FAP.Domain.Handlers
 {
@@ -37,6 +38,8 @@ namespace FAP.Domain.Handlers
             serverNode.Nickname = "Overlord";
             serverNode.Host = host.ToString();
             serverNode.Port = port;
+            serverNode.Online = true;
+            serverNode.ID = IDService.CreateID();
             model = m;
             m.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(m_PropertyChanged);
             serverNode.GenerateStrength(m.OverlordPriority);
@@ -137,14 +140,19 @@ namespace FAP.Domain.Handlers
                 if(null==n)
                     return false;
                 n.Location = r.Param;
+                n.Online = true;
                 connectedNodes.Add(c);
 
                 //return ok
                 SendResponse(e, null);
-               // InfoVerb info = new InfoVerb();
-               // info.Nodes.Add(n);
-                //c.AddMessage(info.CreateRequest());
-                c.Start(n,serverNode);
+                //Send network info
+                UpdateVerb update = new UpdateVerb();
+                update.Nodes.Add(serverNode as Node);
+                c.Start(n, serverNode);
+                foreach (var peer in connectedNodes)
+                    update.Nodes.Add(peer.Node);
+                c.AddMessage(update.CreateRequest());
+                
                 return true;
             }
             catch

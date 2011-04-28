@@ -20,6 +20,8 @@ namespace FAP.Domain.Services
         private HTTPHandler http;
         private IFAPHandler fap;
 
+        private Model model;
+
         private readonly bool isServer;
 
         public Listener(IContainer c, bool _isServer)
@@ -27,6 +29,7 @@ namespace FAP.Domain.Services
             container = c;
             http = new HTTPHandler(c.Resolve<ShareInfoService>(), c.Resolve<Model>(), isServer); 
             this.isServer = _isServer;
+            model = container.Resolve<Model>();
         }
 
         public void Start(int inport)
@@ -44,13 +47,13 @@ namespace FAP.Domain.Services
                     trybind = false;
                     if (isServer)
                     {
-                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse("10.0.0.6"), port, container.Resolve<Model>(), container.Resolve < MulticastClientService>());
+                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse("10.0.0.6"), port, model, container.Resolve<MulticastClientService>());
                         fap = f;
                         f.Start("Local", "Local");
                     }
                     else
                     {
-                        FAPClientHandler f = new FAPClientHandler(container.Resolve<Model>());
+                        FAPClientHandler f = new FAPClientHandler(model);
                         fap = f;
                         f.Start();
                     }

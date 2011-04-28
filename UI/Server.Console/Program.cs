@@ -14,6 +14,8 @@ namespace Server.Console
     {
         static void Main(string[] args)
         {
+
+            
             Program p = new Program();
             p.Run();
         }

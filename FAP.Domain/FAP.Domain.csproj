@@ -70,6 +70,9 @@
       <HintPath>C:\Program Files\Bonjour SDK\Samples\CS\SimpleChat\obj\Debug\Interop.Bonjour.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
+    <Reference Include="Newtonsoft.Json.Net35">
+      <HintPath>..\libs\Json.NET\Newtonsoft.Json.Net35.dll</HintPath>
+    </Reference>
     <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\NLog\.NET Framework 3.5\NLog.dll</HintPath>
@@ -89,20 +92,25 @@
     <Compile Include="Client.cs" />
     <Compile Include="DomainModule.cs" />
     <Compile Include="Entities\BaseEntity.cs" />
+    <Compile Include="Entities\CompareNode.cs" />
+    <Compile Include="Entities\Conversation.cs" />
+    <Compile Include="Entities\DownloadRequest.cs" />
     <Compile Include="Entities\FileSystem\Directory.cs" />
     <Compile Include="Entities\FileSystem\File.cs" />
+    <Compile Include="Entities\ITransferWorker.cs" />
     <Compile Include="Entities\Model.cs" />
     <Compile Include="Entities\Network.cs" />
     <Compile Include="Entities\Node.cs" />
     <Compile Include="Entities\Overlord.cs" />
     <Compile Include="Entities\Share.cs" />
+    <Compile Include="Entities\TransferSession.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Handlers\FAPClientHandler.cs" />
     <Compile Include="Handlers\FAPServerHandler.cs" />
     <Compile Include="Handlers\HTTPHandler.cs" />
     <Compile Include="Handlers\IFAPHandler.cs" />
-    <Compile Include="Network\ClientStream.cs" />
-    <Compile Include="Network\DetectedNode.cs" />
+    <Compile Include="Net\ClientStream.cs" />
+    <Compile Include="Net\DetectedNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\BonjourAnnouncerService.cs" />
     <Compile Include="Services\Listener.cs" />

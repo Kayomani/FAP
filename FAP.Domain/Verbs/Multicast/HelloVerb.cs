@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using FAP.Domain.Network;
+using FAP.Domain.Net;
 
 namespace FAP.Domain.Verbs
 {

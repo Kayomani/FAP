@@ -1,0 +1,63 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:odc="clr-namespace:Odyssey.Controls"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Odyssey;Component/Themes/BreadcrumbBar/Brushes.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!--DropDownButtonTemplate-->
+    <ControlTemplate TargetType="{x:Type ToggleButton}" x:Key="DropDownButtonTemplate">
+        <odc:AeroChrome Focusable="False" x:Name="chrome" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                RenderMouseOver="{TemplateBinding IsMouseOver}" RenderPressed="{TemplateBinding IsPressed}">
+            <odc:AeroChrome.Content>
+                <Path x:Name="arrow" Data="{StaticResource DownArrow}" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="Black" Focusable="False" />
+            </odc:AeroChrome.Content>
+        </odc:AeroChrome>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter TargetName="chrome" Property="RenderMouseOver" Value="True" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!--ButtonTemplate-->
+    <ControlTemplate TargetType="{x:Type Button}" x:Key="ButtonTemplate">
+        <Border Margin="-1,-1,0,-1" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="Transparent"
+                Focusable="False">
+            <odc:AeroChrome x:Name="chrome" Focusable="False" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Margin="-1"
+                    RenderMouseOver="{TemplateBinding IsMouseOver}" RenderPressed="{TemplateBinding IsPressed}" Content="{TemplateBinding Content}" />
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter TargetName="chrome" Property="RenderMouseOver" Value="True" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate TargetType="{x:Type odc:ImageButton}" x:Key="ImageButtonTemplate">
+        <Border Margin="-1,-1,0,-1" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="Transparent"
+                Focusable="False">
+            <odc:AeroChrome x:Name="chrome" Focusable="False" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Margin="-1"
+                    RenderMouseOver="{TemplateBinding IsMouseOver}" RenderPressed="{TemplateBinding IsPressed}">
+                <Image Source="{TemplateBinding Image}" RenderOptions.BitmapScalingMode="NearestNeighbor" VerticalAlignment="Center"
+                        HorizontalAlignment="Center"  Width="{TemplateBinding ImageWidth}" Height="{TemplateBinding ImageHeight}" Stretch="Fill" />
+            </odc:AeroChrome>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter TargetName="chrome" Property="RenderMouseOver" Value="True" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style TargetType="{x:Type odc:ImageButton}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="ImageWidth" Value="16" />
+        <Setter Property="ImageHeight" Value="16" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {ComponentResourceKey odc:Skins, BorderBrush}}" />
+        <Setter Property="Template" Value="{StaticResource ImageButtonTemplate}" />
+
+    </Style>
+</ResourceDictionary>

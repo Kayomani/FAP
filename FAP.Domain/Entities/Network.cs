@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Fap.Foundation;
+using System.Collections.ObjectModel;
 
 namespace FAP.Domain.Entities
 {
     public class Network: BaseEntity
     {
-        private BackgroundSafeObservable<Node> nodes = new BackgroundSafeObservable<Node>();
+        private SafeObservedCollection<Node> nodes = new SafeObservedCollection<Node>();
         private string networkName;
         private string networkID;
         private ConnectionState state = ConnectionState.Disconnected;
@@ -19,7 +20,7 @@ namespace FAP.Domain.Entities
             get { return state; }
         }
 
-        public BackgroundSafeObservable<Node> Nodes
+        public SafeObservedCollection<Node> Nodes
         {
             set { nodes = value; NotifyChange("Nodes"); }
             get { return nodes; }

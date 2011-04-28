@@ -1,0 +1,13 @@
+﻿<UserControl x:Class="Fap.Presentation.Panels.LogPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <ListBox ItemsSource="{Binding Logs}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                        <Label Content="{Binding DisplayString}" VerticalContentAlignment="Top"  Margin="0" Padding="0"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

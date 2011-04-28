@@ -7,12 +7,12 @@ using System.Windows;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Client.WPF")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("File Acceleration Protocol")]
+[assembly: AssemblyDescription("File Acceleration Protocol")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("Client.WPF")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2011")]
+[assembly: AssemblyCompany("Kayomani")]
+[assembly: AssemblyProduct("File Acceleration Protocol")]
+[assembly: AssemblyCopyright("Copyright © Kayomani 2010.  Logo Copyright FastIcon.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

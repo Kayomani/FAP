@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using Fap.Foundation;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace FAP.Domain.Entities
 {
-
-    [DataContract]  
     public class Node : BaseEntity
     {
         protected SafeDictionary<string, string> data = new SafeDictionary<string, string>();
@@ -25,15 +24,7 @@ namespace FAP.Domain.Entities
             LastUpdate = Environment.TickCount;
         }
 
-        [OnDeserializing]
-        public void Setup(System.Runtime.Serialization.StreamingContext c)
-        {
-            
-            sync = new object(); 
-            LastUpdate = Environment.TickCount;
-        }
-
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public string Secret
         {
             get { return secret; }
@@ -45,7 +36,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public string OverlordID
         {
             get { return data.SafeGet("OverlordID"); }
@@ -57,7 +48,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public bool Online
         {
             get
@@ -74,7 +65,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public long LastUpdate
         {
             set
@@ -90,7 +81,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public string ClientVersion
         {
             get { return data.SafeGet("ClientVersion"); }
@@ -102,7 +93,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public string ID
         {
             get { return data.SafeGet("ID"); }
@@ -114,7 +105,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public ClientType NodeType
         {
             get
@@ -131,7 +122,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public long DownloadSpeed
         {
             get
@@ -148,7 +139,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public long UploadSpeed
         {
             get
@@ -165,7 +156,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public string Location
         {
             get { return data.SafeGet("Host") + ":" + data.SafeGet("Port"); }
@@ -179,7 +170,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public string Host
         {
             get { return data.SafeGet("Host"); }
@@ -192,7 +183,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public int Port
         {
             get
@@ -210,7 +201,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public string Nickname
         {
             get { return data.SafeGet("Nickname"); }
@@ -222,7 +213,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public string Address
         {
             get { return data.SafeGet("Address"); }
@@ -234,7 +225,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public string Description
         {
             get { return data.SafeGet("Description"); }
@@ -246,7 +237,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public long ShareSize
         {
             get
@@ -263,7 +254,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public long FileCount
         {
             get
@@ -280,7 +271,7 @@ namespace FAP.Domain.Entities
             }
         }
 
-        [IgnoreDataMember]
+        [JsonIgnoreAttribute]
         public string Avatar
         {
             get { return data.SafeGet("Avatar"); }
