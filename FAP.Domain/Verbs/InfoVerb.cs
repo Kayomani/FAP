@@ -47,9 +47,9 @@ namespace FAP.Domain.Verbs
         /// </summary>
         /// <param name="r"></param>
         /// <returns></returns>
-        public NetworkRequest ProcessRequest(string r)
+        public NetworkRequest ProcessRequest(NetworkRequest r)
         {
-            InfoVerb inc = Deserialise<InfoVerb>(r);
+            InfoVerb inc = Deserialise<InfoVerb>(r.Data);
             Node = inc.Node;
             return null;
         }

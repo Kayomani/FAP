@@ -38,9 +38,9 @@ namespace FAP.Domain.Verbs
         /// </summary>
         /// <param name="r"></param>
         /// <returns></returns>
-        public NetworkRequest ProcessRequest(string r)
+        public NetworkRequest ProcessRequest(NetworkRequest r)
         {
-            UpdateVerb inc = Deserialise<UpdateVerb>(r);
+            UpdateVerb inc = Deserialise<UpdateVerb>(r.Data);
             nodes = inc.Nodes;
             return null;
         }

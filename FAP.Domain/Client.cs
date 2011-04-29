@@ -7,6 +7,7 @@ using System.Net;
 using FAP.Domain.Verbs;
 using FAP.Network;
 using FAP.Network.Entities;
+using System.IO;
 
 namespace FAP.Domain
 {
@@ -61,7 +62,10 @@ namespace FAP.Domain
             try
             {
                 HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(Multiplexor.Encode(url, method, param));
-                
+                 req.Timeout= 30000;
+                 //req.Pipelined = false;
+
+                 //req.ConnectionGroupName = Guid.NewGuid().ToString();
                 //Add headers
                 req.UserAgent = Model.AppVersion;
                 //Add fap headers
@@ -86,16 +90,24 @@ namespace FAP.Domain
                     os.Flush();
                 }
 
+                
                 System.Net.HttpWebResponse resp = (System.Net.HttpWebResponse)req.GetResponse();
 
+                req.Timeout = 100000;
                 if (resp == null)
                     return false;
                 //If data was returned then get it from the stream
                 if (resp.ContentLength > 0)
                 {
-                    System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
-                    result = sr.ReadToEnd().Trim();
+                    using (Stream s = resp.GetResponseStream())
+                    {
+                        using (System.IO.StreamReader sr = new System.IO.StreamReader(s))
+                        {
+                            result = sr.ReadToEnd().Trim();
+                        }
+                    }
                 }
+               
                 return true;
             }
             catch

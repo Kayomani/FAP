@@ -17,7 +17,7 @@ namespace FAP.Domain.Verbs
             return r;
         }
 
-        public NetworkRequest ProcessRequest(string r)
+        public NetworkRequest ProcessRequest(NetworkRequest r)
         {
             throw new NotImplementedException();
         }

@@ -11,6 +11,8 @@ using System.Threading;
 using FAP.Domain.Verbs.Multicast;
 using NLog;
 using FAP.Domain.Net;
+using Fap.Foundation;
+using FAP.Network.Entities;
 
 namespace FAP.Application
 {
@@ -68,6 +70,35 @@ namespace FAP.Application
             }
         }
 
+        public void SendMessage(string message)
+        {
+            ChatVerb verb = new ChatVerb();
+            verb.Message = message;
+            verb.Nickname = model.LocalNode.Nickname;
+            verb.SourceID = model.LocalNode.ID;
+            ThreadPool.QueueUserWorkItem(new  WaitCallback(SendMessageAsync),verb.CreateRequest());
+        }
+
+
+        private void SendMessageAsync(object o)
+        {
+            try
+            {
+                if (model.Network.State == ConnectionState.Connected)
+                {
+                    Client client = new Client(model.LocalNode);
+                    client.Execute((NetworkRequest)o, model.Network.Overlord);
+                }
+                else
+                {
+                    LogManager.GetLogger("faplog").Warn("Could not send message as you are not conencted");
+                }
+            }
+            catch(Exception e)
+            {
+                LogManager.GetLogger("faplog").ErrorException("Failed to send chat message",e);
+            }
+        }
 
         public void Start()
         {
@@ -118,6 +149,8 @@ namespace FAP.Application
                 if (client.Execute(verb, n.Address))
                 {
                     net.State = ConnectionState.Connected;
+                    net.Overlord = new Node();
+                    net.Overlord.Location = n.Address;
                     LogManager.GetLogger("faplog").Info("Client connected");
                 }
             }

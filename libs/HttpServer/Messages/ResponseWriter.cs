@@ -72,16 +72,17 @@ namespace HttpServer.Messages
         /// <param name="body">Body to send</param>
         public void SendBody(IHttpContext context, Stream body)
         {
+            int buffSize = 256000;
             try
             {
                 body.Flush();
                 body.Seek(0, SeekOrigin.Begin);
-                var buffer = new byte[4196];
-                int bytesRead = body.Read(buffer, 0, 4196);
+                var buffer = new byte[buffSize];
+                int bytesRead = body.Read(buffer, 0, buffSize);
                 while (bytesRead > 0)
                 {
                     context.Stream.Write(buffer, 0, bytesRead);
-                    bytesRead = body.Read(buffer, 0, 4196);
+                    bytesRead = body.Read(buffer, 0, buffSize);
                 }
             }
             catch (Exception err)

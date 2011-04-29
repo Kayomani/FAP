@@ -17,6 +17,7 @@ using System.Drawing;
 using Fap.Foundation;
 using Fap.Foundation.Services;
 using System.Threading;
+using System.Net;
 
 namespace FAP.Application
 {
@@ -37,7 +38,11 @@ namespace FAP.Application
         {
             container = c;
             connectionController = c.Resolve<ConnectionController>();
+            //Don't send two request went doing a post..
             System.Net.ServicePointManager.Expect100Continue = false;
+            //Don't limit connections to a single node - 100 I think is the upper limit.
+            System.Net.ServicePointManager.DefaultConnectionLimit = 100;
+            
             model = container.Resolve<Model>();
             
         }
@@ -64,6 +69,7 @@ namespace FAP.Application
             server = new Listener(container, true);
             server.Start(40);
         }
+
 
         public void StartGUI()
         {
@@ -94,7 +100,6 @@ namespace FAP.Application
                 mainWindowModel.Nickname = model.Nickname;
                 mainWindowModel.Description = model.Description;
                 mainWindowModel.Sessions = model.TransferSessions;
-                mainWindowModel.ChatMessages = model.Messages;
                 mainWindowModel.Node = model.LocalNode;
                 mainWindowModel.Model = model;
                 //mainWindowModel.PeerSortType = model.PeerSortType;
@@ -104,8 +109,10 @@ namespace FAP.Application
               //  f.Filter = s => s.NodeType != ClientType.Overlord;
 
                 SafeFilteredObservingCollection<Node> f = new SafeFilteredObservingCollection<Node>(new SafeObservingCollection<Node>(model.Network.Nodes));
-                f.Filter = s => true;//.NodeType != ClientType.Overlord;
+                f.Filter = s => s.NodeType != ClientType.Overlord;
                 mainWindowModel.Peers = f;
+
+                mainWindowModel.ChatMessages = new SafeObservingCollection<string>(model.Messages);
 
               // // ClientList_CollectionChanged(null, null);
                 mainWindowModel.Show();
@@ -180,8 +187,8 @@ namespace FAP.Application
                     //peerController.Disconnect();
                     break;
                 default:
-                   // if (!string.IsNullOrEmpty(mainWindowModel.CurrentChatMessage))
-                   //     peerController.SendChatMessage(mainWindowModel.CurrentChatMessage);
+                    if (!string.IsNullOrEmpty(mainWindowModel.CurrentChatMessage))
+                        connectionController.SendMessage(mainWindowModel.CurrentChatMessage);
                     break;
             }
             mainWindowModel.CurrentChatMessage = string.Empty;

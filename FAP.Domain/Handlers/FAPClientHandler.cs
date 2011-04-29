@@ -37,6 +37,8 @@ namespace FAP.Domain.Handlers
                     return HandleDisconnect(e);
                 case "UPDATE":
                     return HandleUpdate(e,req);
+                case "CHAT":
+                    return HandleChat(e, req);
             }
             return false;
         }
@@ -44,6 +46,20 @@ namespace FAP.Domain.Handlers
         public void Start()
         {
 
+        }
+
+        private bool HandleChat(RequestEventArgs e, NetworkRequest req)
+        {
+            ChatVerb verb = new ChatVerb();
+            verb.ReceiveResponse(req);
+
+            model.Messages.Lock();
+            model.Messages.AddRotate(verb.Nickname + ":" + verb.Message,50);
+
+            model.Messages.Unlock();
+            SendOk(e);
+            SafeObservingCollectionManager.UpdateNowAsync();
+            return true;
         }
 
         private bool HandleUpdate(RequestEventArgs e, NetworkRequest req)
@@ -92,8 +108,8 @@ namespace FAP.Domain.Handlers
 
         private bool HandleDisconnect(RequestEventArgs e)
         {
-
-            return false;
+            SendOk(e);
+            return true;
         }
 
         private void SendOk(RequestEventArgs e)

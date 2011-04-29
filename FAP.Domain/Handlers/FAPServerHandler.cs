@@ -16,6 +16,8 @@ using NLog;
 using FAP.Domain.Verbs.Multicast;
 using FAP.Domain.Net;
 using Fap.Foundation.Services;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace FAP.Domain.Handlers
 {
@@ -90,6 +92,9 @@ namespace FAP.Domain.Handlers
                     return HandleClient(req,e);
                 case "CONNECT":
                     return HandleConnect(req,e);
+                case "CHAT":
+                    return HandleChat(req, e);
+
             }
             return false;
         }
@@ -113,6 +118,13 @@ namespace FAP.Domain.Handlers
                 peer.AddMessage(r);
         }
         #endregion
+
+        private bool HandleChat(NetworkRequest r, RequestEventArgs e)
+        {
+            TransmitToAll(r);
+            SendResponse(e, null);
+            return true;
+        }
 
         private bool HandleConnect(NetworkRequest r, RequestEventArgs e)
         {
@@ -142,7 +154,8 @@ namespace FAP.Domain.Handlers
                 n.Location = r.Param;
                 n.Online = true;
                 connectedNodes.Add(c);
-
+                //Find client servers
+                ThreadPool.QueueUserWorkItem(new WaitCallback(ScanClientAsync), n);
                 //return ok
                 SendResponse(e, null);
                 //Send network info
@@ -202,5 +215,111 @@ namespace FAP.Domain.Handlers
                 e.Context.Stream.Flush();
             }
         }
+
+        #region Client port service scanner
+        private void ScanClientAsync(object o)
+        {
+            ScanClient(o as Node);
+        }
+        /// <summary>
+        /// Scan the client machine for services such as HTTP or samba shares
+        /// </summary>
+        /// <param name="n"></param>
+        private void ScanClient(Node n)
+        {
+            //Check for HTTP
+            string webTitle = string.Empty;
+            try
+            {
+                WebClient wc = new WebClient();
+                string html = wc.DownloadString("http://" + n.Host);
+
+                if (!string.IsNullOrEmpty(html))
+                {
+                    webTitle = RegexEx.FindMatches("<title>.*</title>", html).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(html) && webTitle.Length > 14)
+                    {
+                        webTitle = webTitle.Substring(7);
+                        webTitle = webTitle.Substring(0, webTitle.Length - 8);
+                    }
+                }
+
+                if (string.IsNullOrEmpty(webTitle))
+                    webTitle = "Web";
+            }
+            catch { }
+
+            //Check for FTP
+            string ftp = string.Empty;
+            try
+            {
+                TcpClient client = new TcpClient();
+                client.Connect(n.Host, 21);
+                ftp = "FTP";
+                StringBuilder sb = new StringBuilder();
+                long start = Environment.TickCount + 3000;
+                byte[] data = new byte[20000];
+                client.ReceiveBufferSize = data.Length;
+
+                while (start > Environment.TickCount && client.Connected)
+                {
+                    if (client.GetStream().DataAvailable)
+                    {
+                        int length = client.GetStream().Read(data, 0, data.Length);
+                        sb.Append(Encoding.ASCII.GetString(data, 0, length));
+                    }
+                    else
+                    {
+                        Thread.Sleep(50);
+                    }
+                }
+                client.Close();
+
+                string title = sb.ToString();
+                if (!string.IsNullOrEmpty(title))
+                    ftp = title;
+                data = null;
+            }
+            catch { }
+
+            //Check for samba shares
+
+            string samba = string.Empty;
+            try
+            {
+                var shares = ShareCollection.GetShares(n.Host);
+                StringBuilder sb = new StringBuilder();
+                foreach (SambaShare share in shares)
+                {
+                    if (share.IsFileSystem && share.ShareType == ShareType.Disk)
+                    {
+                        try
+                        {
+                            //Make sure its readable
+                            System.IO.DirectoryInfo[] Flds = share.Root.GetDirectories();
+                            if (sb.Length > 0)
+                                sb.Append("|");
+                            sb.Append(share.NetName);
+
+                        }
+                        catch { }
+                    }
+                }
+                samba = sb.ToString();
+            }
+            catch { }
+
+
+            Node r = new Node();
+            r.SetData("HTTP", webTitle);
+            r.SetData("FTP", ftp);
+            r.SetData("Shares", samba);
+            r.ID = n.ID;
+            UpdateVerb verb = new UpdateVerb();
+            verb.Nodes.Add(r);
+            TransmitToAll(verb.CreateRequest());
+        }
+        #endregion
+
     }
 }

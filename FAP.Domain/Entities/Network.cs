@@ -13,6 +13,7 @@ namespace FAP.Domain.Entities
         private string networkName;
         private string networkID;
         private ConnectionState state = ConnectionState.Disconnected;
+        private Node overlord;
 
         public ConnectionState State
         {
@@ -36,6 +37,12 @@ namespace FAP.Domain.Entities
         {
             set { networkID = value; NotifyChange("NetworkID"); }
             get { return networkID; }
+        }
+
+        public Node Overlord
+        {
+            set { overlord = value; NotifyChange("Overlord"); }
+            get { return overlord; }
         }
     }
 }

@@ -78,7 +78,6 @@ namespace Fap.Presentation
              var c = (DataContext as MainWindowViewModel);
              if (null != c)
              {
-                 c.ChatMessages.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(ChatMessages_CollectionChanged);
                  c.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(c_PropertyChanged);
                  sortSize_Click(null, null);
                  SortPeers();
@@ -116,12 +115,6 @@ namespace Fap.Presentation
             FlashWindow.Flash(this, 3);
         }
 
-        void ChatMessages_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-        //    if(chatBox.Items.Count>0)
-          //    chatBox.ScrollIntoView(chatBox.Items.GetItemAt(chatBox.Items.Count - 1));
-          //  ScrollViewer scroll = chatBox.GetScrollViewer();
-        }
 
         public void AddWindow(string title, object content)
         {
@@ -196,12 +189,20 @@ namespace Fap.Presentation
                             string shares = peer.GetData("Shares");
                             bool added = false;
 
+                            if (!string.IsNullOrEmpty(http) || !string.IsNullOrEmpty(ftp) || !string.IsNullOrEmpty(shares))
+                            {
+                                m = new MenuItem();
+                                m.Foreground = Brushes.Gray;
+                                m.IsEnabled = false;
+                                m.Header = "Detected services:";
+                                src.ContextMenu.Items.Add(m);
+                            }
 
                             if (!string.IsNullOrEmpty(http))
                             {
                                 m = new MenuItem();
                                 m.Foreground = Brushes.Black;
-                                m.Header = "Web site (" + http + ")";
+                                m.Header = "Web site (" + LimitStringLength(http,20) + ")";
                                 m.CommandParameter = "http://" + peer.Host;
                                 m.Command = Model.OpenExternal;
                                 src.ContextMenu.Items.Add(m);
@@ -212,7 +213,7 @@ namespace Fap.Presentation
                             {
                                 m = new MenuItem();
                                 m.Foreground = Brushes.Black;
-                                m.Header = "FTP (" + ftp + ")";
+                                m.Header = "FTP (" + LimitStringLength(ftp,20) + ")";
                                 m.CommandParameter = "ftp://" + peer.Host;
                                 m.Command = Model.OpenExternal;
                                 src.ContextMenu.Items.Add(m);
@@ -298,6 +299,15 @@ namespace Fap.Presentation
                     m.FontWeight = FontWeights.DemiBold;
                 sort.Items.Add(m);
             }
+        }
+
+        private string LimitStringLength(string s, int length)
+        {
+            if (s != null && s.Length > length)
+            {
+                return s.Substring(0, length) + " ...";
+            }
+            return s;
         }
 
         private void SortPeers()

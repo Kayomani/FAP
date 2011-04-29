@@ -15,14 +15,14 @@ namespace FAP.Domain.Entities
     {
         public static readonly string AppVersion = "FAP Alpha 5";
         public static readonly string ProtocolVersion = "FAP/1.0";
-        public static int UPLINK_TIMEOUT = 120000;
+        public static int UPLINK_TIMEOUT = 60000;
 
         private readonly string saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
 
         private BackgroundSafeObservable<Share> shares = new BackgroundSafeObservable<Share>();
        
         private SafeObservable<TransferSession> transferSessions = new SafeObservable<TransferSession>();
-        public SafeObservable<string> messages = new SafeObservable<string>();
+        public SafeObservedCollection<string> messages = new SafeObservedCollection<string>();
 
         private Network network = new Network();
         private int maxDownloads;
@@ -66,7 +66,7 @@ namespace FAP.Domain.Entities
             node = new Node();
         }
 
-        public SafeObservable<string> Messages
+        public SafeObservedCollection<string> Messages
         {
             get { return messages; }
             set

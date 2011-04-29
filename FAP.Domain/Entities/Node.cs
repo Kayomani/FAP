@@ -214,18 +214,6 @@ namespace FAP.Domain.Entities
         }
 
         [JsonIgnoreAttribute]
-        public string Address
-        {
-            get { return data.SafeGet("Address"); }
-            set
-            {
-                data.Set("Address", value);
-                LastUpdate = Environment.TickCount;
-                NotifyChange("Address");
-            }
-        }
-
-        [JsonIgnoreAttribute]
         public string Description
         {
             get { return data.SafeGet("Description"); }

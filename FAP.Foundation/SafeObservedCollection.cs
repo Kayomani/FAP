@@ -20,16 +20,37 @@ namespace Fap.Foundation
         public event NotifyCollectionChangedEventHandler OnCollectionChanged;
         private ReaderWriterLock sync = new ReaderWriterLock();
 
+        public void AddRotate(T item, int max)
+        {
+            sync.AcquireWriterLock(Timeout.Infinite);
+            Add(item);
+            if (Count > max)
+                RemoveAt(0);
+            sync.ReleaseWriterLock();
+        }
+
         public void Add(T item)
         {
             sync.AcquireWriterLock(Timeout.Infinite);
             collection.Add(item);
+
+            int index = -1;
+
+            for (int i = collection.Count - 1; i >= 0; i--)
+            {
+                if (collection[i].Equals(item))
+                {
+                    index = i;
+                    break;
+                }
+            }
+
             if (null != OnCollectionChanged)
-                OnCollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
+                OnCollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
             sync.ReleaseWriterLock();
             if (CollectionChanged != null)
                 CollectionChanged(this,
-                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
+                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
         }
 
         public T Pop()

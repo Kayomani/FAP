@@ -89,6 +89,11 @@ namespace Fap.Foundation
             SafeObservingCollectionManager.Register(this);
         }
 
+        public void AddRotate(T item, int max)
+        {
+            viewedCollection.AddRotate(item, max);
+        }
+
         public void Dispose()
         {
             viewedCollection.OnCollectionChanged -= new NotifyCollectionChangedEventHandler(collection_OnCollectionChanged);
@@ -108,6 +113,11 @@ namespace Fap.Foundation
             try
             {
                 viewedCollection.Lock();
+
+                if (changes.Count > 1)
+                {
+
+                }
 
                 while (changes.Count > 0)
                 {

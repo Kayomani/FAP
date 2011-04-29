@@ -189,7 +189,7 @@ namespace FAP.Domain.Handlers
                     }
                 }
 
-                using (FileStream fs = new FileStream(path, FileMode.Open))
+                using (FileStream fs = new FileStream(path, FileMode.Open,FileAccess.Read,FileShare.Read))
                 {
                     e.Response.Add(new DateHeader("Last-Modified", modified));
                     // Send response and tell server to do nothing more with the request.

@@ -10,7 +10,7 @@ namespace FAP.Domain.Verbs
     public interface IVerb
     {
         NetworkRequest CreateRequest();
-        NetworkRequest ProcessRequest(string r);
+        NetworkRequest ProcessRequest(NetworkRequest r);
         bool ReceiveResponse(NetworkRequest r);
     }
 }
