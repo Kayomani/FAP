@@ -19,7 +19,7 @@ namespace FAP.Domain.Entities
 
         private readonly string saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
 
-        private BackgroundSafeObservable<Share> shares = new BackgroundSafeObservable<Share>();
+        private SafeObservedCollection<Share> shares = new SafeObservedCollection<Share>();
        
         private SafeObservable<TransferSession> transferSessions = new SafeObservable<TransferSession>();
         public SafeObservedCollection<string> messages = new SafeObservedCollection<string>();
@@ -134,7 +134,7 @@ namespace FAP.Domain.Entities
             get { return network; }
         }
 
-        public BackgroundSafeObservable<Share> Shares
+        public SafeObservedCollection<Share> Shares
         {
             set { shares = value; NotifyChange("Shares"); }
             get { return shares; }
@@ -272,7 +272,8 @@ namespace FAP.Domain.Entities
                 {
                     Model m = (Model)deserializer.Deserialize(textReader);
                     textReader.Close();
-                    Shares = m.Shares;
+                    Shares.Clear();
+                    Shares.AddRange(m.Shares.OrderBy(s => s.Name).ToList());
                     Avatar = m.Avatar;
                     Description = m.Description;
                     Nickname = m.Nickname;

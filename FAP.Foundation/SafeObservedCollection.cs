@@ -53,6 +53,16 @@ namespace Fap.Foundation
                     new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
         }
 
+
+        public void AddRange(List<T> items)
+        {
+            sync.AcquireWriterLock(Timeout.Infinite);
+            //TODO: Optimize this
+            foreach (T t in items)
+                Add(t);
+            sync.ReleaseWriterLock();
+        }
+
         public T Pop()
         {
             sync.AcquireWriterLock(Timeout.Infinite);

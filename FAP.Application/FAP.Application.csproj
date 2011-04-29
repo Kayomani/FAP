@@ -52,7 +52,9 @@
   <ItemGroup>
     <Compile Include="ApplicationModule.cs" />
     <Compile Include="ApplicationCore.cs" />
-    <Compile Include="ConnectionController.cs" />
+    <Compile Include="Controllers\ConnectionController.cs" />
+    <Compile Include="Controllers\PopupWindowController.cs" />
+    <Compile Include="Controllers\SharesController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModel\BrowserViewModel.cs" />
     <Compile Include="ViewModel\CompareViewModel.cs" />

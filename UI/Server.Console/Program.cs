@@ -7,6 +7,7 @@ using FAP.Domain;
 using FAP.Domain.Services;
 using FAP.Application;
 using FAP.Network;
+using System.Net;
 
 namespace Server.Console
 {
@@ -24,6 +25,7 @@ namespace Server.Console
 
         private void Run()
         {
+
             if(Compose())
             {
 

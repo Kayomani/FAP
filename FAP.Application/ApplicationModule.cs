@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Autofac;
+using FAP.Application.Controllers;
 
 namespace FAP.Application
 {
@@ -10,7 +11,6 @@ namespace FAP.Application
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<ConnectionController>().SingleInstance();
         }
     }
 }

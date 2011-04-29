@@ -32,7 +32,7 @@ namespace FAP.Application.ViewModels
         private ICommand renameCommand;
         private ICommand removeCommand;
         private ICommand refreshCommand;
-        private SafeObservable<Share> shares;
+        private SafeObservingCollection<Share> shares;
         private Share selectedShare;
 
         public SharesViewModel(ISharesView view)
@@ -40,13 +40,26 @@ namespace FAP.Application.ViewModels
         {
         }
 
-        public SafeObservable<Share> Shares
+        public SafeObservingCollection<Share> Shares
         {
             get { return shares; }
             set
             {
+                //Already bound so remove binding
+                if (null != shares)
+                {
+                    lock (shares)
+                    {
+                        foreach (var s in shares.ToList())
+                        {
+                            s.PropertyChanged -= new System.ComponentModel.PropertyChangedEventHandler(s_PropertyChanged);
+                        }
+                    }
+                    value.CollectionChanged -= new System.Collections.Specialized.NotifyCollectionChangedEventHandler(value_CollectionChanged);
+                }
+
                 shares = value;
-                RaisePropertyChanged("Shares");
+                //Listen for changes on sub objects
                 lock (shares)
                 {
                     foreach (var s in shares.ToList())
@@ -55,6 +68,8 @@ namespace FAP.Application.ViewModels
                     }
                 }
                 value.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(value_CollectionChanged);
+                RaisePropertyChanged("TotalShareSizeString");
+                RaisePropertyChanged("Shares");
             }
         }
 

@@ -14,7 +14,7 @@ using FAP.Domain.Net;
 using Fap.Foundation;
 using FAP.Network.Entities;
 
-namespace FAP.Application
+namespace FAP.Application.Controllers
 {
     public class ConnectionController
     {

@@ -82,10 +82,14 @@ namespace Fap.Foundation
 
         private List<NotifyCollectionChangedEventArgs> changes = new List<NotifyCollectionChangedEventArgs>();
 
-        public SafeObservingCollection(SafeObservedCollection<T> collection)
+        public SafeObservingCollection(SafeObservedCollection<T> otherCollection)
         {
-            viewedCollection = collection;
-            collection.OnCollectionChanged += new NotifyCollectionChangedEventHandler(collection_OnCollectionChanged);
+            otherCollection.Lock();
+            viewedCollection = otherCollection;
+            otherCollection.OnCollectionChanged += new NotifyCollectionChangedEventHandler(collection_OnCollectionChanged);
+            foreach (var item in otherCollection)
+                collection.Add(item);
+            otherCollection.Unlock();
             SafeObservingCollectionManager.Register(this);
         }
 
@@ -317,7 +321,12 @@ namespace Fap.Foundation
 
         public void CopyTo(Array array, int index)
         {
-            throw new NotImplementedException();
+            viewedCollection.Lock();
+            for (int i = index; i < collection.Count; i++)
+            {
+                array.SetValue(viewedCollection[i],i);
+            }
+            viewedCollection.Unlock();
         }
 
         public bool IsSynchronized

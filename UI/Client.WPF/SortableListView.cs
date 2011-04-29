@@ -20,7 +20,7 @@ namespace Fap.Presentation
                 new RoutedEventHandler(GridViewColumnHeaderClickedHandler));
         }
 
-        private void Sort(string sortBy, ListSortDirection direction)
+        public void Sort(string sortBy, ListSortDirection direction)
         {
             ICollectionView dataView =
               CollectionViewSource.GetDefaultView(this.ItemsSource);

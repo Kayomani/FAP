@@ -18,12 +18,16 @@ using Fap.Foundation;
 using Fap.Foundation.Services;
 using System.Threading;
 using System.Net;
+using FAP.Application.Controllers;
 
 namespace FAP.Application
 {
     public class ApplicationCore
     {
         private IContainer container;
+
+        private SharesController shareController;
+        private PopupWindowController popupController;
 
         private Listener client;
         private ShareInfoService shareInfo;
@@ -33,6 +37,7 @@ namespace FAP.Application
         private Model model;
 
         private MainWindowViewModel mainWindowModel;
+
 
         public ApplicationCore(IContainer c)
         {
@@ -47,14 +52,17 @@ namespace FAP.Application
             
         }
 
-        
-
         public void Load()
         {
             model.Load();
             model.LocalNode.ID=  IDService.CreateID();
             shareInfo = container.Resolve<ShareInfoService>();
             shareInfo.Load();
+
+            shareController = new SharesController(container, model);
+            shareController.Initalise();
+            popupController = container.Resolve<PopupWindowController>();
+
         }
         
         public void StartClientServer()
@@ -207,7 +215,7 @@ namespace FAP.Application
 
         private void EditShares()
         {
-           // popupController.AddWindow(shareController.ViewModel.View, "Edit shares");
+            popupController.AddWindow(shareController.ViewModel.View, "Edit shares");
         }
 
         private void Settings()
