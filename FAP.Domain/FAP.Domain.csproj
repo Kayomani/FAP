@@ -94,6 +94,7 @@
     <Compile Include="Entities\BaseEntity.cs" />
     <Compile Include="Entities\CompareNode.cs" />
     <Compile Include="Entities\Conversation.cs" />
+    <Compile Include="Entities\DownloadQueue.cs" />
     <Compile Include="Entities\DownloadRequest.cs" />
     <Compile Include="Entities\FileSystem\Directory.cs" />
     <Compile Include="Entities\FileSystem\File.cs" />
@@ -102,6 +103,7 @@
     <Compile Include="Entities\Network.cs" />
     <Compile Include="Entities\Node.cs" />
     <Compile Include="Entities\Overlord.cs" />
+    <Compile Include="Entities\SearchResult.cs" />
     <Compile Include="Entities\Share.cs" />
     <Compile Include="Entities\TransferSession.cs" />
     <Compile Include="Enums.cs" />
@@ -117,11 +119,13 @@
     <Compile Include="Services\ShareInfoService.cs" />
     <Compile Include="Verbs\BaseVerb.cs" />
     <Compile Include="Verbs\ChatVerb.cs" />
+    <Compile Include="Verbs\CompareVerb.cs" />
     <Compile Include="Verbs\ConnectVerb.cs" />
     <Compile Include="Verbs\Multicast\HelloVerb.cs" />
     <Compile Include="Verbs\InfoVerb.cs" />
     <Compile Include="Verbs\IVerb.cs" />
     <Compile Include="Verbs\Multicast\WhoVerb.cs" />
+    <Compile Include="Verbs\SearchVerb.cs" />
     <Compile Include="Verbs\UpdateVerb.cs" />
   </ItemGroup>
   <ItemGroup />

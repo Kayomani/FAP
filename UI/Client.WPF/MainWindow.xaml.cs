@@ -171,6 +171,15 @@ namespace Fap.Presentation
                         m.CommandParameter = peer;
                         m.Command = Model.ViewShare;
                         src.ContextMenu.Items.Add(m);
+
+                        //View web share
+                        m = new MenuItem();
+                        m.Foreground = Brushes.Black;
+                        m.Header = "View Web share";
+                        m.CommandParameter = "http://" + peer.Location;
+                        m.Command = Model.OpenExternal;
+                        src.ContextMenu.Items.Add(m);
+
                         //Send message
                         m = new MenuItem();
                         m.Foreground = Brushes.Black;

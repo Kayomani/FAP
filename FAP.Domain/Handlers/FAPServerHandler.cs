@@ -1,4 +1,20 @@
-﻿using System;
+﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+/**
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or any 
+    later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -94,7 +110,10 @@ namespace FAP.Domain.Handlers
                     return HandleConnect(req,e);
                 case "CHAT":
                     return HandleChat(req, e);
-
+                case "COMPARE":
+                    return HandleCompare(e, req);
+                case "SEARCH":
+                    return HandleSearch(e, req);
             }
             return false;
         }
@@ -118,6 +137,38 @@ namespace FAP.Domain.Handlers
                 peer.AddMessage(r);
         }
         #endregion
+
+        private bool HandleSearch(RequestEventArgs e, NetworkRequest req)
+        {
+            //We dont do this on a server..
+            SearchVerb verb = new SearchVerb(null);
+            var result = verb.ProcessRequest(req);
+            byte[] data = Encoding.Unicode.GetBytes(result.Data);
+            var generator = new ResponseWriter();
+            e.Response.ContentLength.Value = data.Length;
+            generator.SendHeaders(e.Context, e.Response);
+            e.Context.Stream.Write(data, 0, data.Length);
+            e.Context.Stream.Flush();
+            data = null;
+            return true;
+        }
+            
+        private bool HandleCompare(RequestEventArgs e, NetworkRequest req)
+        {
+            CompareVerb verb = new CompareVerb(model);
+
+            var result = verb.ProcessRequest(req);
+            byte[] data = Encoding.Unicode.GetBytes(result.Data);
+            var generator = new ResponseWriter();
+            e.Response.ContentLength.Value = data.Length;
+            generator.SendHeaders(e.Context, e.Response);
+            e.Context.Stream.Write(data, 0, data.Length);
+            e.Context.Stream.Flush();
+            data = null;
+
+            return true;
+        }
+
 
         private bool HandleChat(NetworkRequest r, RequestEventArgs e)
         {
@@ -198,7 +249,7 @@ namespace FAP.Domain.Handlers
         {
             InfoVerb verb = new InfoVerb();
             verb.Node = serverNode;
-            SendResponse(e, Encoding.ASCII.GetBytes(verb.CreateRequest().Data));
+            SendResponse(e, Encoding.Unicode.GetBytes(verb.CreateRequest().Data));
             return true;
         }
 
@@ -266,7 +317,7 @@ namespace FAP.Domain.Handlers
                     if (client.GetStream().DataAvailable)
                     {
                         int length = client.GetStream().Read(data, 0, data.Length);
-                        sb.Append(Encoding.ASCII.GetString(data, 0, length));
+                        sb.Append(Encoding.Unicode.GetString(data, 0, length));
                     }
                     else
                     {

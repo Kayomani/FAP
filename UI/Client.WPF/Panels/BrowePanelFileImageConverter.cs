@@ -38,8 +38,14 @@ namespace Fap.Presentation.Panels
            
 
             string filename = string.Empty;
-
-            if (value is File)
+            if (value is SearchResult)
+            {
+                SearchResult v = value as SearchResult;
+                if (v.IsFolder)
+                    return "/Fap.Presentation;component/Images/folder.png";
+                return (object)IconService.GetIcon(v.FileName);
+            }
+            else if (value is File)
             {
                 //TODO:uncomment
                 /*
@@ -48,7 +54,6 @@ namespace Fap.Presentation.Panels
                 if (fse.IsFolder)
                     return "/Fap.Presentation;component/Images/folder.png";*/
             }
-
             else if (value is DownloadRequest)
             {
                 DownloadRequest dl = value as DownloadRequest;

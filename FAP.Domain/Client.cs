@@ -1,4 +1,20 @@
-﻿using System;
+﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+/**
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or any 
+    later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,7 +39,7 @@ namespace FAP.Domain
 
         public bool Execute(IVerb verb, Node destinationNode)
         {
-            return Execute(verb, destinationNode.Host);
+            return Execute(verb, destinationNode.Location);
         }
 
         public bool Execute(IVerb verb, string destination)
@@ -62,7 +78,11 @@ namespace FAP.Domain
             try
             {
                 HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(Multiplexor.Encode(url, method, param));
-                 req.Timeout= 30000;
+#if DEBUG
+                 req.Timeout= 300000;
+#else
+                req.Timeout= 30000;
+#endif
                  //req.Pipelined = false;
 
                  //req.ConnectionGroupName = Guid.NewGuid().ToString();
@@ -83,7 +103,7 @@ namespace FAP.Domain
                 {
                     req.ContentType = "application/json";
                     req.Method = "POST";
-                    byte[] bytes = System.Text.Encoding.ASCII.GetBytes(data);
+                    byte[] bytes = System.Text.Encoding.Unicode.GetBytes(data);
                     req.ContentLength = bytes.Length;
                     System.IO.Stream os = req.GetRequestStream();
                     os.Write(bytes, 0, bytes.Length); //Push it out there
@@ -101,7 +121,7 @@ namespace FAP.Domain
                 {
                     using (Stream s = resp.GetResponseStream())
                     {
-                        using (System.IO.StreamReader sr = new System.IO.StreamReader(s))
+                        using (System.IO.StreamReader sr = new System.IO.StreamReader(s,Encoding.Unicode))
                         {
                             result = sr.ReadToEnd().Trim();
                         }

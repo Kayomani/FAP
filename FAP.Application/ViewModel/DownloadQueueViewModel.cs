@@ -29,7 +29,7 @@ namespace FAP.Application.ViewModels
 {
     public class DownloadQueueViewModel : ViewModel<IDownloadQueue>
     {
-        private SafeObservable<DownloadRequest> downloadQueue;
+        private SafeObservingCollection<DownloadRequest> downloadQueue;
         private IList selectedItems;
 
         private ICommand removeAll;
@@ -60,7 +60,7 @@ namespace FAP.Application.ViewModels
             }
         }
 
-        public SafeObservable<DownloadRequest> DownloadQueue
+        public SafeObservingCollection<DownloadRequest> DownloadQueue
         {
             set { downloadQueue = value; RaisePropertyChanged("DownloadQueue"); }
             get { return downloadQueue; }

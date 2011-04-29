@@ -1,4 +1,20 @@
-﻿using System;
+﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+/**
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or any 
+    later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +27,7 @@ using FAP.Domain.Services;
 using System.Waf.Applications;
 using System.IO;
 using System.Threading;
+using System.Waf.Applications.Services;
 
 namespace FAP.Application.Controllers
 {
@@ -112,6 +129,7 @@ namespace FAP.Application.Controllers
                 catch (Exception e)
                 {
                     logger.ErrorException("Add share error", e);
+                    container.Resolve<IMessageService>().ShowError("Failed to add share: " + e.Message);
                 }
             }
         }
@@ -175,11 +193,12 @@ namespace FAP.Application.Controllers
                 {
                     if (model.Shares.Where(s => s.Name == messagebox.Response && s != viewModel.SelectedShare).Count() == 0 && messagebox.Response.Length != 0)
                     {
+                        scanner.RenameShare(viewModel.SelectedShare.Name, messagebox.Response);
                         viewModel.SelectedShare.Name = messagebox.Response;
                     }
                     else
                     {
-                        System.Windows.MessageBox.Show("This name is already taken, please choose a different one!");
+                        container.Resolve<IMessageService>().ShowError("This name is already taken, please choose a different one!");
                     }
                 }
             }

@@ -44,6 +44,7 @@ namespace FAP.Application.ViewModels
         private ICommand openExternal;
         private ICommand compare;
         private ICommand userinfo;
+        private ICommand search;
         private object selectedClient;
         private string avatar;
         private string networkInfo;
@@ -147,16 +148,6 @@ namespace FAP.Application.ViewModels
                 }
             }
         }
-
-       /* public Fap.Network.Entity.Network CurrentNetwork
-        {
-            get { return currentNetwork; }
-            set
-            {
-                currentNetwork = value;
-                RaisePropertyChanged("CurrentNetwork");
-            }
-        }*/
 
         public bool Visible
         {
@@ -288,6 +279,16 @@ namespace FAP.Application.ViewModels
             }
         }
 
+        public ICommand Search
+        {
+            get { return search; }
+            set
+            {
+                search = value;
+                RaisePropertyChanged("Search");
+            }
+        }
+
         public ICommand OpenExternal
         {
             get { return openExternal; }
@@ -409,10 +410,10 @@ namespace FAP.Application.ViewModels
             ViewCore.AddWindow(title, content);
         }
 
-        //public Dispatcher Dispatcher
-       // {
-       //     get { return ViewCore.Dispatcher; }
-       // }
+        public Dispatcher Dispatcher
+        {
+            get { return ViewCore.Dispatcher; }
+        }
     }
 }
 

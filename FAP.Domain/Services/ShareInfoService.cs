@@ -1,4 +1,20 @@
-﻿using System;
+﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+/**
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or any 
+    later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +24,7 @@ using File = FAP.Domain.Entities.FileSystem.File;
 using Directory = FAP.Domain.Entities.FileSystem.Directory;
 using NLog;
 using FAP.Domain.Entities;
+using System.Text.RegularExpressions;
 
 namespace FAP.Domain.Services
 {
@@ -19,6 +36,7 @@ namespace FAP.Domain.Services
 
         public void Load()
         {
+            int start = Environment.TickCount;
             shares.Clear();
             try
             {
@@ -36,6 +54,18 @@ namespace FAP.Domain.Services
             {
                 LogManager.GetLogger("faplog").WarnException("Failed to load share info", e);
             }
+            start = Environment.TickCount - start;
+        }
+
+        public void RenameShare(string name, string destination)
+        {
+            Directory info = shares[name];
+            shares.Remove(name);
+            shares.Add(destination, info);
+
+            info.Name = destination;
+            RemoveShare(name);
+            info.Save();
         }
 
         public Directory RefreshPath(Share share)
@@ -66,34 +96,108 @@ namespace FAP.Domain.Services
         }
 
 
-        private void Test()
+        public List<SearchResult> Search(string expression, int limit, long modifiedBefore, long modifiedAfter, double smallerThan, double largerThan)
         {
-            Dictionary<string, File> results = new Dictionary<string, File>();
+            int start = Environment.TickCount;
+            List<SearchResult> results = new List<SearchResult>();
 
-            string name = "james";
+            StringMatcher matcher = new StringMatcher(expression);
+            
+            foreach (var share in shares.ToList())
+            {
+                if (!SearchRecursive(share.Value, matcher, share.Value.Name, results, limit,modifiedBefore,modifiedAfter,smallerThan,largerThan))
+                    break;
+            }
 
-            foreach (var share in shares)
-                SearchRecursive(share.Value, name, share.Value.Name, results);
+            //94
+            start = Environment.TickCount - start;
+            return results;
         }
 
 
-        private void SearchRecursive(Directory dir, string name, string currentPath, Dictionary<string, File> results)
+        public class StringMatcher
         {
+            private string[] split;
 
+            public StringMatcher(string expression)
+            {
+                if (string.IsNullOrEmpty(expression))
+                    split = new string[0];
+                else
+                    split = expression.Split(new char[] { '*' }, StringSplitOptions.RemoveEmptyEntries);
+            }
+
+            public bool IsMatch(string name)
+            {
+                int index = 0;
+
+                for (int i = 0; i < split.Length; i++)
+                {
+                    //http://blogs.msdn.com/b/noahc/archive/2007/06/29/string-equals-performance-comparison.aspx
+                    index = name.IndexOf(split[i], index,StringComparison.OrdinalIgnoreCase);
+                    if (-1 == index)
+                        return false;
+                }
+                return index != -1;
+            }
+        }
+
+
+        private bool SearchRecursive(Directory dir, StringMatcher matcher, string currentPath, List<SearchResult> results, int limit, long modifiedBefore, long modifiedAfter, double smallerThan, double largerThan)
+        {
             foreach (var file in dir.Files)
             {
-                if (file.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
-                    results.Add(currentPath + "/" + file.Name, file);
+                if (matcher.IsMatch(file.Name))
+                {
+                    if ((modifiedBefore == 0 || file.LastModified < modifiedBefore) &&
+                     (modifiedAfter == 0 || file.LastModified > modifiedAfter) &&
+                     (smallerThan == 0 || file.Size < smallerThan) &&
+                     (largerThan == 0 || file.Size > largerThan))
+                    {
+
+                        results.Add(new SearchResult()
+                                          {
+                                              FileName = file.Name,
+                                              Modified = DateTime.FromFileTime(file.LastModified),
+                                              Path = currentPath,
+                                              IsFolder = false,
+                                              Size = file.Size
+                                          });
+                        if (results.Count >= limit)
+                            return false;
+                    }
+                }
             }
 
             foreach (var d in dir.SubDirectories)
             {
-                if (d.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
-                    results.Add(currentPath + "/" + d.Name, d);
+                if (matcher.IsMatch(d.Name))
+                {
+                    if ((modifiedBefore == 0 || d.LastModified < modifiedBefore) &&
+                     (modifiedAfter == 0 || d.LastModified > modifiedAfter) &&
+                     (smallerThan == 0 || d.Size < smallerThan) &&
+                     (largerThan == 0 || d.Size > largerThan))
+                    {
+                        results.Add(new SearchResult()
+                        {
+                            FileName = d.Name,
+                            Modified = DateTime.FromFileTime(d.LastModified),
+                            Path = currentPath,
+                            IsFolder = true,
+                            Size = d.Size
+                        });
+                        if (results.Count >= limit)
+                            return false;
+                    }
+                }
             }
 
             foreach (var subdir in dir.SubDirectories)
-                SearchRecursive(subdir, name, currentPath + "/" + dir.Name, results);
+            {
+                if (!SearchRecursive(subdir, matcher, currentPath + "/" + dir.Name, results, limit,modifiedBefore,modifiedAfter,smallerThan,largerThan))
+                    return false;
+            }
+            return true;
         }
 
         private void GetDirectorySizeRecursive(DirectoryInfo directory, Directory model)

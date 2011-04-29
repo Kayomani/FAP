@@ -1,10 +1,27 @@
-﻿using System;
+﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+/**
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or any 
+    later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Xml.Serialization;
 using FAP.Domain.Services;
+using Newtonsoft.Json;
 
 namespace FAP.Domain.Entities.FileSystem
 {
@@ -26,6 +43,14 @@ namespace FAP.Domain.Entities.FileSystem
 
         public void Save()
         {
+            //Json save
+            /* Json save is 100% slower but half the size
+             * if (!System.IO.Directory.Exists(Path.GetDirectoryName(ShareInfoService.SaveLocation)))
+                System.IO.Directory.CreateDirectory(Path.GetDirectoryName(ShareInfoService.SaveLocation));
+
+            System.IO.File.WriteAllText(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".dat", JsonConvert.SerializeObject(this));*/
+
+            //XML save
             if (!System.IO.Directory.Exists(Path.GetDirectoryName(ShareInfoService.SaveLocation)))
                 System.IO.Directory.CreateDirectory(Path.GetDirectoryName(ShareInfoService.SaveLocation));
 
@@ -36,12 +61,22 @@ namespace FAP.Domain.Entities.FileSystem
                 textWriter.Flush();
                 textWriter.Close();
             }
+
         }
 
         public void Load(string name)
         {
             try
             {
+                //Json load
+                /*Directory m = JsonConvert.DeserializeObject<Directory>(System.IO.File.ReadAllText(name));
+                Name = m.Name;
+                Size = m.Size;
+                FileCount = m.FileCount;
+                SubDirectories = m.SubDirectories;
+                Files = m.Files;*/
+
+                //Xml load
                 XmlSerializer deserializer = new XmlSerializer(typeof(Directory));
                 using (TextReader textReader = new StreamReader(name))
                 {
@@ -55,7 +90,13 @@ namespace FAP.Domain.Entities.FileSystem
             }
             catch (Exception e)
             {
-                throw new Exception("Failed to read config", e);
+                //Error loading the file - May be the old format so just delete the old file
+                try
+                {
+                    System.IO.File.Delete(name);
+                }
+                catch { }
+                throw new Exception("Failed to read share info for " + name, e);
             }
         }
     }

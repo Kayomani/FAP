@@ -1,4 +1,8 @@
-﻿using System;
+﻿/*
+ * Based on code from
+ *  http://blog.mridey.com/2009/05/filtered-observablecollection.html
+ * */
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

@@ -1,4 +1,20 @@
-﻿using System;
+﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+/**
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or any 
+    later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,16 +27,19 @@ using FAP.Network.Entities;
 using FAP.Network;
 using NLog;
 using Fap.Foundation;
+using FAP.Domain.Services;
 
 namespace FAP.Domain.Handlers
 {
     public class FAPClientHandler : IFAPHandler
     {
         private Model model;
+        private ShareInfoService shareInfoService;
 
-        public FAPClientHandler(Model m)
+        public FAPClientHandler(Model m, ShareInfoService s)
         {
             model = m;
+            shareInfoService = s;
         }
 
         public bool Handle(RequestEventArgs e)
@@ -39,6 +58,11 @@ namespace FAP.Domain.Handlers
                     return HandleUpdate(e,req);
                 case "CHAT":
                     return HandleChat(e, req);
+                case "COMPARE":
+                    return HandleCompare(e, req);
+                case "SEARCH":
+                    return HandleSearch(e, req);
+
             }
             return false;
         }
@@ -48,15 +72,42 @@ namespace FAP.Domain.Handlers
 
         }
 
+        private bool HandleSearch(RequestEventArgs e, NetworkRequest req)
+        {
+            //We dont do this on a server..
+            SearchVerb verb = new SearchVerb(shareInfoService);
+            var result = verb.ProcessRequest(req);
+            byte[] data = Encoding.Unicode.GetBytes(result.Data);
+            var generator = new ResponseWriter();
+            e.Response.ContentLength.Value = data.Length;
+            generator.SendHeaders(e.Context, e.Response);
+            e.Context.Stream.Write(data, 0, data.Length);
+            e.Context.Stream.Flush();
+            data = null;
+            return true;
+        }
+
+        private bool HandleCompare(RequestEventArgs e, NetworkRequest req)
+        {
+            CompareVerb verb = new CompareVerb(model);
+
+            var result = verb.ProcessRequest(req);
+            byte[] data = Encoding.Unicode.GetBytes(result.Data);
+            var generator = new ResponseWriter();
+            e.Response.ContentLength.Value = data.Length;
+            generator.SendHeaders(e.Context, e.Response);
+            e.Context.Stream.Write(data, 0, data.Length);
+            e.Context.Stream.Flush();
+            data = null;
+
+            return true;
+        }
+
         private bool HandleChat(RequestEventArgs e, NetworkRequest req)
         {
             ChatVerb verb = new ChatVerb();
             verb.ReceiveResponse(req);
-
-            model.Messages.Lock();
             model.Messages.AddRotate(verb.Nickname + ":" + verb.Message,50);
-
-            model.Messages.Unlock();
             SendOk(e);
             SafeObservingCollectionManager.UpdateNowAsync();
             return true;
@@ -91,7 +142,7 @@ namespace FAP.Domain.Handlers
             InfoVerb verb = new InfoVerb();
             verb.Node = model.LocalNode;
             var result = verb.CreateRequest();
-            byte[] data = Encoding.ASCII.GetBytes(result.Data);
+            byte[] data = Encoding.Unicode.GetBytes(result.Data);
             var generator = new ResponseWriter();
             e.Response.ContentLength.Value = data.Length;
             generator.SendHeaders(e.Context, e.Response);

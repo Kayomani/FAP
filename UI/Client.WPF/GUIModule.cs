@@ -29,6 +29,7 @@ namespace Fap.Presentation
             builder.RegisterType<UserInfoPanel>().As<IUserInfo>();
             builder.RegisterType<InterfaceSelection>().As<IInterfaceSelectionView>();
             builder.RegisterType<MessageService>().As<IMessageService>();
+            builder.RegisterType<SearchPanel>().As<ISearchView>();
         }
     }
 }

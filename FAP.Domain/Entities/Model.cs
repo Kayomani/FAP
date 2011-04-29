@@ -1,4 +1,20 @@
-﻿using System;
+﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+/**
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or any 
+    later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * */
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +23,7 @@ using System.IO;
 using System.Xml.Serialization;
 using Fap.Foundation;
 using NLog;
+using Newtonsoft.Json;
 
 namespace FAP.Domain.Entities
 {
@@ -17,12 +34,14 @@ namespace FAP.Domain.Entities
         public static readonly string ProtocolVersion = "FAP/1.0";
         public static int UPLINK_TIMEOUT = 60000;
 
-        private readonly string saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
+        private readonly string oldSaveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
+        private readonly string saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\ClientConfig.cfg";
+
 
         private SafeObservedCollection<Share> shares = new SafeObservedCollection<Share>();
-       
+
         private SafeObservable<TransferSession> transferSessions = new SafeObservable<TransferSession>();
-        public SafeObservedCollection<string> messages = new SafeObservedCollection<string>();
+        private SafeObservedCollection<string> messages = new SafeObservedCollection<string>();
 
         private Network network = new Network();
         private int maxDownloads;
@@ -39,9 +58,9 @@ namespace FAP.Domain.Entities
 
         private Node node;
 
-        // private DownloadQueue downloadQueue;
+        private DownloadQueue downloadQueue;
         // private SafeObservable<Session> sessions;
-         
+
         //private Node node;
         // private ObservableCollection<Node> peers;
 
@@ -64,8 +83,11 @@ namespace FAP.Domain.Entities
         public Model()
         {
             node = new Node();
+            downloadQueue = new DownloadQueue();
         }
 
+
+        [JsonIgnore]
         public SafeObservedCollection<string> Messages
         {
             get { return messages; }
@@ -113,9 +135,16 @@ namespace FAP.Domain.Entities
             }
         }
 
-
+        [XmlIgnore]
+        [JsonIgnore]
+        public DownloadQueue DownloadQueue
+        {
+            get { return downloadQueue; }
+            set { downloadQueue = value; }
+        }
 
         [XmlIgnore]
+        [JsonIgnore]
         public Node LocalNode
         {
             set { node = value; NotifyChange("LocalNode"); }
@@ -128,6 +157,7 @@ namespace FAP.Domain.Entities
             get { return overlordPriority; }
         }
 
+        [JsonIgnore]
         public Network Network
         {
             set { network = value; NotifyChange("Network"); }
@@ -192,6 +222,7 @@ namespace FAP.Domain.Entities
         }
 
         [XmlIgnore]
+        [JsonIgnore]
         public SafeObservable<TransferSession> TransferSessions
         {
             get { return transferSessions; }
@@ -253,41 +284,57 @@ namespace FAP.Domain.Entities
         {
             if (!Directory.Exists(Path.GetDirectoryName(saveLocation)))
                 Directory.CreateDirectory(Path.GetDirectoryName(saveLocation));
-
-            XmlSerializer serializer = new XmlSerializer(typeof(Model));
-            using (TextWriter textWriter = new StreamWriter(saveLocation))
-            {
-                serializer.Serialize(textWriter, this);
-                textWriter.Flush();
-                textWriter.Close();
-            }
+            File.WriteAllText(saveLocation, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
 
         public void Load()
         {
             try
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof(Model));
-                using (TextReader textReader = new StreamReader(saveLocation))
+                Model saved = null;
+                bool doneConvert = false;
+
+                //If the config file does not exist then check for the legacy format.
+                if (!File.Exists(saveLocation))
                 {
-                    Model m = (Model)deserializer.Deserialize(textReader);
-                    textReader.Close();
-                    Shares.Clear();
-                    Shares.AddRange(m.Shares.OrderBy(s => s.Name).ToList());
-                    Avatar = m.Avatar;
-                    Description = m.Description;
-                    Nickname = m.Nickname;
-                    DownloadFolder = m.DownloadFolder;
-                    MaxDownloads = m.MaxDownloads;
-                    MaxDownloadsPerUser = m.MaxDownloadsPerUser;
-                    MaxUploads = m.MaxUploads;
-                    MaxUploadsPerUser = m.MaxUploadsPerUser;
-                    //   MaxOverlordPeers = m.MaxOverlordPeers;
-                    //  LocalNodeID = m.LocalNodeID;
-                    DisableComparision = m.DisableComparision;
-                    IPAddress = m.IPAddress;
-                    AlwaysNoCacheBrowsing = m.AlwaysNoCacheBrowsing;
+                    if (File.Exists(oldSaveLocation))
+                    {
+                        XmlSerializer deserializer = new XmlSerializer(typeof(Model));
+                        using (TextReader textReader = new StreamReader(oldSaveLocation))
+                        {
+                            saved = (Model)deserializer.Deserialize(textReader);
+                            doneConvert = true;
+                        }
+                    }
                 }
+                else
+                {
+                    saved = JsonConvert.DeserializeObject<Model>(File.ReadAllText(saveLocation));
+                }
+
+                Shares.Clear();
+                Shares.AddRange(saved.Shares.OrderBy(s => s.Name).ToList());
+                Avatar = saved.Avatar;
+                Description = saved.Description;
+                Nickname = saved.Nickname;
+                DownloadFolder = saved.DownloadFolder;
+                MaxDownloads = saved.MaxDownloads;
+                MaxDownloadsPerUser = saved.MaxDownloadsPerUser;
+                MaxUploads = saved.MaxUploads;
+                MaxUploadsPerUser = saved.MaxUploadsPerUser;
+                //   MaxOverlordPeers = m.MaxOverlordPeers;
+                //  LocalNodeID = m.LocalNodeID;
+                DisableComparision = saved.DisableComparision;
+                IPAddress = saved.IPAddress;
+                AlwaysNoCacheBrowsing = saved.AlwaysNoCacheBrowsing;
+
+                //Converted config so delete the old one
+                if (doneConvert)
+                {
+                    Save();
+                    File.Delete(oldSaveLocation);
+                }
+
             }
             catch (Exception e)
             {

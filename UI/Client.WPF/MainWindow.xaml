@@ -77,10 +77,9 @@
 
 
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom"  Grid.Row="2" Grid.Column="1" Grid.RowSpan="2">
-                            <!--<Button Content="Compare" Width="75" Height="27" VerticalAlignment="Bottom" Command="{Binding Compare}" />-->
-                       <!-- <Button  Width="30" Height="30" VerticalAlignment="Bottom" Command="{Binding ViewQueue}">
+                        <Button  Width="30" Height="30" VerticalAlignment="Bottom" Command="{Binding Search}">
                             <Image Source="/Fap.Presentation;component/Images/Search.png" />
-                        </Button>-->
+                        </Button>
                         <Button  Width="30" Height="30" VerticalAlignment="Bottom" Command="{Binding ViewQueue}">
                                 <Image Source="/Fap.Presentation;component/Images/Drawer%20Closed.png" />
                             </Button>

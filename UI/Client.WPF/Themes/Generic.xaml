@@ -19,8 +19,8 @@
 	<SolidColorBrush x:Key="TabItemNormalBackground" Color="WhiteSmoke"/>
 	<SolidColorBrush x:Key="TabItemHoverBackground" Color="LightGray"/>
 	<SolidColorBrush x:Key="TabItemSelectedBackground" Color="LightGray"/>
-
-	<!-- Style for the Repeat Button used to scrool the Tabs to the Left-->
+    
+   	<!-- Style for the Repeat Button used to scrool the Tabs to the Left-->
 	<Style x:Key="RepeatButtonScrollLeftOrUpStyle" TargetType="{x:Type RepeatButton}">
 		<Setter Property="Foreground" Value="{StaticResource TabGrayTextBrush}" />
 		<Setter Property="Background" Value="{Binding Path=TabItemNormalBackground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type l:TabControl}}}"/>
