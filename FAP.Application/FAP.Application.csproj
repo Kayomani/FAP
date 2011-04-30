@@ -52,10 +52,12 @@
   <ItemGroup>
     <Compile Include="ApplicationModule.cs" />
     <Compile Include="ApplicationCore.cs" />
+    <Compile Include="Controllers\BrowserController.cs" />
     <Compile Include="Controllers\CompareController.cs" />
     <Compile Include="Controllers\ConnectionController.cs" />
     <Compile Include="Controllers\ConversationController.cs" />
     <Compile Include="Controllers\DownloadQueueController.cs" />
+    <Compile Include="Controllers\InterfaceController.cs" />
     <Compile Include="Controllers\PopupWindowController.cs" />
     <Compile Include="Controllers\SearchController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />

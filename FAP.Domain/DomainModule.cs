@@ -30,7 +30,7 @@ namespace FAP.Domain
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<ShareInfoService>().SingleInstance();
-            builder.RegisterType<Listener>();
+            builder.RegisterType<ListenerService>();
             builder.RegisterType<Model>().SingleInstance();
             builder.RegisterType<HTTPHandler>();
         }

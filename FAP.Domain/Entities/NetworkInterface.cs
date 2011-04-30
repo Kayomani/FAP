@@ -18,31 +18,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using FAP.Domain.Entities;
-using FAP.Network.Entities;
+using System.Net;
 
-namespace FAP.Domain.Verbs
+namespace FAP.Domain.Entities
 {
-    public class ConnectVerb : BaseVerb, IVerb
+    public class NetInterface
     {
-        public NetworkRequest CreateRequest()
+        private string name;
+        private long speed;
+        private string description;
+        private IPAddress address;
+
+        public string Name
         {
-            NetworkRequest r = new NetworkRequest();
-            r.Verb = "CONNECT";
-            r.Param = Address;
-            return r;
+            set { name = value; }
+            get { return name; }
         }
 
-        public NetworkRequest ProcessRequest(NetworkRequest r)
+        public long Speed
         {
-            throw new NotImplementedException();
+            set { speed = value; }
+            get { return speed; }
         }
 
-        public bool ReceiveResponse(NetworkRequest r)
+        public string Description
         {
-            return true;
+            set { description = value; }
+            get { return description; }
         }
 
-        public string Address { set; get; }
+        public IPAddress Address
+        {
+            set { address = value; }
+            get { return address; }
+        }
     }
 }

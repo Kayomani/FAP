@@ -29,7 +29,7 @@ using FAP.Domain.Verbs;
 
 namespace FAP.Domain.Services
 {
-    public class Listener
+    public class ListenerService
     {
         private NodeServer listener;
         private IContainer container;
@@ -41,7 +41,7 @@ namespace FAP.Domain.Services
 
         private readonly bool isServer;
 
-        public Listener(IContainer c,bool _isServer)
+        public ListenerService(IContainer c,bool _isServer)
         {
             container = c;
             http = new HTTPHandler(c.Resolve<ShareInfoService>(), c.Resolve<Model>(), isServer); 
@@ -60,11 +60,11 @@ namespace FAP.Domain.Services
             {
                 try
                 {
-                    listener.Start(IPAddress.Any, port);
+                    listener.Start(IPAddress.Parse(model.IPAddress), port);
                     trybind = false;
-                    if (isServer)
+                    if (isServer) 
                     {
-                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse("10.0.0.6"), port, model, container.Resolve<MulticastClientService>());
+                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse(model.IPAddress), port, model, container.Resolve<MulticastClientService>());
                         fap = f;
                         f.Start("Local", "Local");
                     }
@@ -73,6 +73,7 @@ namespace FAP.Domain.Services
                         FAPClientHandler f = new FAPClientHandler(model, container.Resolve<ShareInfoService>(), container.Resolve<IConversationController>());
                         fap = f;
                         f.Start();
+                        model.ClientPort = port;
                     }
                 }
                 catch

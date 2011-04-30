@@ -50,5 +50,49 @@ namespace Fap.Presentation.Panels
                 vm.SelectedItems =  listView2.SelectedItems;
             }
         }
+
+        private DownloadQueueViewModel Model { get { return DataContext as DownloadQueueViewModel; } }
+
+        private void listView2_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (listView2.SelectedItems != null && listView2.SelectedItems.Count > 0)
+            {
+                System.Windows.Controls.ListBox src = e.Source as System.Windows.Controls.ListBox;
+
+                src.ContextMenu.Items.Clear();
+
+                MenuItem m = new MenuItem();
+                m.Foreground = Brushes.Black;
+                m.Header = "Move to top";
+                m.Command = Model.Movetotop;
+                m.CommandParameter = listView2.SelectedItems;
+                src.ContextMenu.Items.Add(m);
+
+                m = new MenuItem();
+                m.Foreground = Brushes.Black;
+                m.Header = "Move up";
+                m.Command = Model.Moveup;
+                m.CommandParameter = listView2.SelectedItems;
+                src.ContextMenu.Items.Add(m);
+
+                m = new MenuItem();
+                m.Foreground = Brushes.Black;
+                m.Header = "Move down";
+                m.Command = Model.Movedown;
+                m.CommandParameter = listView2.SelectedItems;
+                src.ContextMenu.Items.Add(m);
+
+                m = new MenuItem();
+                m.Foreground = Brushes.Black;
+                m.Header = "Move to bottom";
+                m.Command = Model.Movetobottom;
+                m.CommandParameter = listView2.SelectedItems;
+                src.ContextMenu.Items.Add(m);
+            }
+            else
+            {
+                e.Handled = true;
+            }
+        }
     }
 }

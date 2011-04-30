@@ -87,15 +87,16 @@ namespace Fap.Presentation
                 }
 
                 ApplicationCore core = new ApplicationCore(container);
-                core.Load();
-                core.StartClientServer();
-                core.StartGUI();
-                core.StartOverlordServer();
-               // ApplicationController controller = new ApplicationController(container);
-                //if (!controller.Initalise())
-               //    Shutdown(1);
-               // else
-              //      controller.Run();
+                if (core.Load())
+                {
+                    core.StartClientServer();
+                    core.StartGUI();
+                    core.StartOverlordServer();
+                }
+                else
+                {
+                    Shutdown(1);
+                }
             }
             else
             {

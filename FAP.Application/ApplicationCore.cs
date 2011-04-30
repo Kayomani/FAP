@@ -44,21 +44,21 @@ namespace FAP.Application
 
         private SharesController shareController;
         private PopupWindowController popupController;
-
-        private Listener client;
-        private ShareInfoService shareInfo;
-        private Listener server;
         private ConnectionController connectionController;
         private CompareController compareController;
         private SettingsController settingsController;
         private DownloadQueueController downloadQueueController;
         private SearchController searchController;
         private ConversationController conversationController;
+        private InterfaceController interfaceController;
 
+        private ListenerService client;
+        private ShareInfoService shareInfo;
+        private ListenerService server;
+       
         private Model model;
-
         private MainWindowViewModel mainWindowModel;
-
+        private TrayIconViewModel trayIcon;
 
         public ApplicationCore(IContainer c)
         {
@@ -68,9 +68,8 @@ namespace FAP.Application
             System.Net.ServicePointManager.Expect100Continue = false;
             //Don't limit connections to a single node - 100 I think is the upper limit.
             System.Net.ServicePointManager.DefaultConnectionLimit = 100;
-            
             model = container.Resolve<Model>();
-            
+            interfaceController = container.Resolve<InterfaceController>();
         }
 
         public void Exit()
@@ -80,17 +79,59 @@ namespace FAP.Application
 
         public void ShutDownAsync(object param)
         {
+            model.Save();
+            model.DownloadQueue.Save();
+            connectionController.Exit();
+
+            if (null != server)
+                server.Stop();
+            if (null != client)
+                client.Stop();
+
+            //Kill UI
+            SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
+            new Action(
+             delegate()
+             {
+                 if (null != mainWindowModel)
+                 {
+                     popupController.Close();
+                     mainWindowModel.Close();
+                     trayIcon.Dispose();
+                     System.Windows.Application.Current.Shutdown(0);
+                 }
+             }
+            ));
         }
 
         public void StartGUI()
         {
+            trayIcon = container.Resolve<TrayIconViewModel>();
+            //Tray icon
+            trayIcon.Exit = new DelegateCommand(Exit);
+            trayIcon.Model = model;
+            trayIcon.Open = new DelegateCommand(ShowMainWindow);
+            trayIcon.Queue = new DelegateCommand(ViewQueue);
+            trayIcon.Settings = new DelegateCommand(Settings);
+            trayIcon.Shares = new DelegateCommand(EditShares);
+            trayIcon.ViewShare = new DelegateCommand(viewShare);
+            trayIcon.Compare = new DelegateCommand(Compare);
+            trayIcon.OpenExternal = new DelegateCommand(OpenExternal);
+            trayIcon.ShowIcon = true;
             ShowMainWindow();
             ThreadPool.QueueUserWorkItem(new WaitCallback(MainWindowUpdater));
         }
 
-        public void Load()
+        public bool Load()
         {
             model.Load();
+
+            model.IPAddress = interfaceController.CheckAddress(model.IPAddress);
+            //User chose to quit rather than select an interface =s
+            if (string.IsNullOrEmpty(model.IPAddress))
+                return false;
+
+
             model.DownloadQueue.Load();
 
             model.LocalNode.ID=  IDService.CreateID();
@@ -101,18 +142,19 @@ namespace FAP.Application
             shareController.Initalise();
             popupController = container.Resolve<PopupWindowController>();
             conversationController = (ConversationController)container.Resolve<IConversationController>();
+            return true;
         }
         
         public void StartClientServer()
         {
-            client = new Listener(container, false);
+            client = new ListenerService(container, false);
             client.Start(30);
             connectionController.Start();
         }
 
         public void StartOverlordServer()
         {
-            server = new Listener(container, true);
+            server = new ListenerService(container, true);
             server.Start(40);
         }
 
@@ -145,19 +187,11 @@ namespace FAP.Application
                 mainWindowModel.Node = model.LocalNode;
                 mainWindowModel.Model = model;
                 mainWindowModel.Search = new DelegateCommand(Search);
-                //mainWindowModel.PeerSortType = model.PeerSortType;
-                  //mainWindowModel.CurrentNetwork = model.Networks.Where(n => n.ID == "LOCAL").First();
-
-               // FilteredObservableCollection<Node> f = new FilteredObservableCollection<Node>(model.Network.Nodes);
-              //  f.Filter = s => s.NodeType != ClientType.Overlord;
 
                 SafeFilteredObservingCollection<Node> f = new SafeFilteredObservingCollection<Node>(new SafeObservingCollection<Node>(model.Network.Nodes));
                 f.Filter = s => s.NodeType != ClientType.Overlord;
                 mainWindowModel.Peers = f;
-
                 mainWindowModel.ChatMessages = new SafeObservingCollection<string>(model.Messages);
-
-              // // ClientList_CollectionChanged(null, null);
                 mainWindowModel.Show();
             }
             else
@@ -169,9 +203,7 @@ namespace FAP.Application
             }
         }
 
-
         #region Main window Commands
-
         private void Search()
         {
             if (null == searchController)
@@ -256,9 +288,9 @@ namespace FAP.Application
             Node rc = o as Node;
             if (null != rc)
             {
-               // BrowserController bc = container.Resolve<BrowserController>(new NamedParameter("client", rc));
-              //  bc.Initalise();
-              //  popupController.AddWindow(bc.ViewModel.View, "View share of " + rc.Nickname);
+               BrowserController bc = container.Resolve<BrowserController>(new NamedParameter("client", rc));
+                bc.Initalise();
+               popupController.AddWindow(bc.ViewModel.View, "View share of " + rc.Nickname);
             }
         }
 
@@ -276,89 +308,8 @@ namespace FAP.Application
             }
             popupController.AddWindow(settingsController.ViewModel.View, "Settings");
         }
-        
-
-
         #endregion
-        #region Settings window commands
-
-        private void ResetInterface()
-        {
-            model.IPAddress = null;
-            model.Save();
-            container.Resolve<IMessageService>().ShowWarning("Interface selection reset.  FAP will now restart.");
-            Process notePad = new Process();
-
-            notePad.StartInfo.FileName = Assembly.GetEntryAssembly().CodeBase;
-            notePad.StartInfo.Arguments = "WAIT";
-            notePad.Start();
-           // Exit();
-        }
-
-        private void SettingsEditDownloadDir()
-        {
-            /* string folder = string.Empty;
-             if (browser.SelectFolder(out folder))
-             {
-                 model.DownloadFolder = folder;
-                 model.IncompleteFolder = folder + "\\Incomplete";
-             }*/
-        }
-
-        private void ChangeAvatar()
-        {
-            string path = string.Empty;
-
-           /* if (browser.SelectFile(out path))
-            {
-                try
-                {
-                    MemoryStream ms = new MemoryStream();
-                    FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
-                    ms.SetLength(stream.Length);
-                    stream.Read(ms.GetBuffer(), 0, (int)stream.Length);
-                    ms.Flush();
-                    stream.Close();
-                    //Resize
-                    Bitmap bitmap = new Bitmap(ms);
-                    Image thumbnail = ResizeImage(bitmap, 100, 100);
-                    ms = new MemoryStream();
-                    thumbnail.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                    model.Avatar = Convert.ToBase64String(ms.ToArray());
-                }
-                catch
-                {
-
-                }
-            }*/
-        }
-
-        private System.Drawing.Image ResizeImage(Bitmap FullsizeImage, int NewWidth, int MaxHeight)
-        {
-            // Prevent using images internal thumbnail
-            FullsizeImage.RotateFlip(System.Drawing.RotateFlipType.Rotate180FlipNone);
-            FullsizeImage.RotateFlip(System.Drawing.RotateFlipType.Rotate180FlipNone);
-
-            if (FullsizeImage.Width <= NewWidth)
-                NewWidth = FullsizeImage.Width;
-
-            int NewHeight = FullsizeImage.Height * NewWidth / FullsizeImage.Width;
-            if (NewHeight > MaxHeight)
-            {
-                // Resize with height instead
-                NewWidth = FullsizeImage.Width * MaxHeight / FullsizeImage.Height;
-                NewHeight = MaxHeight;
-            }
-
-            System.Drawing.Image NewImage = FullsizeImage.GetThumbnailImage(NewWidth, NewHeight, null, IntPtr.Zero);
-            // Clear handle to original file so that we can overwrite it if necessary
-            FullsizeImage.Dispose();
-            // Save resized picture
-            return NewImage;
-        }
-        #endregion
-
-
+        #region Main window UI updater
         /// <summary>
         /// Bulk update the main UI if updated
         /// </summary>
@@ -493,5 +444,6 @@ namespace FAP.Application
                 Thread.Sleep(333);
             }
         }
+        #endregion
     }
 }

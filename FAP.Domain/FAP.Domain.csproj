@@ -96,11 +96,13 @@
     <Compile Include="Entities\Conversation.cs" />
     <Compile Include="Entities\DownloadQueue.cs" />
     <Compile Include="Entities\DownloadRequest.cs" />
+    <Compile Include="Entities\FileSystem\BrowsingFile.cs" />
     <Compile Include="Entities\FileSystem\Directory.cs" />
     <Compile Include="Entities\FileSystem\File.cs" />
     <Compile Include="Entities\ITransferWorker.cs" />
     <Compile Include="Entities\Model.cs" />
     <Compile Include="Entities\Network.cs" />
+    <Compile Include="Entities\NetworkInterface.cs" />
     <Compile Include="Entities\Node.cs" />
     <Compile Include="Entities\Overlord.cs" />
     <Compile Include="Entities\SearchResult.cs" />
@@ -118,6 +120,7 @@
     <Compile Include="Services\Listener.cs" />
     <Compile Include="Services\ShareInfoService.cs" />
     <Compile Include="Verbs\BaseVerb.cs" />
+    <Compile Include="Verbs\BrowseVerb.cs" />
     <Compile Include="Verbs\ChatVerb.cs" />
     <Compile Include="Verbs\CompareVerb.cs" />
     <Compile Include="Verbs\ConnectVerb.cs" />

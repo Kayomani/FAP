@@ -66,13 +66,29 @@ namespace FAP.Domain.Handlers
                     return HandleSearch(e, req);
                 case "CONVERSTATION":
                     return HandleConversation(e,req);
-
+                case "BROWSE":
+                    return HandleBrowse(e, req);
             }
             return false;
         }
 
         public void Start()
         {
+
+        }
+
+        private bool HandleBrowse(RequestEventArgs e, NetworkRequest req)
+        {
+            BrowseVerb verb = new BrowseVerb(model, shareInfoService);
+            var result = verb.ProcessRequest(req);
+            byte[] data = Encoding.Unicode.GetBytes(result.Data);
+            var generator = new ResponseWriter();
+            e.Response.ContentLength.Value = data.Length;
+            generator.SendHeaders(e.Context, e.Response);
+            e.Context.Stream.Write(data, 0, data.Length);
+            e.Context.Stream.Flush();
+            data = null;
+            return true;
 
         }
 

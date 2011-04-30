@@ -141,29 +141,46 @@ namespace Fap.Foundation
 
                 while (changes.Count > 0)
                 {
-                    var change = changes[0];
+                    var e = changes[0];
                     //Update the ui collection
-                    switch (change.Action)
+                    switch (e.Action)
                     {
                         case NotifyCollectionChangedAction.Add:
-                            foreach (var item in change.NewItems)
-                                collection.Add((T)item);
+                            for (int i = 0; i < e.NewItems.Count; i++)
+                            {
+                                this.collection.Insert(e.NewStartingIndex + i, (T)e.NewItems[i]);
+                            }
                             break;
+
                         case NotifyCollectionChangedAction.Move:
-                            throw new Exception("Not used");
+                            for (int i = 0; i < e.NewItems.Count; i++)
+                            {
+                                this.collection.RemoveAt(e.OldStartingIndex);
+                                this.collection.Insert(e.NewStartingIndex + i, (T)e.NewItems[i]);
+                            }
+                            break;
+
                         case NotifyCollectionChangedAction.Remove:
-                            collection.RemoveAt(change.OldStartingIndex);
+                            for (int i = 0; i < e.OldItems.Count; i++)
+                            {
+                                this.collection.RemoveAt(e.OldStartingIndex);
+                            }
                             break;
+
                         case NotifyCollectionChangedAction.Replace:
-                            collection[change.NewStartingIndex] = (T)change.NewItems[0];
+                            for (int i = 0; i < e.NewItems.Count; i++)
+                            {
+                                this.collection[e.NewStartingIndex + i] = (T)e.NewItems[i];
+                            }
                             break;
+
                         case NotifyCollectionChangedAction.Reset:
-                            collection.Clear();
+                            this.collection.Clear();
                             break;
                     }
 
                     if (null != CollectionChanged)
-                        CollectionChanged(this, change);
+                        CollectionChanged(this, e);
                     changes.RemoveAt(0);
                 }
             }

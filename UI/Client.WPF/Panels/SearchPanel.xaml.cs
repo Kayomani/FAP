@@ -72,12 +72,12 @@ namespace Fap.Presentation.Panels
             m.CommandParameter = listView2.SelectedItems;
             src.ContextMenu.Items.Add(m);
 
-            m = new MenuItem();
+           /* m = new MenuItem();
             m.Foreground = Brushes.Black;
             m.Header = "View in share";
             m.Command = Model.ViewShare;
             m.CommandParameter = listView2.SelectedItems;
-            src.ContextMenu.Items.Add(m);
+            src.ContextMenu.Items.Add(m);*/
         }
 
         private void listView2_MouseDoubleClick(object sender, MouseButtonEventArgs e)

@@ -183,6 +183,10 @@ namespace FAP.Domain.Entities
             get { return ipAddress; }
         }
 
+        [XmlIgnore]
+        [JsonIgnore]
+        public int ClientPort { set; get; }
+
         public string DownloadFolder
         {
             set
@@ -332,7 +336,7 @@ namespace FAP.Domain.Entities
                 if (doneConvert)
                 {
                     Save();
-                    File.Delete(oldSaveLocation);
+                   // File.Delete(oldSaveLocation);
                 }
 
             }

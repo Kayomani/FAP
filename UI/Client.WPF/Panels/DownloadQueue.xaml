@@ -23,28 +23,33 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="32" />
         </Grid.RowDefinitions>
-        <base:SortableListView  
+        <ListView  
      VirtualizingStackPanel.IsVirtualizing="True"
                                 VirtualizingStackPanel.VirtualizationMode="Recycling"
-                                VerticalAlignment="Stretch"
+                                VerticalAlignment="Stretch" ContextMenuOpening="listView2_ContextMenuOpening"
   x:Name="listView2" BorderBrush="Black" ItemsSource="{Binding DownloadQueue}" ClipToBounds="True" SelectionChanged="listView2_SelectionChanged"   >
-            <base:SortableListView.View>
+            <ListView.ContextMenu>
+            <ContextMenu>
+            </ContextMenu>
+            </ListView.ContextMenu>
+            <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="" Width="30px">
+                    <GridViewColumn Header="" Width="30px" base:SortableListView.SortPropertyName="Extension">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Image  Name="img"  Width="15" Height="15"  Stretch="Fill" Source="{Binding .,Converter={StaticResource fileImageConverter}}"  Margin="0"   />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="Nickname" DisplayMemberBinding="{Binding Nickname}" Width="150px"/>
+                    <GridViewColumn Header="Nickname" DisplayMemberBinding="{Binding Nickname}" Width="130px"/>
                     <GridViewColumn Header="File" DisplayMemberBinding="{Binding FileName}" Width="350px"/>
                     <GridViewColumn Header="Path" DisplayMemberBinding="{Binding FolderPath}"  Width="400px"/>
+                    <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size, Converter={StaticResource sizeConverter}}"  Width="80px"/>
                     <GridViewColumn Header="State" DisplayMemberBinding="{Binding State}"  Width="130px"/>
                     <GridViewColumn Header="Added" DisplayMemberBinding="{Binding Added}"  Width="130px"/>
                 </GridView>
-            </base:SortableListView.View>
-        </base:SortableListView>
+            </ListView.View>
+        </ListView>
         <WrapPanel Grid.Row="1" HorizontalAlignment="Center">
             <Button  IsEnabled="{Binding SelectedItems,Converter={StaticResource IsNullConveter},Mode=OneWay}" Margin="1"  Height="30" Content="Clear selected downloads" Command="{Binding RemoveSelection}" />
             <Button  Margin="1"  Height="30" Content="Clear all downloads" Command="{Binding RemoveAll}" />

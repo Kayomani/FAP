@@ -35,9 +35,39 @@ namespace FAP.Application.ViewModels
         private ICommand removeAll;
         private ICommand removeSelection;
 
+        private ICommand moveup;
+        private ICommand movetotop;
+        private ICommand movedown;
+        private ICommand movetobottom;
+       
+
         public DownloadQueueViewModel(IDownloadQueue view)
             : base(view)
         {
+        }
+
+        public ICommand Movetobottom
+        {
+            get { return movetobottom; }
+            set { movetobottom = value; RaisePropertyChanged("Movetobottom"); }
+        }
+
+        public ICommand Movedown
+        {
+            get { return movedown; }
+            set { movedown = value; RaisePropertyChanged("Movedown"); }
+        }
+
+        public ICommand Moveup
+        {
+            get { return moveup; }
+            set { moveup = value; RaisePropertyChanged("Moveup"); }
+        }
+
+        public ICommand Movetotop
+        {
+            get { return movetotop; }
+            set { movetotop = value; RaisePropertyChanged("Movetotop"); }
         }
 
         public ICommand RemoveSelection

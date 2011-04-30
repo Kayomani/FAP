@@ -32,13 +32,13 @@ namespace FAP.Application.ViewModels
     public class BrowserViewModel: ViewModel<IBrowserView>
     {
 
-        private ObservableCollection<File> root = new ObservableCollection<File>();
-        private File currentItem;
+        private ObservableCollection<BrowsingFile> root = new ObservableCollection<BrowsingFile>();
+        private BrowsingFile currentItem;
         private string currentPath;
         private string status;
         private ICommand download;
         private ICommand refresh;
-        private List<File> lastSelectedEntity;
+        private List<BrowsingFile> lastSelectedEntity;
         private bool isBusy;
         private bool noCache;
 
@@ -74,7 +74,7 @@ namespace FAP.Application.ViewModels
             }
         }
 
-        public ObservableCollection<File> Root
+        public ObservableCollection<BrowsingFile> Root
         {
             set
             {
@@ -126,7 +126,7 @@ namespace FAP.Application.ViewModels
             }
         }
 
-        public List<File> LastSelectedEntity
+        public List<BrowsingFile> LastSelectedEntity
         {
             get { return lastSelectedEntity; }
             set
@@ -136,7 +136,7 @@ namespace FAP.Application.ViewModels
             }
         }
 
-        public File CurrentItem
+        public BrowsingFile CurrentItem
         {
             get { return currentItem; }
             set

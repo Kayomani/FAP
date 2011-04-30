@@ -42,6 +42,119 @@ namespace FAP.Application.Controllers
             vm.DownloadQueue = new Fap.Foundation.SafeObservingCollection<DownloadRequest>(model.DownloadQueue.List);
             vm.RemoveAll = new DelegateCommand(RemoveAll);
             vm.RemoveSelection = new DelegateCommand(RemoveSelection);
+            vm.Moveup = new DelegateCommand(Moveup);
+            vm.Movedown = new DelegateCommand(Movedown);
+            vm.Movetotop = new DelegateCommand(Movetotop);
+            vm.Movetobottom = new DelegateCommand(Movetobottom);
+        }
+
+        private List<DownloadRequest> ConvertList(object o)
+        {
+            System.Collections.ObjectModel.ObservableCollection<object> incoming = o as System.Collections.ObjectModel.ObservableCollection<object>;
+            List<DownloadRequest> list = new List<DownloadRequest>();
+            if (null != incoming)
+            {
+                foreach (DownloadRequest item in incoming)
+                {
+                    list.Add(item);
+                }
+            }
+            return list;
+        }
+
+        private void Movetobottom(object o)
+        {
+            var items = ConvertList(o);
+            try
+            {
+                model.DownloadQueue.List.Lock();
+
+                for (int i = items.Count - 1; i >= 0; i--)
+                {
+                    int index = model.DownloadQueue.List.IndexOf(items[i]);
+                    if (index >= 0)
+                    {
+                        model.DownloadQueue.List.RemoveAt(index);
+                        model.DownloadQueue.List.Add(items[i]);
+                    }
+                }
+            }
+            finally
+            {
+                model.DownloadQueue.List.Unlock();
+            }
+        }
+
+        private void Movetotop(object o)
+        {
+            var items = ConvertList(o);
+            try
+            {
+                model.DownloadQueue.List.Lock();
+
+                for (int i = items.Count - 1; i >= 0; i--)
+                {
+                    int index = model.DownloadQueue.List.IndexOf(items[i]);
+
+                    if (index > 0)
+                    {
+                        model.DownloadQueue.List.RemoveAt(index);
+                        model.DownloadQueue.List.Insert(0, items[i]);
+                    }
+                }
+            }
+            finally
+            {
+                model.DownloadQueue.List.Unlock();
+            }
+        }
+
+        private void Moveup(object o)
+        {
+            var items = ConvertList(o);
+            try
+            {
+                model.DownloadQueue.List.Lock();
+
+                for (int i = items.Count - 1; i >= 0; i--)
+                {
+                    int index = model.DownloadQueue.List.IndexOf(items[i]);
+
+                    if (index > 0)
+                    {
+                        model.DownloadQueue.List.RemoveAt(index);
+                        model.DownloadQueue.List.Insert(index - 1, items[i]);
+                    }
+                }
+            }
+            finally
+            {
+                model.DownloadQueue.List.Unlock();
+            }
+        }
+
+        private void Movedown(object o)
+        {
+            var items = ConvertList(o);
+            try
+            {
+                model.DownloadQueue.List.Lock();
+
+                for (int i = items.Count - 1; i >= 0; i--)
+                {
+                    int index = model.DownloadQueue.List.IndexOf(items[i]);
+
+                    if (index!=-1 && index+1<model.DownloadQueue.List.Count)
+                    {
+                        model.DownloadQueue.List.RemoveAt(index);
+                        model.DownloadQueue.List.Insert(index + 1, items[i]);
+                    }
+                }
+            }
+            finally
+            {
+                model.DownloadQueue.List.Unlock();
+            }
         }
 
         private void RemoveSelection()

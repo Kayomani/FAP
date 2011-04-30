@@ -23,25 +23,26 @@ using FAP.Application.Views;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Net.NetworkInformation;
+using FAP.Domain.Entities;
 
 namespace FAP.Application.ViewModels
 {
     public class InterfaceSelectionViewModel: ViewModel<IInterfaceSelectionView>
     {
-        private BindingList<NetworkInterface> interfaces;
+        private BindingList<NetInterface> interfaces;
         private ICommand quit;
         private ICommand select;
-        private NetworkInterface selectedInterface;
+        private NetInterface selectedInterface;
         
         public InterfaceSelectionViewModel(IInterfaceSelectionView i): base(i){}
 
-        public BindingList<NetworkInterface> Interfaces
+        public BindingList<NetInterface> Interfaces
         {
             set { interfaces = value; RaisePropertyChanged("Interfaces"); }
             get { return interfaces; }
         }
 
-        public NetworkInterface SelectedInterface
+        public NetInterface SelectedInterface
         {
             set { selectedInterface = value; RaisePropertyChanged("SelectedInterface"); }
             get { return selectedInterface; }

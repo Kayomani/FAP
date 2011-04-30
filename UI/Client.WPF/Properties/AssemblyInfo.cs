@@ -12,7 +12,7 @@ using System.Windows;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Kayomani")]
 [assembly: AssemblyProduct("File Acceleration Protocol")]
-[assembly: AssemblyCopyright("Copyright © Kayomani 2010.  Logo Copyright FastIcon.com")]
+[assembly: AssemblyCopyright("Copyright © Kayomani 2011.  Logo Copyright FastIcon.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

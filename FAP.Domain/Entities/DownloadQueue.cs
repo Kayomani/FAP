@@ -21,6 +21,8 @@ using System.Text;
 using Fap.Foundation;
 using System.IO;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
+using NLog;
 
 namespace FAP.Domain.Entities
 {
@@ -30,11 +32,11 @@ namespace FAP.Domain.Entities
         private SafeObservedCollection<DownloadRequest> queue = new SafeObservedCollection<DownloadRequest>();
 
         private readonly string saveLocation;
-
+        private object sync = new object();
 
         public DownloadQueue()
         {
-            saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Queue.xml";
+            saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Queue.cfg";
         }
 
 
@@ -48,33 +50,24 @@ namespace FAP.Domain.Entities
 
         public void Save()
         {
-            if (!Directory.Exists(Path.GetDirectoryName(saveLocation)))
-                Directory.CreateDirectory(Path.GetDirectoryName(saveLocation));
-
-            XmlSerializer serializer = new XmlSerializer(typeof(DownloadQueue));
-            using (TextWriter textWriter = new StreamWriter(saveLocation))
-            {
-                serializer.Serialize(textWriter, this);
-                textWriter.Flush();
-                textWriter.Close();
-            }
+            lock (sync)
+                File.WriteAllText(saveLocation, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
 
         public void Load()
         {
-            try
+            lock (sync)
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof(DownloadQueue));
-                using (TextReader textReader = new StreamReader(saveLocation))
+                try
                 {
-                    DownloadQueue m = (DownloadQueue)deserializer.Deserialize(textReader);
-                    textReader.Close();
-                    queue = m.List;
+                    DownloadQueue saved = JsonConvert.DeserializeObject<DownloadQueue>(File.ReadAllText(saveLocation));
+                    queue.Clear();
+                    queue.AddRange(saved.List.ToList());
                 }
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Failed to read download queue,", e);
+                catch (Exception e)
+                {
+                    LogManager.GetLogger("faplog").WarnException("Failed to read download queue", e);
+                }
             }
         }
     }

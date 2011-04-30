@@ -34,6 +34,7 @@ using System.Windows.Automation.Provider;
 using System.Windows.Media.Animation;
 using FAP.Application.Views;
 using FAP.Domain.Entities.FileSystem;
+using FAP.Application.ViewModels;
 
 namespace Fap.Presentation.Panels
 {
@@ -42,7 +43,7 @@ namespace Fap.Presentation.Panels
     /// </summary>
     public partial class BrowsePanel : UserControl, IBrowserView
     {
-       /* public BrowsePanel()
+        public BrowsePanel()
         {
             InitializeComponent();
             this.DataContextChanged += new DependencyPropertyChangedEventHandler(BrowsePanel_DataContextChanged);
@@ -87,7 +88,7 @@ namespace Fap.Presentation.Panels
             BrowserViewModel vm = DataContext as BrowserViewModel;
             if (listView2.SelectedItems != null)
             {
-                vm.LastSelectedEntity = listView2.SelectedItems.Cast<File>().ToList(); ;
+                vm.LastSelectedEntity = listView2.SelectedItems.Cast<BrowsingFile>().ToList(); ;
             }
         }
 
@@ -95,14 +96,12 @@ namespace Fap.Presentation.Panels
         {
             if (ignoreFolderTreeEvents)
                 return;
-            File ent = e.NewValue as File;
+            BrowsingFile ent = e.NewValue as BrowsingFile;
             if (null == Model.LastSelectedEntity)
-                Model.LastSelectedEntity = new List<File>();
+                Model.LastSelectedEntity = new List<BrowsingFile>();
             Model.LastSelectedEntity.Clear();
             Model.LastSelectedEntity.Add(ent);
-            //TODO: Uncomment
-           // Model.CurrentPath = ent.FullPath;
-            
+            Model.CurrentPath = ent.FullPath;
         }
 
         private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
@@ -111,20 +110,18 @@ namespace Fap.Presentation.Panels
                 return;
             System.Windows.Controls.TreeViewItem src = e.OriginalSource as System.Windows.Controls.TreeViewItem;
 
-            File ent = src.DataContext as File;
-            //TODO: Uncomment
-            //Model.CurrentPath = ent.FullPath;
+            BrowsingFile ent = src.DataContext as BrowsingFile;
+            Model.CurrentPath = ent.FullPath;
         }
 
 
         private void listView2_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            File item = listView2.SelectedItem as File;
+            BrowsingFile item = listView2.SelectedItem as BrowsingFile;
 
             if (null != item && null != Model)
             {
-                ///TODO: Uncomment
-                  if (item.IsFolder)
+                if (item.IsFolder)
                 {
                     //Open the sub folder
                     Model.CurrentPath = item.FullPath;
@@ -135,12 +132,34 @@ namespace Fap.Presentation.Panels
                 else
                 {
 
-                    Model.LastSelectedEntity = new List<FileSystemEntity>();
+                    Model.LastSelectedEntity = new List<BrowsingFile>();
                     Model.LastSelectedEntity.Add(item);
                     Model.Download.Execute(null);
                 }
             }
         }
+
+        private childItem FindVisualChild<childItem>(DependencyObject obj) where childItem : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is childItem)
+                {
+                    return (childItem)child;
+                }
+                else
+                {
+                    childItem childOfChild = FindVisualChild<childItem>(child);
+                    if (childOfChild != null)
+                    {
+                        return childOfChild;
+                    }
+                }
+            }
+            return null;
+        }  
+
 
         void Model_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
@@ -162,7 +181,7 @@ namespace Fap.Presentation.Panels
                 if (container != null)
                 {
                     container.IsSelected = true;
-                  //  container.IsExpanded = true;
+                    //  container.IsExpanded = true;
                     container.BringIntoView();
                 }
                 ignoreFolderTreeEvents = false;
@@ -181,6 +200,12 @@ namespace Fap.Presentation.Panels
                     da = null;
                 }
             }
+            else if (e.PropertyName == "CurrentItem")
+            {
+                ScrollViewer scrollViewer = FindVisualChild<ScrollViewer>(listView2);
+                if (null != scrollViewer)
+                    scrollViewer.ScrollToTop();
+            }
         }
 
 
@@ -188,10 +213,10 @@ namespace Fap.Presentation.Panels
 
         private bool ignoreFolderTreeEvents = false;
 
-        private File GetEntityFromPath(string path)
+        private BrowsingFile GetEntityFromPath(string path)
         {
             string[] items = path.Split('\\');
-            File parent = Model.Root.Where(n => n.Name == items[0]).FirstOrDefault();
+            BrowsingFile parent = Model.Root.Where(n => n.Name == items[0]).FirstOrDefault();
 
             if (string.IsNullOrEmpty(path))
             {
@@ -218,8 +243,8 @@ namespace Fap.Presentation.Panels
         }
 
 
-        private File fake = new File();
-        private File root = new File();
+        private BrowsingFile fake = new BrowsingFile();
+        private BrowsingFile root = new BrowsingFile();
 
         /// <summary>
         /// A BreadcrumbItem needs to populate it's Items. This can be due to the fact that a new BreadcrumbItem is selected, and thus
@@ -229,9 +254,9 @@ namespace Fap.Presentation.Panels
         private void BreadcrumbBar_PopulateItems(object sender, Odyssey.Controls.BreadcrumbItemEventArgs e)
         {
             BreadcrumbItem item = e.Item;
-            File fse = item.Data as File;
+            BrowsingFile fse = item.Data as BrowsingFile;
 
-            //TODO: UNcomment
+
             if (item.Data == root)
             {
                 if (item.Items.Count == 0)
@@ -282,7 +307,7 @@ namespace Fap.Presentation.Panels
         {
             BreadcrumbItem item = e.Item;
 
-            File ent = item.Data as File;
+            BrowsingFile ent = item.Data as BrowsingFile;
             if (null != ent)
             {
                 item.Items.Clear();
@@ -360,6 +385,6 @@ namespace Fap.Presentation.Panels
                     return recursionResult;
             }
             return null;
-        }*/
+        }
     }
 }

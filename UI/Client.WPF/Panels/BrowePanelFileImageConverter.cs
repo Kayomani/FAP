@@ -23,6 +23,7 @@ using System.Globalization;
 using System.IO;
 using FAP.Domain.Entities;
 using Fap.Presentation.Services;
+using FAP.Domain.Entities.FileSystem;
 
 namespace Fap.Presentation.Panels
 {
@@ -45,14 +46,14 @@ namespace Fap.Presentation.Panels
                     return "/Fap.Presentation;component/Images/folder.png";
                 return (object)IconService.GetIcon(v.FileName);
             }
-            else if (value is File)
+            else if (value is BrowsingFile)
             {
                 //TODO:uncomment
-                /*
-                File fse = value as File;
+
+                BrowsingFile fse = value as BrowsingFile;
                 filename = fse.Name;
                 if (fse.IsFolder)
-                    return "/Fap.Presentation;component/Images/folder.png";*/
+                    return "/Fap.Presentation;component/Images/folder.png";
             }
             else if (value is DownloadRequest)
             {

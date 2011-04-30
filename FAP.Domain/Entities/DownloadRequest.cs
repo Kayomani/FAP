@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace FAP.Domain.Entities
 {
@@ -62,6 +63,7 @@ namespace FAP.Domain.Entities
         }
 
         [XmlIgnore]
+        [JsonIgnore]
         public DownloadRequestState State
         {
             set
@@ -76,6 +78,7 @@ namespace FAP.Domain.Entities
         }
 
         [XmlIgnore]
+        [JsonIgnore]
         public int NextTryTime
         {
             set
@@ -144,20 +147,26 @@ namespace FAP.Domain.Entities
         }
 
         [XmlIgnore]
+        [JsonIgnore]
         public string FolderPath
         {
             get
             {
+                if (FullPath == null)
+                    return string.Empty;
                 int length = FileName.Length;
-                if (FullPath.Length > length)
+                if (length == FullPath.Length)
+                    return string.Empty;
+                if (FullPath.Length > length+1)
                 {
-                    return path.Substring(0, path.Length - length);
+                    return path.Substring(0, path.Length - (length + 1));
                 }
                 return FullPath;
             }
         }
 
         [XmlIgnore]
+        [JsonIgnore]
         public string FileName
         {
             get

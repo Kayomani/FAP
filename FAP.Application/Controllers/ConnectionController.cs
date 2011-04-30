@@ -41,6 +41,7 @@ namespace FAP.Application.Controllers
         private AutoResetEvent workerEvent = new AutoResetEvent(true);
         private List<DetectedNode> announcedAddresses = new List<DetectedNode>();
         private object sync = new object();
+        private bool run = true;
 
         public ConnectionController(IContainer c)
         {
@@ -122,12 +123,25 @@ namespace FAP.Application.Controllers
         }
 
 
+        public void Exit()
+        {
+            run = false;
+            workerEvent.Set();
+
+            //Notify log off
+            if (model.Network.State == ConnectionState.Connected)
+            {
+                Client c = new Client(model.LocalNode);
+
+            }
+        }
+
         private void ProcessLanConnection(object o)
         {
             mserver.AddMessage(WhoVerb.CreateRequest());
             Domain.Entities.Network network = model.Network;
             network.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(network_PropertyChanged);
-            while (true)
+            while (run)
             {
                 if (network.State != ConnectionState.Connected)
                 {
@@ -161,6 +175,7 @@ namespace FAP.Application.Controllers
                 LogManager.GetLogger("faplog").Info("Client connecting to {0}", n.Address);
                 net.State = ConnectionState.Connecting;
                 ConnectVerb verb = new ConnectVerb();
+                verb.Address = model.IPAddress + ":" + model.ClientPort;
                 Client client = new Client(model.LocalNode);
                 if (client.Execute(verb, n.Address))
                 {
