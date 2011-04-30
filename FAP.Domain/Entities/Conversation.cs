@@ -25,11 +25,20 @@ namespace FAP.Domain.Entities
     public class Conversation
     {
         public Node OtherParty { set; get; }
-        public SafeObservable<string> Messages { set; get; }
+        private SafeObservedCollection<string> messages = new SafeObservedCollection<string>();
+        private SafeObservingCollection<string> uiMessages;
+
+        public SafeObservingCollection<string> UIMessages { get { return uiMessages; } }
+        public SafeObservedCollection<string> Messages { get { return messages; } }
 
         public Conversation()
         {
-            Messages = new SafeObservable<string>();
+            uiMessages = new SafeObservingCollection<string>(messages);
+        }
+
+        public void Dispose()
+        {
+            uiMessages.Dispose();
         }
     }
 }

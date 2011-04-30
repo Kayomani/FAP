@@ -121,6 +121,7 @@
     <Compile Include="Verbs\ChatVerb.cs" />
     <Compile Include="Verbs\CompareVerb.cs" />
     <Compile Include="Verbs\ConnectVerb.cs" />
+    <Compile Include="Verbs\ConversationVerb.cs" />
     <Compile Include="Verbs\Multicast\HelloVerb.cs" />
     <Compile Include="Verbs\InfoVerb.cs" />
     <Compile Include="Verbs\IVerb.cs" />

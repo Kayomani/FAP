@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using Autofac;
 using FAP.Application.Controllers;
+using FAP.Domain.Verbs;
 
 namespace FAP.Application
 {
@@ -27,6 +28,8 @@ namespace FAP.Application
     {
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterType<ConversationController>().As<IConversationController>().SingleInstance();
+            builder.RegisterType<PopupWindowController>().As<PopupWindowController>().SingleInstance();
         }
     }
 }

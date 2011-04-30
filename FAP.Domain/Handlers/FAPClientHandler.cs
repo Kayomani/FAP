@@ -35,11 +35,13 @@ namespace FAP.Domain.Handlers
     {
         private Model model;
         private ShareInfoService shareInfoService;
+        private IConversationController chatController;
 
-        public FAPClientHandler(Model m, ShareInfoService s)
+        public FAPClientHandler(Model m, ShareInfoService s, IConversationController c)
         {
             model = m;
             shareInfoService = s;
+            chatController = c;
         }
 
         public bool Handle(RequestEventArgs e)
@@ -62,6 +64,8 @@ namespace FAP.Domain.Handlers
                     return HandleCompare(e, req);
                 case "SEARCH":
                     return HandleSearch(e, req);
+                case "CONVERSTATION":
+                    return HandleConversation(e,req);
 
             }
             return false;
@@ -72,6 +76,22 @@ namespace FAP.Domain.Handlers
 
         }
 
+        private bool HandleConversation(RequestEventArgs e, NetworkRequest req)
+        {
+            try
+            {
+                ConversationVerb verb = new ConversationVerb();
+                verb.ProcessRequest(req);
+                if (chatController.HandleMessage(verb.SourceID, verb.Nickname, verb.Message))
+                {
+                    SendOk(e);
+                    return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+        
         private bool HandleSearch(RequestEventArgs e, NetworkRequest req)
         {
             //We dont do this on a server..

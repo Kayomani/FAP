@@ -183,7 +183,7 @@ namespace Fap.Presentation
                         //Send message
                         m = new MenuItem();
                         m.Foreground = Brushes.Black;
-                        m.Header = "Send Message";
+                        m.Header = "Start Conversation";
                         m.CommandParameter = peer;
                         m.Command = Model.Chat;
                         src.ContextMenu.Items.Add(m);

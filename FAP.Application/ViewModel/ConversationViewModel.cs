@@ -23,6 +23,7 @@ using FAP.Application.Views;
 using System.Windows.Input;
 using Fap.Foundation;
 using FAP.Domain.Entities;
+using FAP.Application.Controllers;
 
 namespace FAP.Application.ViewModels
 {
@@ -33,10 +34,12 @@ namespace FAP.Application.ViewModels
         private Conversation conversation;
         private ICommand close;
 
+        private PopupWindowController popupWindowController;
 
-        public ConversationViewModel(IConverstationView view)
+        public ConversationViewModel(IConverstationView view, PopupWindowController p)
             : base(view)
         {
+            popupWindowController = p;
         }
 
 
@@ -47,7 +50,15 @@ namespace FAP.Application.ViewModels
             {
                 conversation = value;
                 RaisePropertyChanged("Conversation");
+                value.UIMessages.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(UIMessages_CollectionChanged);
             }
+        }
+
+        private void UIMessages_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (popupWindowController.ActiveTab != this)
+                popupWindowController.Highlight(this);
+            popupWindowController.FlashIfNotActive();
         }
 
 

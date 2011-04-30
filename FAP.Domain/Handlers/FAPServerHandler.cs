@@ -317,7 +317,7 @@ namespace FAP.Domain.Handlers
                     if (client.GetStream().DataAvailable)
                     {
                         int length = client.GetStream().Read(data, 0, data.Length);
-                        sb.Append(Encoding.Unicode.GetString(data, 0, length));
+                        sb.Append(Encoding.ASCII.GetString(data, 0, length));
                     }
                     else
                     {

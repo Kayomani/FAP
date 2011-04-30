@@ -53,6 +53,7 @@ namespace FAP.Application
         private SettingsController settingsController;
         private DownloadQueueController downloadQueueController;
         private SearchController searchController;
+        private ConversationController conversationController;
 
         private Model model;
 
@@ -99,6 +100,7 @@ namespace FAP.Application
             shareController = new SharesController(container, model);
             shareController.Initalise();
             popupController = container.Resolve<PopupWindowController>();
+            conversationController = (ConversationController)container.Resolve<IConversationController>();
         }
         
         public void StartClientServer()
@@ -195,9 +197,7 @@ namespace FAP.Application
         {
             Node peer = o as Node;
             if (null != peer)
-            {
-               // chatController.CreateConversation(peer);
-            }
+                conversationController.CreateConversation(peer);
         }
 
         private void Compare()

@@ -25,6 +25,7 @@ using HttpServer;
 using FAP.Domain.Handlers;
 using FAP.Domain.Entities;
 using FAP.Network.Services;
+using FAP.Domain.Verbs;
 
 namespace FAP.Domain.Services
 {
@@ -40,7 +41,7 @@ namespace FAP.Domain.Services
 
         private readonly bool isServer;
 
-        public Listener(IContainer c, bool _isServer)
+        public Listener(IContainer c,bool _isServer)
         {
             container = c;
             http = new HTTPHandler(c.Resolve<ShareInfoService>(), c.Resolve<Model>(), isServer); 
@@ -69,7 +70,7 @@ namespace FAP.Domain.Services
                     }
                     else
                     {
-                        FAPClientHandler f = new FAPClientHandler(model, container.Resolve<ShareInfoService>());
+                        FAPClientHandler f = new FAPClientHandler(model, container.Resolve<ShareInfoService>(), container.Resolve<IConversationController>());
                         fap = f;
                         f.Start();
                     }
