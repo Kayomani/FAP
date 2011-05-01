@@ -25,7 +25,7 @@ namespace Fap.Foundation
     public class SafeDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     {
         private readonly object syncRoot = new object();
-        private Dictionary<TKey, TValue> d = new Dictionary<TKey, TValue>();
+        private Dictionary<TKey, TValue> dictionary = new Dictionary<TKey, TValue>();
 
         #region IDictionary<TKey,TValueMembers
 
@@ -33,7 +33,7 @@ namespace Fap.Foundation
         {
             lock (syncRoot)
             {
-                d.Add(key, value);
+                dictionary.Add(key, value);
             }
         }
 
@@ -41,17 +41,17 @@ namespace Fap.Foundation
         {
             lock (syncRoot)
             {
-                if (d.ContainsKey(key))
-                    d[key] = value;
+                if (dictionary.ContainsKey(key))
+                    dictionary[key] = value;
                 else
-                  d.Add(key, value);
+                    dictionary.Add(key, value);
             }
         }
 
         public bool ContainsKey(TKey key)
         {
             lock (syncRoot)
-                return d.ContainsKey(key);
+                return dictionary.ContainsKey(key);
         }
 
         public ICollection<TKey> Keys
@@ -60,7 +60,7 @@ namespace Fap.Foundation
             {
                 lock (syncRoot)
                 {
-                    return d.Keys;
+                    return dictionary.Keys;
                 }
             }
         }
@@ -69,7 +69,7 @@ namespace Fap.Foundation
         {
             lock (syncRoot)
             {
-                return d.Remove(key);
+                return dictionary.Remove(key);
             }
         }
 
@@ -77,7 +77,7 @@ namespace Fap.Foundation
         {
             lock (syncRoot)
             {
-                return d.TryGetValue(key, out value);
+                return dictionary.TryGetValue(key, out value);
             }
         }
 
@@ -85,8 +85,8 @@ namespace Fap.Foundation
         {
             lock (syncRoot)
             {
-                if (d.ContainsKey(k))
-                    return d[k];
+                if (dictionary.ContainsKey(k))
+                    return dictionary[k];
                 return default(TValue);
             }
         }
@@ -97,7 +97,7 @@ namespace Fap.Foundation
             {
                 lock (syncRoot)
                 {
-                    return d.Values;
+                    return dictionary.Values;
                 }
             }
         }
@@ -106,13 +106,13 @@ namespace Fap.Foundation
         {
             get
             {
-                return d[key];
+                return dictionary[key];
             }
             set
             {
                 lock (syncRoot)
                 {
-                    d[key] = value;
+                    dictionary[key] = value;
                 }
             }
         }
@@ -124,7 +124,7 @@ namespace Fap.Foundation
         {
             lock (syncRoot)
             {
-                ((ICollection<KeyValuePair<TKey, TValue>>)d).Add(item);
+                ((ICollection<KeyValuePair<TKey, TValue>>)dictionary).Add(item);
             }
         }
 
@@ -132,23 +132,20 @@ namespace Fap.Foundation
         {
             lock (syncRoot)
             {
-                d.Clear();
+                dictionary.Clear();
             }
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            return ((ICollection<KeyValuePair<TKey,
-            TValue>>)d).Contains(item);
+            return ((ICollection<KeyValuePair<TKey,  TValue>>)dictionary).Contains(item);
         }
 
-        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int
-        arrayIndex)
+        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
             lock (syncRoot)
             {
-                ((ICollection<KeyValuePair<TKey, TValue>>)d).CopyTo(array,
-                arrayIndex);
+                ((ICollection<KeyValuePair<TKey, TValue>>)dictionary).CopyTo(array, arrayIndex);
             }
         }
 
@@ -156,7 +153,7 @@ namespace Fap.Foundation
         {
             get
             {
-                return d.Count;
+                return dictionary.Count;
             }
         }
 
@@ -169,22 +166,30 @@ namespace Fap.Foundation
         {
             lock (syncRoot)
             {
-                return ((ICollection<KeyValuePair<TKey,
-                TValue>>)d).Remove(item);
+                return ((ICollection<KeyValuePair<TKey, TValue>>)dictionary).Remove(item);
             }
         }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            return ((ICollection<KeyValuePair<TKey, TValue>>)d).GetEnumerator();
+            lock (syncRoot)
+            {
+                List<KeyValuePair<TKey, TValue>> list = new List<KeyValuePair<TKey, TValue>>();
+                foreach (var kv in dictionary)
+                    list.Add(kv);
+                return list.GetEnumerator();
+            }
         }
 
-
-        System.Collections.IEnumerator
-        System.Collections.IEnumerable.GetEnumerator()
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return ((System.Collections.IEnumerable)d).GetEnumerator();
+            lock (syncRoot)
+            {
+                List<KeyValuePair<TKey, TValue>> list = new List<KeyValuePair<TKey, TValue>>();
+                foreach (var kv in dictionary)
+                    list.Add(kv);
+                return list.GetEnumerator();
+            }
         }
-
     }
 }

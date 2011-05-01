@@ -11,7 +11,7 @@ namespace FAP.Domain.Net
 {
     public class LANPeerFinderService
     {
-        private SafeObservable<DetectedNode> announcedAddresses = new SafeObservable<DetectedNode>();
+        private BackgroundSafeObservable<DetectedNode> announcedAddresses = new BackgroundSafeObservable<DetectedNode>();
         private MulticastClientService mclient;
         private IContainer container;
 
