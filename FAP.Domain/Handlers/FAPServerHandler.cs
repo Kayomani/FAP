@@ -109,14 +109,19 @@ namespace FAP.Domain.Handlers
                         ConnectVerb verb = new ConnectVerb();
                         verb.Address = serverNode.Location;
                         verb.ClientType = ClientType.Overlord;
+                        verb.Secret = IDService.CreateID();
+
+                        Uplink uplink = new Uplink(model.LocalNode, new Node() { ID = peer.ID, Location = peer.Address, NodeType = ClientType.Overlord,Secret=verb.Secret });
+                        activeOverlords.Add(uplink);
+
 
                         Client client = new Client(serverNode);
                         if (client.Execute(verb, peer.Address, 5000))
                         {
                             //Connected as client on an external overlord
-                            Uplink uplink = new Uplink(model.LocalNode, new Node() { ID = peer.ID, Location = peer.Address,NodeType = ClientType.Overlord });
+                           
                             uplink.OnDisconnect += new Uplink.Disconnect(uplink_OnDisconnect);
-                            activeOverlords.Add(uplink);
+                            
                             uplink.Start();
                             LogManager.GetLogger("faplog").Info("Server connected to client to external overlord at {0}", peer.Address);
                         }
@@ -125,6 +130,7 @@ namespace FAP.Domain.Handlers
                             //Failed to connect ot the external overlord
                             LogManager.GetLogger("faplog").Info("Server failed to connect to external overlord at {0}", peer.Address);
                             peerFinder.RemovePeer(peer);
+                            activeOverlords.Remove(uplink);
                         }
                     }
                 }
@@ -402,6 +408,12 @@ namespace FAP.Domain.Handlers
                 ConnectVerb iv = new ConnectVerb();
                 iv.ProcessRequest(r);
                 address = iv.Address;
+
+                if (string.IsNullOrEmpty(iv.Secret))
+                {
+                    //Dont allow connections with no secret
+                    return false;
+                }
 
                 //Dont allow connections to ourselves..
                 if (iv.Address == serverNode.Location)
