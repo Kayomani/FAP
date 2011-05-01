@@ -26,5 +26,18 @@ namespace FAP.Network.Entities
         public string Verb { set; get; }
         public string Data { set; get; }
         public string Param { set; get; }
+
+        /// <summary>
+        /// ID node generating the message
+        /// </summary>
+        public string SourceID { set; get; }
+        /// <summary>
+        /// Overlord ID which the client is connected to
+        /// </summary>
+        public string OverlordID { set; get; }
+        /// <summary>
+        /// Secret auth key for client->server and server->server security.
+        /// </summary>
+        public string AuthKey { set; get; }
     }
 }

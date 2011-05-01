@@ -63,16 +63,7 @@ namespace FAP.Domain.Verbs
 
         public bool ReceiveResponse(NetworkRequest r)
         {
-            try
-            {
-                UpdateVerb inc = Deserialise<UpdateVerb>(r.Data);
-                nodes = inc.Nodes;
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return true;
         }
     }
 }

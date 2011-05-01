@@ -18,19 +18,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Autofac;
-using FAP.Application.Controllers;
-using FAP.Domain.Verbs;
 
-namespace FAP.Application
+namespace FAP.Domain.Net
 {
-    public class ApplicationModule : Module
+    public class DetectedNode
     {
-        protected override void Load(ContainerBuilder builder)
-        {
-            builder.RegisterType<ConversationController>().As<IConversationController>().SingleInstance();
-            builder.RegisterType<PopupWindowController>().As<PopupWindowController>().SingleInstance();
-            builder.RegisterType<ConnectionController>().SingleInstance();
-        }
+        public string Address { set; get; }
+        public string NetworkName { set; get; }
+        public string ID { set; get; }
+        public int Priority { set; get; }
     }
 }

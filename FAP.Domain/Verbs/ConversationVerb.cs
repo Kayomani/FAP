@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using FAP.Network.Entities;
 using FAP.Domain.Entities;
+using Newtonsoft.Json;
 
 namespace FAP.Domain.Verbs
 {
@@ -26,7 +27,7 @@ namespace FAP.Domain.Verbs
             ConversationVerb verb = Deserialise<ConversationVerb>(r.Data);
             Nickname = verb.Nickname;
             Message = verb.Message;
-            SourceID = verb.SourceID;
+            SourceID = r.SourceID;
             r.Data = string.Empty;
             return r;
         }
@@ -38,6 +39,7 @@ namespace FAP.Domain.Verbs
 
         public string Nickname { set; get; }
         public string Message { set; get; }
+        [JsonIgnore]
         public string SourceID { set; get; }
     }
 }

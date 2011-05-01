@@ -26,6 +26,7 @@ using FAP.Domain.Handlers;
 using FAP.Domain.Entities;
 using FAP.Network.Services;
 using FAP.Domain.Verbs;
+using FAP.Domain.Net;
 
 namespace FAP.Domain.Services
 {
@@ -64,7 +65,7 @@ namespace FAP.Domain.Services
                     trybind = false;
                     if (isServer) 
                     {
-                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse(model.IPAddress), port, model, container.Resolve<MulticastClientService>());
+                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse(model.IPAddress), port, model, container.Resolve<MulticastClientService>(), container.Resolve<LANPeerFinderService>());
                         fap = f;
                         f.Start("Local", "Local");
                     }

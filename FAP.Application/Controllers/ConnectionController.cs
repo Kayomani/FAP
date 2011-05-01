@@ -29,27 +29,30 @@ using NLog;
 using FAP.Domain.Net;
 using Fap.Foundation;
 using FAP.Network.Entities;
+using Fap.Foundation.Services;
 
 namespace FAP.Application.Controllers
 {
+    /// <summary>
+    /// Handles automatically connecting the client to a server on the lan
+    /// </summary>
     public class ConnectionController
     {
-        private MulticastClientService mclient;
         private MulticastServerService mserver;
         private Model model;
 
         private AutoResetEvent workerEvent = new AutoResetEvent(true);
-        private List<DetectedNode> announcedAddresses = new List<DetectedNode>();
-        private object sync = new object();
+        private static object sync = new object();
         private bool run = true;
+        private LANPeerFinderService peerFinder;
+        private BackgroundSafeObservable<LanPeer> attemptedPeers = new BackgroundSafeObservable<LanPeer>();
+        private Node transmitted = new Node();
 
         public ConnectionController(IContainer c)
         {
-            mclient = c.Resolve<MulticastClientService>();
             model = c.Resolve<Model>();
             mserver = c.Resolve<MulticastServerService>();
-            mclient.OnMultiCastRX += new MulticastClientService.MultiCastRX(mclient_OnMultiCastRX);
-            mclient.StartListener();
+            peerFinder = c.Resolve<LANPeerFinderService>();
             setupLocalNetwork();
         }
 
@@ -58,33 +61,21 @@ namespace FAP.Application.Controllers
            // Domain.Entities.Network network = new Domain.Entities.Network();
             model.Network.NetworkName = "Local";
             model.Network.NetworkID = "Local";
+            model.Network.State = ConnectionState.Disconnected;
+            model.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(model_PropertyChanged);
+            model.LocalNode.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(LocalNode_PropertyChanged);
            // model.Networks.Add(network);
         }
 
-        private void mclient_OnMultiCastRX(string cmd)
+        void LocalNode_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (cmd.StartsWith(HelloVerb.Preamble))
-            {
-                HelloVerb verb = new HelloVerb();
-                var node = verb.ParseRequest(cmd);
-                if (null != node)
-                {
-                    lock (sync)
-                    {
-                        var search = announcedAddresses.Where(s => s.Address == node.Address).FirstOrDefault();
-                        if (null == search)
-                        {
-                            announcedAddresses.Add(node);
-                        }
-                        else
-                        {
-                            search.ID = node.ID;
-                            search.NetworkName = node.NetworkName;
-                        }
-                    }
-                }
+            ThreadPool.QueueUserWorkItem(new WaitCallback(CheckModelChangesAsync));
+        }
+
+        void model_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "State")
                 workerEvent.Set();
-            }
         }
 
         public void SendMessage(string message)
@@ -95,7 +86,6 @@ namespace FAP.Application.Controllers
             verb.SourceID = model.LocalNode.ID;
             ThreadPool.QueueUserWorkItem(new  WaitCallback(SendMessageAsync),verb.CreateRequest());
         }
-
 
         private void SendMessageAsync(object o)
         {
@@ -119,6 +109,7 @@ namespace FAP.Application.Controllers
 
         public void Start()
         {
+            peerFinder.Start();
             ThreadPool.QueueUserWorkItem(new WaitCallback(ProcessLanConnection));
         }
 
@@ -132,7 +123,9 @@ namespace FAP.Application.Controllers
             if (model.Network.State == ConnectionState.Connected)
             {
                 Client c = new Client(model.LocalNode);
-
+                UpdateVerb verb = new UpdateVerb();
+                verb.Nodes.Add(new Node() { ID = model.LocalNode.ID,Online = false });
+                c.Execute(verb, model.Network.Overlord,3000);
             }
         }
 
@@ -145,19 +138,92 @@ namespace FAP.Application.Controllers
             {
                 if (network.State != ConnectionState.Connected)
                 {
-                    //Not connected - get a detected overlord
-                    DetectedNode node;
-                    lock (sync)
+                    //Not connected so connect automatically..
+
+                    //Build up a prioritised server list
+                    List<DetectedNode> availibleNodes = new List<DetectedNode>();
+
+                    var detectedPeers = peerFinder.Peers.ToList();
+
+                    //Prioritise a server we havent connected to already
+                    foreach (var peer in detectedPeers)
                     {
-                        node = announcedAddresses.FirstOrDefault();
-                        if (null != node)
-                        {
-                            announcedAddresses.Remove(node);
-                            Connect(network,node);
-                        }
+                        if (attemptedPeers.Where(s => s.Node == peer).Count()==0)
+                            availibleNodes.Add(peer);
+                    }
+                    foreach (var peer in attemptedPeers.OrderByDescending(x => x.LastConnectionTime))
+                    {
+                        availibleNodes.Add(peer.Node);
+                    }
+
+                    while(network.State != ConnectionState.Connected && availibleNodes.Count>0)
+                    {
+                        DetectedNode node = availibleNodes[0];
+                        availibleNodes.RemoveAt(0);
+                        if (!Connect(network, node))
+                            peerFinder.RemovePeer(node);
                     }
                 }
-                workerEvent.WaitOne(10000);
+                if (network.State == ConnectionState.Connected)
+                {
+                    CheckModelChanges();
+                    workerEvent.WaitOne(10000);
+                }
+                else
+                    workerEvent.WaitOne(100);
+            }
+        }
+
+
+        private void CheckModelChangesAsync(object o)
+        {
+            CheckModelChanges();
+        }
+        /// <summary>
+        /// Whilst connected to a network 
+        /// </summary>
+        private void CheckModelChanges()
+        {
+            if (model.Network.State == ConnectionState.Connected)
+            {
+                UpdateVerb verb = null;
+                lock (sync)
+                {
+                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    foreach (var entry in model.LocalNode.Data)
+                    {
+                        if (transmitted.IsKeySet(entry.Key))
+                        {
+                            if (transmitted.GetData(entry.Key) != entry.Value)
+                            {
+                                data.Add(entry.Key, entry.Value);
+                            }
+                        }
+                        else
+                        {
+                            data.Add(entry.Key, entry.Value);
+                        }
+                    }
+                    //Data has changed, transmit the changes.
+                    if (data.Count > 0)
+                    {
+                        verb = new UpdateVerb();
+                        Node n = new Node();
+                        n.ID = model.LocalNode.ID;
+                        foreach (var change in data)
+                        {
+                            n.SetData(change.Key, change.Value);
+                            transmitted.SetData(change.Key, change.Value);
+                        }
+                        verb.Nodes.Add(n);
+                    }
+                }
+                if (null != verb)
+                {
+                    Client c = new Client(model.LocalNode);
+                    if (!c.Execute(verb, model.Network.Overlord))
+                        model.Network.State = ConnectionState.Disconnected;
+                }
             }
         }
 
@@ -168,27 +234,45 @@ namespace FAP.Application.Controllers
                 workerEvent.Set();
         }
 
-        private void Connect(Domain.Entities.Network net, DetectedNode n)
+        private bool Connect(Domain.Entities.Network net, DetectedNode n)
         {
             try
             {
                 LogManager.GetLogger("faplog").Info("Client connecting to {0}", n.Address);
                 net.State = ConnectionState.Connecting;
+
                 ConnectVerb verb = new ConnectVerb();
+                verb.ClientType = ClientType.Client;
                 verb.Address = model.IPAddress + ":" + model.ClientPort;
+                verb.Secret = IDService.CreateID();
                 Client client = new Client(model.LocalNode);
+
+                transmitted.Data.Clear();
+                foreach (var info in model.LocalNode.Data.ToList())
+                {
+                    transmitted.SetData(info.Key, info.Value);
+                }
+
+                net.Overlord = new Node();
+                net.Overlord.Location = n.Address;
+                net.Overlord.Secret = verb.Secret;
+
                 if (client.Execute(verb, n.Address))
                 {
                     net.State = ConnectionState.Connected;
-                    net.Overlord = new Node();
-                    net.Overlord.Location = n.Address;
                     LogManager.GetLogger("faplog").Info("Client connected");
+                    return true;
+                }
+                else
+                {
+                    net.Overlord = new Node();
                 }
             }
             catch
             {
                 net.State = ConnectionState.Disconnected;
             }
+            return false;
         }
     }
 }

@@ -28,6 +28,7 @@ using FAP.Domain;
 using Fap.Foundation;
 using System.Windows.Controls;
 using FAP.Domain.Verbs;
+using FAP.Domain.Net;
 
 namespace FAP.Application.Controllers
 {

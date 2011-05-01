@@ -29,13 +29,17 @@ namespace FAP.Domain.Verbs
         {
             NetworkRequest r = new NetworkRequest();
             r.Verb = "CONNECT";
-            r.Param = Address;
+            r.Data = Serialize<ConnectVerb>(this);
             return r;
         }
 
         public NetworkRequest ProcessRequest(NetworkRequest r)
         {
-            throw new NotImplementedException();
+            ConnectVerb verb = Deserialise<ConnectVerb>(r.Data);
+            Address = verb.Address;
+            ClientType = verb.ClientType;
+            r.Data = string.Empty;
+            return r;
         }
 
         public bool ReceiveResponse(NetworkRequest r)
@@ -44,5 +48,7 @@ namespace FAP.Domain.Verbs
         }
 
         public string Address { set; get; }
+        public string Secret { set; get; }
+        public ClientType ClientType { set; get; }
     }
 }

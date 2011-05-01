@@ -22,6 +22,7 @@ using Autofac;
 using FAP.Domain.Services;
 using FAP.Domain.Entities;
 using FAP.Domain.Handlers;
+using FAP.Domain.Net;
 
 namespace FAP.Domain
 {
@@ -33,6 +34,7 @@ namespace FAP.Domain
             builder.RegisterType<ListenerService>();
             builder.RegisterType<Model>().SingleInstance();
             builder.RegisterType<HTTPHandler>();
+            builder.RegisterType<LANPeerFinderService>().SingleInstance();
         }
     }
 }

@@ -26,6 +26,7 @@ using System.Waf.Applications;
 using System.Threading;
 using FAP.Domain;
 using FAP.Domain.Verbs;
+using FAP.Domain.Net;
 
 namespace FAP.Application.Controllers
 {
@@ -136,7 +137,7 @@ namespace FAP.Application.Controllers
             {
                 string message = vm.CurrentChatMessage;
 
-                Client c = container.Resolve<Client>();
+                Client c = new Client(model.LocalNode);
                 ConversationVerb verb = new ConversationVerb();
                 verb.Nickname = model.LocalNode.Nickname;
                 verb.Message = message;

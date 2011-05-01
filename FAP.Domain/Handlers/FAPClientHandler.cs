@@ -47,7 +47,7 @@ namespace FAP.Domain.Handlers
         public bool Handle(RequestEventArgs e)
         {
             NetworkRequest req = Multiplexor.Decode(e.Request);
-            LogManager.GetLogger("faplog").Info("Client rx: {0} {1} ", req.Verb, req.Param);
+            LogManager.GetLogger("faplog").Info("Client rx: {0} p: {1} source: {2} overlord: {3}", req.Verb, req.Param,req.SourceID,req.OverlordID);
             switch (req.Verb)
             {
                 case "INFO":
@@ -152,7 +152,7 @@ namespace FAP.Domain.Handlers
         private bool HandleUpdate(RequestEventArgs e, NetworkRequest req)
         {
             UpdateVerb verb = new UpdateVerb();
-            verb.ReceiveResponse(req);
+            verb.ProcessRequest(req);
             foreach (var node in verb.Nodes)
             {
                 var search = model.Network.Nodes.Where(i => i.ID == node.ID).FirstOrDefault();

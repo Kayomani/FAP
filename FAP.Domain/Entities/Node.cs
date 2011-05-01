@@ -33,7 +33,24 @@ namespace FAP.Domain.Entities
         private object sync;
         private string secret;
 
-        
+
+        public override bool Equals(object obj)
+        {
+            Node other = obj as Node;
+            if (null != other)
+            {
+                return other.ID == ID;
+            }
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            if (null == ID)
+                return 0;
+            return ID.GetHashCode();
+        }
+
         public Node()
         {
             sync = new object();
