@@ -39,5 +39,17 @@ namespace FAP.Network.Entities
         /// Secret auth key for client->server and server->server security.
         /// </summary>
         public string AuthKey { set; get; }
+
+        public NetworkRequest Clone()
+        {
+            NetworkRequest r = new NetworkRequest();
+            r.Verb = Verb;
+            r.Data = Data;
+            r.Param = Param;
+            r.SourceID = SourceID;
+            r.OverlordID = OverlordID;
+            r.AuthKey = AuthKey;
+            return r;
+        }
     }
 }

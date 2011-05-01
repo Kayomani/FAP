@@ -181,29 +181,7 @@ namespace Fap.Foundation
             return result;
         }
 
-        public bool Remove(IList items)
-        {
-            sync.AcquireWriterLock(Timeout.Infinite);
-
-            foreach (var item in items)
-            {
-                if (item is T)
-                {
-                    if (collection.Contains((T)item))
-                    {
-                        if (null != OnCollectionChanged)
-                            OnCollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, collection.IndexOf((T)item)));
-                        collection.Remove((T)item);
-                    }
-                }
-            }
-
-            sync.ReleaseWriterLock();
-            if (null != CollectionChanged)
-                CollectionChanged(this, new
-                    NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-            return true;
-        }
+      
 
         public IEnumerator<T> GetEnumerator()
         {

@@ -61,8 +61,10 @@ namespace FAP.Domain.Net
                     }
                     else
                     {
-                        search.ID = node.ID;
+                        search.OverlordID = node.OverlordID;
                         search.NetworkName = node.NetworkName;
+                        search.NetworkID = node.NetworkID;
+                        search.Priority = node.Priority;
                     }
                 }
             }

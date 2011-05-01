@@ -169,6 +169,9 @@ namespace FAP.Domain.Handlers
                     {
                         foreach (var param in node.Data)
                             search.SetData(param.Key, param.Value);
+                        //Has the client disconnected?
+                        if (!search.Online)
+                            model.Network.Nodes.Remove(node);
                     }
                 }
                 SendOk(e);

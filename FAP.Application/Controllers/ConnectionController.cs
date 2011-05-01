@@ -143,7 +143,7 @@ namespace FAP.Application.Controllers
                     //Build up a prioritised server list
                     List<DetectedNode> availibleNodes = new List<DetectedNode>();
 
-                    var detectedPeers = peerFinder.Peers.ToList();
+                    var detectedPeers = peerFinder.Peers.Where(n=>n.Address=="10.0.0.6:40").ToList();
 
                     //Prioritise a server we havent connected to already
                     foreach (var peer in detectedPeers)
@@ -249,14 +249,12 @@ namespace FAP.Application.Controllers
 
                 transmitted.Data.Clear();
                 foreach (var info in model.LocalNode.Data.ToList())
-                {
                     transmitted.SetData(info.Key, info.Value);
-                }
 
                 net.Overlord = new Node();
                 net.Overlord.Location = n.Address;
                 net.Overlord.Secret = verb.Secret;
-
+                LogManager.GetLogger("faplog").Info("Client using secret {0}", verb.Secret);
                 if (client.Execute(verb, n.Address))
                 {
                     net.State = ConnectionState.Connected;

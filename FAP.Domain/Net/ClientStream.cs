@@ -31,21 +31,21 @@ namespace FAP.Domain.Net
     public class ClientStream
     {
         private BackgroundSafeObservable<NetworkRequest> pendingRequests = new BackgroundSafeObservable<NetworkRequest>();
-        private Node node;
-        private Node server;
+        private Node destination;
+        private Node serverNode;
 
         private AutoResetEvent workerEvent = new AutoResetEvent(true);
         private bool run = true;
 
         public Node Node
         {
-            get { return node; }
+            get { return destination; }
         }
 
-        public void Start(Node destination, Node serverNode)
+        public void Start(Node _destination, Node _serverNode)
         {
-            node = destination;
-            server = serverNode;
+            destination = _destination;
+            serverNode = _serverNode;
             destination.LastUpdate = Environment.TickCount;
             ThreadPool.QueueUserWorkItem(new WaitCallback(Process));
         }
@@ -70,7 +70,7 @@ namespace FAP.Domain.Net
         {
             if (run)
             {
-                pendingRequests.Add(r);
+                pendingRequests.Add(r.Clone());
                 workerEvent.Set();
             }
         }
@@ -86,7 +86,7 @@ namespace FAP.Domain.Net
                 while (run)
                 {
                     //If the client has timed out then disconect
-                    if (pendingRequests.Count == 0 && Environment.TickCount - node.LastUpdate > Model.UPLINK_TIMEOUT)
+                    if (pendingRequests.Count == 0 && Environment.TickCount - destination.LastUpdate > Model.UPLINK_TIMEOUT)
                     {
                         if (null != OnDisconnect)
                             OnDisconnect(this);
@@ -95,14 +95,14 @@ namespace FAP.Domain.Net
                         return;
                     }
                     //If the client is going to timeout in the next 15 seconds then do an update
-                    if (pendingRequests.Count == 0 && Environment.TickCount - node.LastUpdate > Model.UPLINK_TIMEOUT - 15000)
+                    if (pendingRequests.Count == 0 && Environment.TickCount - destination.LastUpdate > Model.UPLINK_TIMEOUT - 15000)
                         pendingRequests.Add(new NetworkRequest() { Data = string.Empty, Param = string.Empty, Verb = "NOOP" });
 
                     while (pendingRequests.Count > 0)
                     {
                         NetworkRequest req = pendingRequests[0];
-                        pendingRequests.RemoveAt(0);
                         TransmitRequest(req);
+                        pendingRequests.RemoveAt(0);
                     }
                     workerEvent.WaitOne(5000);
                 }
@@ -117,16 +117,16 @@ namespace FAP.Domain.Net
             workerEvent = null;
             w.Close();
             pendingRequests.Clear();
-            node = null;
+            destination = null;
         }
 
         private void TransmitRequest(NetworkRequest req)
         {
-            Client client = new Client(server);
-
-            if (!client.Execute(req, node))
+            Client client = new Client(serverNode);
+            req.AuthKey = destination.Secret;
+            if (!client.Execute(req, destination))
                 throw new Exception("Transmission failiure");
-            node.LastUpdate = Environment.TickCount;
+            destination.LastUpdate = Environment.TickCount;
         }
     }
 }

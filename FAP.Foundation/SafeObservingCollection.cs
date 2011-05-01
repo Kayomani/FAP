@@ -254,12 +254,7 @@ namespace Fap.Foundation
             return result;
         }
 
-        public bool Remove(IList items)
-        {
-            var result = viewedCollection.Remove(items);
-            DoSync();
-            return result;
-        }
+        
 
         public IEnumerator<T> GetEnumerator()
         {

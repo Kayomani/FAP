@@ -35,6 +35,7 @@ using Fap.Foundation.Services;
 using System.Threading;
 using System.Net;
 using FAP.Application.Controllers;
+using NLog;
 
 namespace FAP.Application
 {
@@ -130,11 +131,13 @@ namespace FAP.Application
             //User chose to quit rather than select an interface =s
             if (string.IsNullOrEmpty(model.IPAddress))
                 return false;
+            if (string.IsNullOrEmpty(model.LocalNode.ID))
+                model.LocalNode.ID = IDService.CreateID();
 
+            LogManager.GetLogger("faplog").Info("Client started with ID: {0}", model.LocalNode.ID);
 
             model.DownloadQueue.Load();
 
-            model.LocalNode.ID=  IDService.CreateID();
             shareInfo = container.Resolve<ShareInfoService>();
             shareInfo.Load();
 
@@ -189,7 +192,8 @@ namespace FAP.Application
                 mainWindowModel.Search = new DelegateCommand(Search);
 
                 SafeFilteredObservingCollection<Node> f = new SafeFilteredObservingCollection<Node>(new SafeObservingCollection<Node>(model.Network.Nodes));
-                f.Filter = s => s.NodeType != ClientType.Overlord;
+                //f.Filter = s => s.NodeType != ClientType.Overlord;
+                f.Filter = s => true;
                 mainWindowModel.Peers = f;
                 mainWindowModel.ChatMessages = new SafeObservingCollection<string>(model.Messages);
                 mainWindowModel.Show();

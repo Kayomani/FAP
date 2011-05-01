@@ -100,12 +100,12 @@ namespace FAP.Domain.Net
                     }
 
                     //Check for client time out
-                    if ((Environment.TickCount - destination.LastUpdate) > Model.UPLINK_TIMEOUT)
+                   /* if ((Environment.TickCount - destination.LastUpdate) > Model.UPLINK_TIMEOUT)
                     {
                         //Timed out
                         running = false;
                         return;
-                    }
+                    }*/
 
 
                     //Wait until there is work to do or 5 seconds have elapsed

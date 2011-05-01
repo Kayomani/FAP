@@ -26,7 +26,7 @@ namespace FAP.Domain.Verbs
     {
         public static readonly string Preamble = "FAPHELLO";
 
-        public string CreateRequest(string address, string name, string id, int priority)
+        public string CreateRequest(string address, string name, string overlordid, string networkid, int priority)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(Preamble);
@@ -35,7 +35,9 @@ namespace FAP.Domain.Verbs
             sb.Append("\n");
             sb.Append(Convert.ToBase64String(Encoding.Unicode.GetBytes(name)));
             sb.Append("\n");
-            sb.Append(Convert.ToBase64String(Encoding.Unicode.GetBytes(id)));
+            sb.Append(Convert.ToBase64String(Encoding.Unicode.GetBytes(overlordid)));
+            sb.Append("\n");
+            sb.Append(Convert.ToBase64String(Encoding.Unicode.GetBytes(networkid)));
             sb.Append("\n");
             sb.Append(priority);
             return sb.ToString();
@@ -46,8 +48,15 @@ namespace FAP.Domain.Verbs
             try
             {
                 string[] split = input.Split('\n');
-                if (split.Length == 5)
-                    return new DetectedNode() { Address = DecodeString(split[1]), NetworkName = DecodeString(split[2]), ID = DecodeString(split[3]), Priority = int.Parse(split[4]) };
+                if (split.Length == 6)
+                    return new DetectedNode() 
+                    { 
+                        Address = DecodeString(split[1]), 
+                        NetworkName = DecodeString(split[2]), 
+                        OverlordID = DecodeString(split[3]), 
+                        NetworkID = DecodeString(split[4]), 
+                        Priority = int.Parse(split[5]) 
+                    };
             }
             catch { }
             return null;
