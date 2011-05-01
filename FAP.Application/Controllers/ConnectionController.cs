@@ -260,6 +260,7 @@ namespace FAP.Application.Controllers
                 if (client.Execute(verb, n.Address))
                 {
                     net.State = ConnectionState.Connected;
+                    net.Overlord.ID = verb.OverlordID;
                     LogManager.GetLogger("faplog").Info("Client connected");
                     return true;
                 }

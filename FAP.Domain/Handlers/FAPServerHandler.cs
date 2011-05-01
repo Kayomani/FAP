@@ -34,6 +34,7 @@ using FAP.Domain.Net;
 using Fap.Foundation.Services;
 using System.Net.Sockets;
 using System.Threading;
+using HttpServer.Headers;
 
 namespace FAP.Domain.Handlers
 {
@@ -86,6 +87,7 @@ namespace FAP.Domain.Handlers
             network.NetworkName = networkName;
             HelloVerb verb = new HelloVerb();
             multicastServer.Start(verb.CreateRequest(serverNode.Location, network.NetworkName, network.NetworkID, serverNode.Strength));
+            ThreadPool.QueueUserWorkItem(new WaitCallback(ProcessLanConnections));
         }
 
 
@@ -97,8 +99,11 @@ namespace FAP.Domain.Handlers
 
                 foreach (var peer in localNodes)
                 {
+                    if (peer.Address == serverNode.Location)
+                        continue;
+
                     //If not already connected to that peer then connect
-                    if (activeOverlords.Where(o => o.Destination.Location != peer.Address).Count() == 0)
+                    if (activeOverlords.Where(o => o.Destination.Location == peer.Address).Count() == 0)
                     {
                         LogManager.GetLogger("faplog").Info("Server connecting as client to external overlord at {0}", peer.Address);
                         ConnectVerb verb = new ConnectVerb();
@@ -118,6 +123,7 @@ namespace FAP.Domain.Handlers
                         else
                         {
                             //Failed to connect ot the external overlord
+                            LogManager.GetLogger("faplog").Info("Server failed to connect to external overlord at {0}", peer.Address);
                             peerFinder.RemovePeer(peer);
                         }
                     }
@@ -148,7 +154,7 @@ namespace FAP.Domain.Handlers
 
         public void Stop()
         {
-            multicastServer.Stop();
+          
         }
 
         private void m_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -396,6 +402,11 @@ namespace FAP.Domain.Handlers
                 ConnectVerb iv = new ConnectVerb();
                 iv.ProcessRequest(r);
                 address = iv.Address;
+
+                //Dont allow connections to ourselves..
+                if (iv.Address == serverNode.Location)
+                    return false;
+
                 //Only allow one connect attempt at once
                 lock (sync)
                 {
@@ -425,6 +436,16 @@ namespace FAP.Domain.Handlers
                 //Find client servers
                 ThreadPool.QueueUserWorkItem(new WaitCallback(ScanClientAsync), n);
                 //return ok
+
+                //Add headers
+                HeaderCollection headers = e.Response.Headers as HeaderCollection;
+                if (null != headers)
+                {
+                    headers.Add("FAP-AUTH", iv.Secret);
+                    headers.Add("FAP-SOURCE", serverNode.ID);
+                    headers.Add("FAP-OVERLORD", serverNode.ID);
+                }
+
                 SendResponse(e, null);
 
                 //Send network info
@@ -432,6 +453,7 @@ namespace FAP.Domain.Handlers
                 {
                     //Only send local nodes
                     UpdateVerb update = new UpdateVerb();
+                    
                     update.Nodes.Add(serverNode as Node);
                     c.Start(n, serverNode);
                     foreach (var peer in connectedNodes.ToList())
@@ -463,7 +485,11 @@ namespace FAP.Domain.Handlers
                             update.Nodes.Add(peer.Destination);
                     }
 
-                    c.AddMessage(update.CreateRequest());
+                    var req = update.CreateRequest();
+                    req.SourceID = serverNode.ID;
+                    req.OverlordID = serverNode.ID;
+                    req.AuthKey = iv.Secret;
+                    c.AddMessage(req);
                 }
                 return true;
             }
@@ -612,9 +638,9 @@ namespace FAP.Domain.Handlers
 
 
             Node r = new Node();
-            r.SetData("HTTP", webTitle);
-            r.SetData("FTP", ftp);
-            r.SetData("Shares", samba);
+            r.SetData("HTTP", webTitle.Replace("\n","").Replace("\r",""));
+            r.SetData("FTP", ftp.Replace("\n", "").Replace("\r", ""));
+            r.SetData("Shares", samba.Replace("\n", "").Replace("\r", ""));
             r.ID = n.ID;
             r.OverlordID = serverNode.ID;
 

@@ -151,25 +151,30 @@ namespace FAP.Domain.Handlers
 
         private bool HandleUpdate(RequestEventArgs e, NetworkRequest req)
         {
-            UpdateVerb verb = new UpdateVerb();
-            verb.ProcessRequest(req);
-            foreach (var node in verb.Nodes)
+            if (req.AuthKey == model.Network.Overlord.Secret)
             {
-                var search = model.Network.Nodes.Where(i => i.ID == node.ID).FirstOrDefault();
-                if (search == null)
+
+                UpdateVerb verb = new UpdateVerb();
+                verb.ProcessRequest(req);
+                foreach (var node in verb.Nodes)
                 {
-                    //Dont allow partial updates to create clients.  Only full updates should contain the online flag.
-                    if (node.ContainsKey("Online") && node.ContainsKey("Nickname") && node.ContainsKey("ID"))
-                        model.Network.Nodes.Add(node);
+                    var search = model.Network.Nodes.Where(i => i.ID == node.ID).FirstOrDefault();
+                    if (search == null)
+                    {
+                        //Dont allow partial updates to create clients.  Only full updates should contain the online flag.
+                        if (node.ContainsKey("Online") && node.ContainsKey("Nickname") && node.ContainsKey("ID"))
+                            model.Network.Nodes.Add(node);
+                    }
+                    else
+                    {
+                        foreach (var param in node.Data)
+                            search.SetData(param.Key, param.Value);
+                    }
                 }
-                else
-                {
-                    foreach (var param in node.Data)
-                        search.SetData(param.Key, param.Value);
-                }
+                SendOk(e);
+                return true;
             }
-            SendOk(e);
-            return true;
+            return false;
         }
 
         private bool HandleInfo(RequestEventArgs e)

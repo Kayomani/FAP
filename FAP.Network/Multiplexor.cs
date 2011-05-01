@@ -21,6 +21,8 @@ using System.Text;
 using FAP.Network.Entities;
 using HttpServer;
 using System.IO;
+using System.Net;
+using HttpServer.Headers;
 
 namespace FAP.Network
 {
@@ -63,6 +65,30 @@ namespace FAP.Network
             if (r.Method == "POST")
             {
                 req.Data = GetPostString(r);
+            }
+
+            HeaderCollection headers = r.Headers as HeaderCollection;
+            if(null!=headers)
+            {
+                foreach (var  h in headers)
+                {
+                    StringHeader header = h as StringHeader;
+                    if (null != header)
+                    {
+                        switch (header.Name.ToUpper())
+                        {
+                            case "FAP-AUTH":
+                                req.AuthKey = header.Value;
+                                break;
+                            case "FAP-SOURCE":
+                                req.SourceID = header.Value;
+                                break;
+                            case "FAP-OVERLORD":
+                                req.OverlordID = header.Value;
+                                break;
+                        }
+                    }
+                }
             }
             return req;
         }

@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using FAP.Domain.Entities;
 using FAP.Network.Entities;
+using Newtonsoft.Json;
 
 namespace FAP.Domain.Verbs
 {
@@ -38,6 +39,9 @@ namespace FAP.Domain.Verbs
             ConnectVerb verb = Deserialise<ConnectVerb>(r.Data);
             Address = verb.Address;
             ClientType = verb.ClientType;
+            Secret = verb.Secret;
+            ClientType = verb.ClientType;
+            OverlordID = r.OverlordID;
             r.Data = string.Empty;
             return r;
         }
@@ -50,5 +54,7 @@ namespace FAP.Domain.Verbs
         public string Address { set; get; }
         public string Secret { set; get; }
         public ClientType ClientType { set; get; }
+        [JsonIgnore]
+        public string OverlordID { set; get; }
     }
 }
