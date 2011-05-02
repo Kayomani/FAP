@@ -148,7 +148,6 @@
     <Compile Include="Networking\AsyncSocket.cs" />
     <Compile Include="Networking\AsyncSocketSession.cs" />
     <Compile Include="Networking\NetworkBufferManager.cs" />
-    <Compile Include="NetworkSpeedMeasurement.cs" />
     <Compile Include="ObservableCollectionEx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegexEx.cs" />

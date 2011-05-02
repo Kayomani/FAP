@@ -32,7 +32,8 @@ namespace FAP.Domain.Entities
     {
         public static readonly string AppVersion = "FAP Alpha 5";
         public static readonly string ProtocolVersion = "FAP/1.0";
-        public static int UPLINK_TIMEOUT = 60000;
+        public static int UPLINK_TIMEOUT = 60000;//1 minute
+        public static int DOWNLOAD_RETRY_TIME = 120000;//2minutes
 
         private readonly string oldSaveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
         private readonly string saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\ClientConfig.cfg";
@@ -86,6 +87,11 @@ namespace FAP.Domain.Entities
             downloadQueue = new DownloadQueue();
         }
 
+        /// <summary>
+        /// A flag to postpone shutdown set by operations which should not be interruped such as saving the download list.
+        /// </summary>
+        [JsonIgnore]
+        public bool BlockShutdown { set; get; }
 
         [JsonIgnore]
         public SafeObservedCollection<string> Messages
@@ -286,63 +292,66 @@ namespace FAP.Domain.Entities
 
         public void Save()
         {
-            if (!Directory.Exists(Path.GetDirectoryName(saveLocation)))
-                Directory.CreateDirectory(Path.GetDirectoryName(saveLocation));
-            File.WriteAllText(saveLocation, JsonConvert.SerializeObject(this, Formatting.Indented));
+            lock (downloadQueue)
+            {
+                if (!Directory.Exists(Path.GetDirectoryName(saveLocation)))
+                    Directory.CreateDirectory(Path.GetDirectoryName(saveLocation));
+                File.WriteAllText(saveLocation, JsonConvert.SerializeObject(this, Formatting.Indented));
+            }
         }
 
         public void Load()
         {
-            try
+            lock (downloadQueue)
             {
-                Model saved = null;
-                bool doneConvert = false;
-
-                //If the config file does not exist then check for the legacy format.
-                if (!File.Exists(saveLocation))
+                try
                 {
-                    if (File.Exists(oldSaveLocation))
+                    Model saved = null;
+                    bool doneConvert = false;
+
+                    //If the config file does not exist then check for the legacy format.
+                    if (!File.Exists(saveLocation))
                     {
-                        XmlSerializer deserializer = new XmlSerializer(typeof(Model));
-                        using (TextReader textReader = new StreamReader(oldSaveLocation))
+                        if (File.Exists(oldSaveLocation))
                         {
-                            saved = (Model)deserializer.Deserialize(textReader);
-                            doneConvert = true;
+                            XmlSerializer deserializer = new XmlSerializer(typeof(Model));
+                            using (TextReader textReader = new StreamReader(oldSaveLocation))
+                            {
+                                saved = (Model)deserializer.Deserialize(textReader);
+                                doneConvert = true;
+                            }
                         }
                     }
+                    else
+                    {
+                        saved = JsonConvert.DeserializeObject<Model>(File.ReadAllText(saveLocation));
+                    }
+
+                    Shares.Clear();
+                    Shares.AddRange(saved.Shares.OrderBy(s => s.Name).ToList());
+                    Avatar = saved.Avatar;
+                    Description = saved.Description;
+                    Nickname = saved.Nickname;
+                    DownloadFolder = saved.DownloadFolder;
+                    MaxDownloads = saved.MaxDownloads;
+                    MaxDownloadsPerUser = saved.MaxDownloadsPerUser;
+                    MaxUploads = saved.MaxUploads;
+                    MaxUploadsPerUser = saved.MaxUploadsPerUser;
+                    DisableComparision = saved.DisableComparision;
+                    IPAddress = saved.IPAddress;
+                    AlwaysNoCacheBrowsing = saved.AlwaysNoCacheBrowsing;
+
+                    //Converted config so delete the old one
+                    if (doneConvert)
+                    {
+                        Save();
+                        // File.Delete(oldSaveLocation);
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    saved = JsonConvert.DeserializeObject<Model>(File.ReadAllText(saveLocation));
+                    LogManager.GetLogger("faplog").WarnException("Failed to read config", e);
                 }
-
-                Shares.Clear();
-                Shares.AddRange(saved.Shares.OrderBy(s => s.Name).ToList());
-                Avatar = saved.Avatar;
-                Description = saved.Description;
-                Nickname = saved.Nickname;
-                DownloadFolder = saved.DownloadFolder;
-                MaxDownloads = saved.MaxDownloads;
-                MaxDownloadsPerUser = saved.MaxDownloadsPerUser;
-                MaxUploads = saved.MaxUploads;
-                MaxUploadsPerUser = saved.MaxUploadsPerUser;
-                //   MaxOverlordPeers = m.MaxOverlordPeers;
-                //  LocalNodeID = m.LocalNodeID;
-                DisableComparision = saved.DisableComparision;
-                IPAddress = saved.IPAddress;
-                AlwaysNoCacheBrowsing = saved.AlwaysNoCacheBrowsing;
-
-                //Converted config so delete the old one
-                if (doneConvert)
-                {
-                    Save();
-                   // File.Delete(oldSaveLocation);
-                }
-
-            }
-            catch (Exception e)
-            {
-                LogManager.GetLogger("faplog").WarnException("Failed to read config", e);
             }
         }
     }

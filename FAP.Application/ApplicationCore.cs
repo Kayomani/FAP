@@ -52,6 +52,7 @@ namespace FAP.Application
         private SearchController searchController;
         private ConversationController conversationController;
         private InterfaceController interfaceController;
+        private WatchdogController watchdogController;
 
         private ListenerService client;
         private ShareInfoService shareInfo;
@@ -99,6 +100,9 @@ namespace FAP.Application
                      popupController.Close();
                      mainWindowModel.Close();
                      trayIcon.Dispose();
+
+                     while (model.BlockShutdown)
+                         Thread.Sleep(10);
                      System.Windows.Application.Current.Shutdown(0);
                  }
              }
@@ -145,6 +149,8 @@ namespace FAP.Application
             shareController.Initalise();
             popupController = container.Resolve<PopupWindowController>();
             conversationController = (ConversationController)container.Resolve<IConversationController>();
+            watchdogController = container.Resolve<WatchdogController>();
+            watchdogController.Start();
             return true;
         }
         

@@ -31,6 +31,7 @@ namespace FAP.Application
             builder.RegisterType<ConversationController>().As<IConversationController>().SingleInstance();
             builder.RegisterType<PopupWindowController>().As<PopupWindowController>().SingleInstance();
             builder.RegisterType<ConnectionController>().SingleInstance();
+            builder.RegisterType<WatchdogController>().SingleInstance();
         }
     }
 }

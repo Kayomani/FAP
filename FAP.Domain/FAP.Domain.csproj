@@ -150,9 +150,11 @@
     <Compile Include="Net\DetectedNode.cs" />
     <Compile Include="Net\LanPeer.cs" />
     <Compile Include="Net\LANPeerFinderService.cs" />
+    <Compile Include="Net\NetworkSpeedMeasurement.cs" />
     <Compile Include="Net\Uplink.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\BonjourAnnouncerService.cs" />
+    <Compile Include="Services\DownloadWorkerService.cs" />
     <Compile Include="Services\Listener.cs" />
     <Compile Include="Services\ShareInfoService.cs" />
     <Compile Include="Verbs\BaseVerb.cs" />

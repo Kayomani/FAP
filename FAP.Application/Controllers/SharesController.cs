@@ -158,6 +158,7 @@ namespace FAP.Application.Controllers
         {
             foreach (var share in model.Shares.ToList().Where(s => (DateTime.Now - s.LastRefresh).TotalMinutes > 30).ToList())
                 AsyncRefresh(share);
+            model.Save();
             RefreshClientStats();
         }
 
