@@ -23,6 +23,7 @@ using System.Threading;
 using FAP.Domain.Net;
 using FAP.Domain.Services;
 using FAP.Domain;
+using NLog;
 
 namespace FAP.Application.Controllers
 {
@@ -33,13 +34,17 @@ namespace FAP.Application.Controllers
         private Model model;
         private SharesController shareController;
         private List<DownloadWorkerService> workers = new List<DownloadWorkerService>();
+        private BufferService bufferService;
         //Sync object for scanfordownloads - only single invocations allowed.
         private object sync = new object();
+        private Logger logger;
 
-        public WatchdogController(Model m, SharesController s)
+        public WatchdogController(Model m, SharesController s,BufferService b)
         {
             model = m;
             shareController = s;
+            bufferService = b;
+            logger = LogManager.GetLogger("faplog");
         }
 
         public void Start()
@@ -164,8 +169,9 @@ namespace FAP.Application.Controllers
                                     {
                                         logger.Info("Added download to new downloader");
                                         //Add a new worker
-                                        var worker = new DownloadWorkerService(model, connectionService, client, item, bufferService, item);
-                                        worker.OnDownloaderFinished += new DownloadWorkerService.DownloaderFinished(worker_OnDownloaderFinished);
+                                        var worker = new DownloadWorkerService(client,model,bufferService);
+                                        worker.AddDownload(item);
+                                        //worker.OnDownloaderFinished += new DownloadWorkerService.DownloaderFinished(worker_OnDownloaderFinished);
                                         workers.Add(worker);
                                         model.TransferSessions.Add(new TransferSession(worker) { Status = "Connecting..", User = client.Nickname, Size = item.Size, IsDownload = true });
                                         workerlist.Add(worker);
@@ -175,7 +181,7 @@ namespace FAP.Application.Controllers
                                     else
                                     {
                                         //Is the worker busy? if no give it the request
-                                        if (!workerlist[i].IsBusy)
+                                        //if (!workerlist[i].IsBusy)
                                         {
                                             logger.Info("Added download to existing downloader");
                                             workerlist[i].AddDownload(item);
@@ -197,8 +203,8 @@ namespace FAP.Application.Controllers
                     foreach (var worker in workers.Where(w => w.IsComplete).ToList())
                     {
                         workers.Remove(worker);
-                        worker.OnDownloaderFinished -= new DownloadWorkerService.DownloaderFinished(worker_OnDownloaderFinished);
-                        worker.Stop();
+                        //worker.OnDownloaderFinished -= new DownloadWorkerService.DownloaderFinished(worker_OnDownloaderFinished);
+                        //worker.Stop();
                     }
                 }
             }

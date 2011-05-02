@@ -63,7 +63,7 @@ namespace FAP.Domain.Verbs
                 try
                 {
                     string path = string.Empty;
-                    if (ReplacePath(verb.Path, out path))
+                    if (infoService.ToLocalPath(verb.Path, out path))
                     {
                         var scanInfo = infoService.GetPath(verb.Path); ;
 
@@ -144,21 +144,6 @@ namespace FAP.Domain.Verbs
             return r;
         }
 
-        private bool ReplacePath(string input, out string output)
-        {
-            string[] split = input.Split('/');
-            if (split.Length > 0)
-            {
-                var share = model.Shares.Where(s => s.Name == split[0]).FirstOrDefault();
-                if (null != share)
-                {
-                    output = share.Path + "/" + input.Substring(share.Name.Length, input.Length - share.Name.Length);
-                    return true;
-                }
-            }
-            output = string.Empty;
-            return false;
-        }
 
         public bool ReceiveResponse(NetworkRequest r)
         {

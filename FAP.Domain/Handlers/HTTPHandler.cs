@@ -25,157 +25,276 @@ using System.Net;
 using HttpServer.Messages;
 using HttpServer.Headers;
 using System.IO;
+using System.Reflection;
+using System.Windows;
+using System.Windows.Resources;
+using System.Web;
+using Fap.Foundation;
+using NLog;
 
 namespace FAP.Domain.Handlers
 {
     public class HTTPHandler
     {
+        private readonly string WEB_PREFIX = "/Fap.app.web/";
+        private readonly string WEB_ICON_PREFIX = "/Fap.app.web/icon/";
+
         private ShareInfoService infoService;
         private Model model;
+        private BufferService bufferService;
 
-        private bool isServer = false;
 
         private Dictionary<string, ContentTypeHeader> contentTypes =
            new Dictionary<string, ContentTypeHeader>();
 
-        public HTTPHandler(ShareInfoService i, Model m, bool s)
+        //Icon cache
+        private Dictionary<string, byte[]> iconCache = new Dictionary<string, byte[]>();
+        private object sync = new object();
+
+        public HTTPHandler(ShareInfoService i, Model m, BufferService b)
         {
             infoService = i;
             model = m;
-            isServer = s;
+            bufferService = b;
             AddDefaultMimeTypes();
         }
 
         public bool Handle(string req, RequestEventArgs e)
         {
-            if (isServer)
-            {
-                return HandleServer(req, e);
-            }
-            else
-            {
-                return HandleClient(req, e);
-            }
-        }
-
-        private bool HandleServer(string req, RequestEventArgs e)
-        {
             e.Response.Status = HttpStatusCode.OK;
-            StringBuilder sb = new StringBuilder();
-            sb.Append("<html><head><title>FAP Overlord");
-            sb.Append("</title></head><body>");
+            string path = HttpUtility.UrlDecode(e.Request.Uri.AbsolutePath);
+            byte[] data = null;
 
-            sb.Append("<body></html>");
-
-            byte[] buffer = Encoding.UTF8.GetBytes(sb.ToString());
-
-            ResponseWriter generator = new ResponseWriter();
-            e.Response.ContentLength.Value = buffer.Length;
-            e.Response.ContentType = new ContentTypeHeader("text/html");
-            generator.SendHeaders(e.Context, e.Response);
-
-            e.Context.Stream.Write(buffer, 0, buffer.Length);
-            e.Context.Stream.Flush();
-            return true;
-        }
-
-
-        private bool HandleClient(string req, RequestEventArgs e)
-        {
-            e.Response.Status = HttpStatusCode.OK;
-
-            StringBuilder sb = new StringBuilder();
-
-
-            sb.Append("<html><head><title>");
-            sb.Append(Model.AppVersion);
-            sb.Append(" :: ");
-            sb.Append("Share browser");
-            sb.Append("</title></head><body>");
-
-
-            string path = e.Request.Uri.LocalPath;
-            //   System.Web.HttpUtility.UrlEncode(
-
-            if (path == null)
-                path = string.Empty;
-            if (!path.StartsWith("/"))
-                path = "/" + path;
-
-            if (path == "/")
+            if (path.StartsWith(WEB_ICON_PREFIX))
             {
-                //No path passed - send shares
-                sb.Append("<h2>Shares</h2><table>");
-                foreach (var share in model.Shares.ToList().OrderBy(s => s.Name))
+                //what icon been requested?
+                string ext = path.Substring(path.LastIndexOf("/")+1);
+                
+                lock (sync)
                 {
-                    sb.Append("<tr><td>");
-                    sb.Append("<a href=\"" + share.Name + "\">" + share.Name + "</a>");
-                    sb.Append("</td></tr>");
+                    //Has the icon been requested already? if so just return that
+                    if (iconCache.ContainsKey(ext))
+                    {
+                        data = iconCache[ext];
+                        e.Response.ContentType = contentTypes["png"];
+                    }
+                    else
+                    {
+                        //item wasnt cached
+                        if (ext == "folder")
+                        {
+                            data = GetResource("Images\\folder.png");
+                            iconCache.Add("folder", data);
+                            e.Response.ContentType = contentTypes["png"];
+                        }
+                        else
+                        {
+
+
+                            var icon = IconReader.GetFileIcon("file." + ext, IconReader.IconSize.Small, false);
+                            using (MemoryStream mem = new MemoryStream())
+                            {
+                                using (var bmp = icon.ToBitmap())
+                                {
+                                    bmp.MakeTransparent();
+                                    bmp.Save(mem, System.Drawing.Imaging.ImageFormat.Png);
+                                    data = mem.ToArray();
+                                    iconCache.Add(ext, data);
+                                    e.Response.ContentType = contentTypes["png"];
+                                }
+                            }
+                        }
+
+                    }
                 }
-                sb.Append("</table>");
+            }
+            else if (path.StartsWith(WEB_PREFIX))
+            {
+                //Has a static file been requested?
+
+                data = GetResource(path.Substring(WEB_PREFIX.Length));
+
+                string ext = Path.GetExtension(path);
+                if (ext != null && ext.StartsWith("."))
+                    ext = ext.Substring(1);
+
+                ContentTypeHeader header;
+                if (!contentTypes.TryGetValue(ext, out header))
+                    header = contentTypes["default"];
+                e.Response.ContentType = header;
             }
             else
             {
-                var info = infoService.GetPath(path);
-                if (null != info)
+                //A folder or file was requested
+                string page = Encoding.UTF8.GetString(GetResource("template.html"));
+                Dictionary<string, object> pagedata = new Dictionary<string, object>();
+
+                pagedata.Add("model", model);
+                pagedata.Add("appver", Model.AppVersion);
+                pagedata.Add("freelimit", Utility.FormatBytes(Model.WEB_FREE_FILE_LIMIT));
+
+                pagedata.Add("util", new Utility());
+
+                if(!path.EndsWith("/"))
+                    pagedata.Add("path", path + "/");
+                else
+                    pagedata.Add("path", path);
+
+                //Add path info
+                List<DisplayInfo> paths = new List<DisplayInfo>();
+
+                string[] split = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 0; i < split.Length; i++)
                 {
-                    sb.Append("<h2>Shares</h2><table>");
-                    sb.Append("<tr><td><a href=\"" + getParentDir(path) + "\">..</a></td></tr>");
-                    foreach (var share in info.SubDirectories.OrderBy(s => s.Name))
+                    StringBuilder sb = new StringBuilder("/");
+                    for (int y = 0; y <= i; y++)
                     {
-                        sb.Append("<tr><td>");
-                        sb.Append("<a href=\"" + path + "/" + share.Name + "\">" + share.Name + "</a>");
-                        sb.Append("</td></tr>");
+                        sb.Append(split[y]);
+                        sb.Append("/");
                     }
 
-                    foreach (var share in info.Files.OrderBy(s => s.Name))
+                    DisplayInfo di = new DisplayInfo();
+                    di.SetData("Name", split[i]);
+                    di.SetData("Path", sb.ToString());
+                    paths.Add(di);
+                }
+
+                pagedata.Add("pathSplit", paths);
+
+               /* List<DisplayInfo> peers = new List<DisplayInfo>();
+
+                foreach (var peer in model.Network.Nodes.ToList().Where(n => n.NodeType != ClientType.Overlord && !string.IsNullOrEmpty(n.Nickname)))
+                {
+                    if (!string.IsNullOrEmpty(peer.Location))
                     {
-                        sb.Append("<tr><td>");
-                        sb.Append("<a href=\"" + path + "/" + share.Name + "\">" + share.Name + "</a>");
-                        sb.Append("</td></tr>");
+                        DisplayInfo p = new DisplayInfo();
+                        p.SetData("Name", string.IsNullOrEmpty(peer.Nickname) ? "Unknown" : peer.Nickname);
+                        p.SetData("Location", peer.Location);
+                        peers.Add(p);
                     }
-                    sb.Append("</table>");
+                }
+
+                pagedata.Add("peers", peers);*/
+
+                List<DisplayInfo> files = new List<DisplayInfo>();
+                long totalSize = 0;
+
+                if (string.IsNullOrEmpty(path) || path == "/")
+                {
+                    //At the root - Send a list of shares
+
+                    FAP.Domain.Entities.FileSystem.Directory root = new FAP.Domain.Entities.FileSystem.Directory();
+
+                    foreach (var share in model.Shares.ToList())
+                    {
+                        DisplayInfo d = new DisplayInfo();
+                        d.SetData("Name", share.Name);
+                        d.SetData("Path", HttpUtility.UrlEncode(share.Name));
+                        d.SetData("Icon", "folder");
+                        d.SetData("Size", share.Size);
+                        d.SetData("Sizetxt", Utility.FormatBytes(share.Size));
+                        d.SetData("LastModifiedtxt", share.LastRefresh.ToShortDateString());
+                        d.SetData("LastModified", share.LastRefresh.ToFileTime());
+                        files.Add(d);
+                        totalSize += share.Size;
+                    }
+
                 }
                 else
                 {
-                    string[] split = path.Split('/');
+                    string localPath = string.Empty;
 
-                    if (split.Length > 0)
+                    if (infoService.ToLocalPath(path,out localPath) && File.Exists(localPath))
                     {
-                        string name = split[1];
+                        //User has requested a file
+                        return SendFile(e, localPath);
+                    }
+                    else
+                    {
+                        var fileInfo = infoService.GetPath(path);
 
-                        var share = model.Shares.Where(s => s.Name == name).FirstOrDefault();
-                        if (null != share)
+                        foreach (var dir in fileInfo.SubDirectories)
                         {
-                            string fullpath = share.Path + path.Substring(1 + share.Name.Length);
-                            if (SendFile(e, fullpath))
-                                return true;
+                            DisplayInfo d = new DisplayInfo();
+                            d.SetData("Name", dir.Name);
+                            d.SetData("Path", HttpUtility.UrlEncode(dir.Name));
+                            d.SetData("Icon", "folder");
+                            d.SetData("Sizetxt", Utility.FormatBytes(dir.Size));
+                            d.SetData("Size", dir.Size);
+                            d.SetData("LastModifiedtxt", DateTime.FromFileTime(dir.LastModified).ToShortDateString());
+                            d.SetData("LastModified", dir.LastModified);
+                            files.Add(d);
+                            totalSize += dir.Size;
+                        }
+
+                        foreach (var file in fileInfo.Files)
+                        {
+                            DisplayInfo d = new DisplayInfo();
+                            d.SetData("Name", file.Name);
+                            string ext = Path.GetExtension(file.Name);
+                            if (ext != null && ext.StartsWith("."))
+                                ext = ext.Substring(1);
+                            d.SetData("Path", HttpUtility.UrlEncode(file.Name));
+                            d.SetData("Icon", ext);
+                            d.SetData("Size", file.Size);
+                            d.SetData("Sizetxt", Utility.FormatBytes(file.Size));
+                            d.SetData("LastModifiedtxt", DateTime.FromFileTime(file.LastModified).ToShortDateString());
+                            d.SetData("LastModified", file.LastModified);
+                            files.Add(d);
+                            totalSize += file.Size;
                         }
                     }
-                    sb.Append("<h2>404 Not found</h2>");
-                    e.Response.Status = HttpStatusCode.NotFound;
                 }
+
+                pagedata.Add("files", files);
+                pagedata.Add("totalSize", Utility.FormatBytes(totalSize));
+
+                //Generate the page
+                page = TemplateEngineService.Generate(page, pagedata);
+                data = Encoding.UTF8.GetBytes(page);
+                e.Response.ContentType = contentTypes["html"];
+
+                //Clear up
+                foreach (var item in pagedata.Values)
+                {
+                    if (item is DisplayInfo)
+                    {
+                        DisplayInfo i = item as DisplayInfo;
+                        i.Clear();
+                    }
+                }
+                pagedata.Clear();
             }
-            sb.Append("<body></html>");
-
-            byte[] buffer = Encoding.UTF8.GetBytes(sb.ToString());
-
-            ResponseWriter generator = new ResponseWriter();
-            e.Response.ContentLength.Value = buffer.Length;
-            e.Response.ContentType = new ContentTypeHeader("text/html");
-            generator.SendHeaders(e.Context, e.Response);
-
-            e.Context.Stream.Write(buffer, 0, buffer.Length);
-            e.Context.Stream.Flush();
+             
+            if (null == data)
+            {
+                e.Response.Status = HttpStatusCode.NotFound;
+                ResponseWriter generator = new ResponseWriter();
+                e.Response.ContentLength.Value = 0;
+                generator.SendHeaders(e.Context, e.Response);
+            }
+            else
+            {
+                ResponseWriter generator = new ResponseWriter();
+                e.Response.ContentLength.Value = data.Length;
+                generator.SendHeaders(e.Context, e.Response);
+                e.Context.Stream.Write(data, 0, data.Length);
+                e.Context.Stream.Flush();
+            }
+            data = null;
             return true;
         }
 
+        
 
         private bool SendFile(RequestEventArgs e, string path)
         {
             try
             {
                 string fileExtension = Path.GetExtension(path);
+                if (fileExtension != null && fileExtension.StartsWith("."))
+                    fileExtension = fileExtension.Substring(1);
+
 
                 ContentTypeHeader header;
                 if (!contentTypes.TryGetValue(fileExtension, out header))
@@ -228,11 +347,63 @@ namespace FAP.Domain.Handlers
         /// <param name="stream">File stream</param>
         private void SendFile(IHttpContext context, IResponse response, Stream stream)
         {
-            response.ContentLength.Value = stream.Length;
+            var rangeHeader = context.Request.Headers.Where(n => n.Name.ToLowerInvariant() == "range").FirstOrDefault();
+            
+
+            try
+            {
+                if (null != rangeHeader)
+                {
+                    //Partial request
+                    //Try to parse header - if we fail just send a 200 ok from zero
+                    long start = 0;
+                    long end = 0;
+
+                    if (rangeHeader.HeaderValue.StartsWith("bytes="))
+                    {
+                        string header = rangeHeader.HeaderValue.Substring(6).Trim();
+                        string starttxt = header.Substring(0, header.IndexOf("-"));
+                        string endtxt = header.Substring(header.IndexOf("-")+1,header.Length-(header.IndexOf("-")+1));
+
+                        if (!string.IsNullOrEmpty(starttxt))
+                            start = long.Parse(starttxt);
+                        if (!string.IsNullOrEmpty(endtxt))
+                            end = long.Parse(endtxt);
+                        //Only allow a partial request start.  May implement this at some point but its beyond the scope of this atm.
+                        if (start != 0 && end==0)
+                        {
+                            if (start > stream.Length)
+                                start = stream.Length;
+                            stream.Seek(start, SeekOrigin.Begin);
+                            response.Status = HttpStatusCode.PartialContent;
+                        }
+                    }
+                }
+            }
+            catch { }
+            response.ContentLength.Value = stream.Length-stream.Position;
 
             ResponseWriter generator = new ResponseWriter();
             generator.SendHeaders(context, response);
-            generator.SendBody(context, stream);
+            //Send data
+            var buffer = bufferService.GetArg();
+            try
+            {
+                int bytesRead = stream.Read(buffer.Data, 0, buffer.Data.Length);
+                while (bytesRead > 0)
+                {
+                    context.Stream.Write(buffer.Data, 0, bytesRead);
+                    bytesRead = stream.Read(buffer.Data, 0, buffer.Data.Length);
+                }
+            }
+            catch (Exception err)
+            {
+                LogManager.GetLogger("faplog").WarnException("Failed to send body through context stream.", err);
+            }
+            finally
+            {
+                bufferService.FreeArg(buffer);
+            }
         }
 
         private string getParentDir(string path)
@@ -251,6 +422,7 @@ namespace FAP.Domain.Handlers
         {
             contentTypes.Add("default", new ContentTypeHeader("application/octet-stream"));
             contentTypes.Add("txt", new ContentTypeHeader("text/plain"));
+            contentTypes.Add("nfo", new ContentTypeHeader("text/plain"));
             contentTypes.Add("html", new ContentTypeHeader("text/html"));
             contentTypes.Add("htm", new ContentTypeHeader("text/html"));
             contentTypes.Add("jpg", new ContentTypeHeader("image/jpg"));
@@ -281,6 +453,25 @@ namespace FAP.Domain.Handlers
             contentTypes.Add("rm", new ContentTypeHeader("audio/x-pn-realaudio"));
             contentTypes.Add("ram", new ContentTypeHeader("audio/x-pn-realaudio"));
             contentTypes.Add("aif", new ContentTypeHeader("audio/x-aiff"));
+        }
+
+        public byte[] GetResource(string name)
+        {
+           string path = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+
+            try
+            {
+                using (FileStream stream = File.Open(path + "\\Web.Resources\\" + name, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    byte[] buffer = new byte[stream.Length];
+                     stream.Read(buffer, 0, buffer.Length);
+                     return buffer;
+                }
+            }
+            catch
+            {
+            }
+            return null;
         }
     }
 }

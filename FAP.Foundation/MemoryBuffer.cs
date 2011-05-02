@@ -31,11 +31,13 @@ namespace Fap.Foundation
        public MemoryBuffer(byte[] d)
        {
            data = d;
+           dataSize = d.Length;
        }
 
        public MemoryBuffer(int size)
        {
            data = new byte[size];
+           dataSize = size;
        }
 
        public byte[] Data

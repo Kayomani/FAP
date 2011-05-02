@@ -45,7 +45,7 @@ namespace FAP.Domain.Services
         public ListenerService(IContainer c,bool _isServer)
         {
             container = c;
-            http = new HTTPHandler(c.Resolve<ShareInfoService>(), c.Resolve<Model>(), isServer); 
+            http = c.Resolve<HTTPHandler>(); 
             this.isServer = _isServer;
             model = container.Resolve<Model>();
         }

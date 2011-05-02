@@ -98,6 +98,12 @@
     <Reference Include="Autofac">
       <HintPath>..\libs\Autofac\Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="Castle.Components.Common.TemplateEngine">
+      <HintPath>F:\src\gfap\branches\rebuild\libs\Castle.Components.TemplateEngine\net35\Castle.Components.Common.TemplateEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Components.Common.TemplateEngine.NVelocityTemplateEngine">
+      <HintPath>F:\src\gfap\branches\rebuild\libs\Castle.Components.TemplateEngine\net35\Castle.Components.Common.TemplateEngine.NVelocityTemplateEngine.dll</HintPath>
+    </Reference>
     <Reference Include="Interop.Bonjour, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -110,8 +116,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\NLog\.NET Framework 3.5\NLog.dll</HintPath>
     </Reference>
+    <Reference Include="NVelocity">
+      <HintPath>F:\src\gfap\branches\rebuild\libs\NVelocity\net35\NVelocity.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel.Web" />
     <Reference Include="System.Web" />
@@ -154,9 +165,11 @@
     <Compile Include="Net\Uplink.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\BonjourAnnouncerService.cs" />
+    <Compile Include="Services\BufferService.cs" />
     <Compile Include="Services\DownloadWorkerService.cs" />
     <Compile Include="Services\Listener.cs" />
     <Compile Include="Services\ShareInfoService.cs" />
+    <Compile Include="Services\TemplateEngine.cs" />
     <Compile Include="Verbs\BaseVerb.cs" />
     <Compile Include="Verbs\BrowseVerb.cs" />
     <Compile Include="Verbs\ChatVerb.cs" />
@@ -170,7 +183,6 @@
     <Compile Include="Verbs\SearchVerb.cs" />
     <Compile Include="Verbs\UpdateVerb.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\FAP.Foundation\FAP.Foundation.csproj">
       <Project>{D8890820-A42F-4642-BCDB-B864C3A7B741}</Project>
@@ -184,6 +196,55 @@
       <Project>{363D4A84-957E-4CDA-ACB7-EEDE603FDD81}</Project>
       <Name>HttpServer</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Web.Resources\CSS\fap.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\Images\back_disabled.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\Images\back_enabled.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\Images\forward_disabled.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\Images\forward_enabled.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\Images\sort_asc.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\Images\sort_asc_disabled.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\Images\sort_both.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\Images\sort_desc.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\Images\sort_desc_disabled.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\JS\jquery-1.5.2.min.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\JS\jquery.dataTables.min.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\template.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Web.Resources\favicon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Web.Resources\Images\folder.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

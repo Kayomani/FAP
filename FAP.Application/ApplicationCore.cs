@@ -36,6 +36,7 @@ using System.Threading;
 using System.Net;
 using FAP.Application.Controllers;
 using NLog;
+using System.IO;
 
 namespace FAP.Application
 {
@@ -138,6 +139,27 @@ namespace FAP.Application
             if (string.IsNullOrEmpty(model.LocalNode.ID))
                 model.LocalNode.ID = IDService.CreateID();
 
+            //Set default download folder
+            if (string.IsNullOrEmpty(model.DownloadFolder))
+                model.DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\FAP Downloads";
+
+            if (!Directory.Exists(model.DownloadFolder))
+                Directory.CreateDirectory(model.DownloadFolder);
+
+            //Set incomplete download folder
+            if (string.IsNullOrEmpty(model.IncompleteFolder) || !Directory.Exists(model.IncompleteFolder))
+                model.IncompleteFolder = model.DownloadFolder + "\\Incomplete";
+
+            if (!Directory.Exists(model.DownloadFolder))
+                Directory.CreateDirectory(model.DownloadFolder);
+
+            if (!Directory.Exists(model.IncompleteFolder))
+                Directory.CreateDirectory(model.IncompleteFolder);
+
+            //Delete any empty folders in the incomplete folder
+            RemoveEmptyFolders(model.IncompleteFolder);
+
+
             LogManager.GetLogger("faplog").Info("Client started with ID: {0}", model.LocalNode.ID);
 
             model.DownloadQueue.Load();
@@ -153,7 +175,7 @@ namespace FAP.Application
             watchdogController.Start();
             return true;
         }
-        
+
         public void StartClientServer()
         {
             client = new ListenerService(container, false);
@@ -455,5 +477,32 @@ namespace FAP.Application
             }
         }
         #endregion
+
+        private void RemoveEmptyFolders(string path)
+        {
+            string[] folders = Directory.GetDirectories(path);
+            foreach (var folder in folders)
+                iRemoveEmptyFolders(folder);
+
+        }
+        private void iRemoveEmptyFolders(string path)
+        {
+            string[] folders = Directory.GetDirectories(path);
+            foreach (var folder in folders)
+                iRemoveEmptyFolders(folder);
+            folders = Directory.GetDirectories(path);
+
+            if (folders.Length == 0)
+            {
+                if (Directory.GetFiles(path).Length == 0)
+                {
+                    try
+                    {
+                        Directory.Delete(path);
+                    }
+                    catch { }
+                }
+            }
+        }
     }
 }

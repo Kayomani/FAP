@@ -8,6 +8,8 @@ using FAP.Domain.Net;
 using System.Net;
 using System.IO;
 using System.Reflection;
+using Fap.Foundation;
+using System.Threading;
 
 namespace FAP.Domain.Services
 {
@@ -16,25 +18,31 @@ namespace FAP.Domain.Services
     /// </summary>
     public class DownloadWorkerService : ITransferWorker
     {
-        
 
+        private BufferService bufferService;
         private object sync = new object();
         private Queue<DownloadRequest> queue = new Queue<DownloadRequest>();
+        private NetworkSpeedMeasurement netSpeed = new NetworkSpeedMeasurement(NetSpeedType.Download);
         private Node remoteNode;
         private Model model;
 
-        public DownloadWorkerService(Node n, Model m)
+        public DownloadWorkerService(Node n, Model m, BufferService b)
         {
             remoteNode = n;
             model = m;
+            bufferService = b;
         }
 
         //ITransferWorker Members
         private long length;
         private bool isComplete = true;
-        private long speed;
         private string status;
         private long position;
+
+        public Node Node
+        {
+            get { return remoteNode; }
+        }
 
         public long Length
         {
@@ -48,7 +56,7 @@ namespace FAP.Domain.Services
 
         public long Speed
         {
-            get { return speed; }
+            get { return netSpeed.GetSpeed(); }
         }
 
         public string Status
@@ -69,6 +77,7 @@ namespace FAP.Domain.Services
                 if (isComplete)
                 {
                     isComplete = false;
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(process));
                 }
                 item.State = DownloadRequestState.Requesting;
                
@@ -95,6 +104,8 @@ namespace FAP.Domain.Services
 
                     if (currentItem.IsFolder)
                     {
+                        length =0;
+                        position =0;
                         status = "Downloading folder info for " + currentItem.FullPath;
                         //Item is a folder - Just get the folder items and add them to the queue.
                         BrowseVerb verb = new BrowseVerb(null, null);
@@ -133,26 +144,39 @@ namespace FAP.Domain.Services
                     }
                     else
                     {
+                        MemoryBuffer buffer = bufferService.GetArg();
+                        buffer.SetDataLocation(0, buffer.Data.Length);
                         //Item is a file - download it
                         try
                         {
+                            length = currentItem.Size;
+                            status = currentItem.Nickname + " - " + currentItem.FileName + " - " + Utility.FormatBytes(currentItem.Size);
+                            currentItem.State = DownloadRequestState.Downloading;
+
                             FileStream fileStream = null;
-                            long resumePoint = 0;
 
                             StringBuilder mainsb = new StringBuilder();
                             mainsb.Append(model.DownloadFolder);
                             mainsb.Append("\\");
                             mainsb.Append(currentItem.LocalPath);
+                           
+                             string mainfolder = mainsb.ToString();
+
+                             mainsb.Append("\\");
                             mainsb.Append(currentItem.FileName);
 
                             StringBuilder incompletesb = new StringBuilder();
                             incompletesb.Append(model.IncompleteFolder);
                             incompletesb.Append("\\");
                             incompletesb.Append(currentItem.LocalPath);
+
+                            string incompleteFolder = incompletesb.ToString();
+
                             incompletesb.Append("\\");
                             incompletesb.Append(currentItem.FileName);
 
                             string mainPath = mainsb.ToString();
+                           
                             string incompletePath = incompletesb.ToString();
 
 
@@ -164,13 +188,18 @@ namespace FAP.Domain.Services
                             }
                             else
                             {
+                                if(!Directory.Exists(incompleteFolder))
+                                    Directory.CreateDirectory(incompleteFolder);
+
                                 //Else resume or just create
-                                fileStream = File.Open(mainPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+                                fileStream = File.Open(incompletePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
                             }
 
 
                             HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(getDownloadUrl(currentItem.FullPath));
                             
+                            
+
                             //If we are resuming then add range
                             if (fileStream.Length != 0)
                             {
@@ -182,18 +211,51 @@ namespace FAP.Domain.Services
                                 string key = "Range";
                                 string val = string.Format("bytes={0}", fileStream.Length);
                                 method.Invoke(req.Headers, new object[] { key, val });
+                                position =fileStream.Length;
                             }
-                                
-                            
-
 
                             System.Net.HttpWebResponse resp = (System.Net.HttpWebResponse)req.GetResponse();
+
+                            
+                            if (resp.ContentLength > 0)
+                            {
+                                using (Stream responseStream = resp.GetResponseStream())
+                                {
+                                    long readLength = 0;
+
+                                    while(readLength<resp.ContentLength)
+                                    {
+                                        int read = responseStream.Read(buffer.Data, 0, buffer.DataSize);
+                                        if (read == 0)
+                                        {
+                                           break;
+                                        }
+                                        else
+                                        {
+                                            fileStream.Write(buffer.Data, 0, read);
+                                            readLength += read;
+                                            position += read;
+                                            netSpeed.PutData(read);
+                                        }
+                                    }
+                                }
+                            }
+                            model.DownloadQueue.List.Remove(currentItem);
+                            currentItem.State = DownloadRequestState.Downloaded;
+                            fileStream.Close();
+                            fileStream.Dispose();
+                            status = currentItem.Nickname + " - Complete: " + currentItem.FileName;
+                            resp.Close();
 
                         }
                         catch
                         {
                             currentItem.State = DownloadRequestState.Error;
                             currentItem.NextTryTime = Environment.TickCount + Model.DOWNLOAD_RETRY_TIME;
+                        }
+                        finally
+                        {
+                            bufferService.FreeArg(buffer);
                         }
                     }
                 }

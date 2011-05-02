@@ -32,7 +32,12 @@ namespace FAP.Domain.Services
     {
         private Dictionary<string, Directory> shares = new Dictionary<string, Directory>();
         public static readonly string SaveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\ShareInfo\";
+        private Model model;
 
+        public ShareInfoService(Model m)
+        {
+            model = m;
+        }
 
         public void Load()
         {
@@ -249,7 +254,7 @@ namespace FAP.Domain.Services
         {
             if (path.StartsWith("/"))
                 path = path.Substring(1);
-            string[] items = path.Split('/');
+            string[] items = path.Split(new char[]{'/'},StringSplitOptions.RemoveEmptyEntries);
 
             if (items.Length == 0 || !shares.ContainsKey(items[0]))
                 return null;
@@ -261,6 +266,39 @@ namespace FAP.Domain.Services
                 dir = dir.SubDirectories.Where(d => d.Name == items[i]).FirstOrDefault();
             }
             return dir;
+        }
+
+        public bool IsFile(string path)
+        {
+
+            return false;
+        }
+
+        public bool ToLocalPath(string input, out string output)
+        {
+            string[] split = input.Split(new char[]{'/'}, StringSplitOptions.RemoveEmptyEntries);
+            if (split.Length > 0)
+            {
+                var share = model.Shares.Where(s => s.Name == split[0]).FirstOrDefault();
+                if (null != share)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append(share.Path);
+                    if (!share.Path.EndsWith("\\"))
+                        sb.Append("\\");
+                    for(int i=1;i<split.Length;i++)
+                    {
+                        sb.Append(split[i]);
+                        if (i + 1 < split.Length)
+                            sb.Append("\\");
+                    }
+
+                    output = sb.ToString();
+                    return true;
+                }
+            }
+            output = string.Empty;
+            return false;
         }
 
         public long GetSize(string path)
