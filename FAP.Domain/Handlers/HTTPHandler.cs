@@ -69,8 +69,8 @@ namespace FAP.Domain.Handlers
             if (path.StartsWith(WEB_ICON_PREFIX))
             {
                 //what icon been requested?
-                string ext = path.Substring(path.LastIndexOf("/")+1);
-                
+                string ext = path.Substring(path.LastIndexOf("/") + 1);
+
                 lock (sync)
                 {
                     //Has the icon been requested already? if so just return that
@@ -126,23 +126,29 @@ namespace FAP.Domain.Handlers
             }
             else
             {
-                //A folder or file was requested
+                bool validPath = false;
+
                 string page = Encoding.UTF8.GetString(GetResource("template.html"));
                 Dictionary<string, object> pagedata = new Dictionary<string, object>();
 
                 pagedata.Add("model", model);
                 pagedata.Add("appver", Model.AppVersion);
                 pagedata.Add("freelimit", Utility.FormatBytes(Model.WEB_FREE_FILE_LIMIT));
+                pagedata.Add("uploadslots", model.MaxUploads);
+                int freeslots = model.MaxUploads - uploadLimiter.GetActiveTokenCount();
+                pagedata.Add("currentuploadslots", freeslots);
+                pagedata.Add("queueInfo",  freeslots > 0 ? "" : "Queue length: " + uploadLimiter.GetQueueLength() + ". ");
+                pagedata.Add("slotcolour", freeslots > 0 ? "green" : "red");
 
                 pagedata.Add("util", new Utility());
 
-                if(!path.EndsWith("/"))
-                    pagedata.Add("path", path + "/");
+                if (!path.EndsWith("/"))
+                    pagedata.Add("path", (path + "/").Replace("#", "%23"));
                 else
-                    pagedata.Add("path", path);
+                    pagedata.Add("path", (path).Replace("#", "%23"));
 
                 //Add path info
-                List<DisplayInfo> paths = new List<DisplayInfo>();
+                List<Dictionary<string, object>> paths = new List<Dictionary<string, object>>();
 
                 string[] split = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < split.Length; i++)
@@ -154,48 +160,48 @@ namespace FAP.Domain.Handlers
                         sb.Append("/");
                     }
 
-                    DisplayInfo di = new DisplayInfo();
-                    di.SetData("Name", split[i]);
-                    di.SetData("Path", sb.ToString());
+                    Dictionary<string, object> di = new Dictionary<string, object>();
+                    di.Add("Name", split[i]);
+                    di.Add("Path", sb.ToString());
                     paths.Add(di);
                 }
 
                 pagedata.Add("pathSplit", paths);
 
-               /* List<DisplayInfo> peers = new List<DisplayInfo>();
+                /* List<DisplayInfo> peers = new List<DisplayInfo>();
 
-                foreach (var peer in model.Network.Nodes.ToList().Where(n => n.NodeType != ClientType.Overlord && !string.IsNullOrEmpty(n.Nickname)))
-                {
-                    if (!string.IsNullOrEmpty(peer.Location))
-                    {
-                        DisplayInfo p = new DisplayInfo();
-                        p.SetData("Name", string.IsNullOrEmpty(peer.Nickname) ? "Unknown" : peer.Nickname);
-                        p.SetData("Location", peer.Location);
-                        peers.Add(p);
-                    }
-                }
+                 foreach (var peer in model.Network.Nodes.ToList().Where(n => n.NodeType != ClientType.Overlord && !string.IsNullOrEmpty(n.Nickname)))
+                 {
+                     if (!string.IsNullOrEmpty(peer.Location))
+                     {
+                         DisplayInfo p = new DisplayInfo();
+                         p.SetData("Name", string.IsNullOrEmpty(peer.Nickname) ? "Unknown" : peer.Nickname);
+                         p.SetData("Location", peer.Location);
+                         peers.Add(p);
+                     }
+                 }
 
-                pagedata.Add("peers", peers);*/
-
-                List<DisplayInfo> files = new List<DisplayInfo>();
+                 pagedata.Add("peers", peers);*/
+                List<Dictionary<string, object>> files = new List<Dictionary<string, object>>();
                 long totalSize = 0;
 
                 if (string.IsNullOrEmpty(path) || path == "/")
                 {
+                    validPath = true;
                     //At the root - Send a list of shares
 
                     FAP.Domain.Entities.FileSystem.Directory root = new FAP.Domain.Entities.FileSystem.Directory();
 
                     foreach (var share in model.Shares.ToList())
                     {
-                        DisplayInfo d = new DisplayInfo();
-                        d.SetData("Name", share.Name);
-                        d.SetData("Path", HttpUtility.UrlEncode(share.Name));
-                        d.SetData("Icon", "folder");
-                        d.SetData("Size", share.Size);
-                        d.SetData("Sizetxt", Utility.FormatBytes(share.Size));
-                        d.SetData("LastModifiedtxt", share.LastRefresh.ToShortDateString());
-                        d.SetData("LastModified", share.LastRefresh.ToFileTime());
+                        Dictionary<string, object> d = new Dictionary<string, object>();
+                        d.Add("Name", share.Name);
+                        d.Add("Path", GetSafeUrl(share.Name));
+                        d.Add("Icon", "folder");
+                        d.Add("Size", share.Size);
+                        d.Add("Sizetxt", Utility.FormatBytes(share.Size));
+                        d.Add("LastModifiedtxt", share.LastRefresh.ToShortDateString());
+                        d.Add("LastModified", share.LastRefresh.ToFileTime());
                         files.Add(d);
                         totalSize += share.Size;
                     }
@@ -205,7 +211,7 @@ namespace FAP.Domain.Handlers
                 {
                     string localPath = string.Empty;
 
-                    if (infoService.ToLocalPath(path,out localPath) && File.Exists(localPath))
+                    if (infoService.ToLocalPath(path, out localPath) && File.Exists(localPath))
                     {
                         //User has requested a file
                         return SendFile(e, localPath, path);
@@ -214,35 +220,39 @@ namespace FAP.Domain.Handlers
                     {
                         var fileInfo = infoService.GetPath(path);
 
-                        foreach (var dir in fileInfo.SubDirectories)
+                        if (null != fileInfo)
                         {
-                            DisplayInfo d = new DisplayInfo();
-                            d.SetData("Name", dir.Name);
-                            d.SetData("Path", HttpUtility.UrlEncode(dir.Name));
-                            d.SetData("Icon", "folder");
-                            d.SetData("Sizetxt", Utility.FormatBytes(dir.Size));
-                            d.SetData("Size", dir.Size);
-                            d.SetData("LastModifiedtxt", DateTime.FromFileTime(dir.LastModified).ToShortDateString());
-                            d.SetData("LastModified", dir.LastModified);
-                            files.Add(d);
-                            totalSize += dir.Size;
-                        }
+                            validPath = true;
+                            foreach (var dir in fileInfo.SubDirectories)
+                            {
+                                Dictionary<string, object> d = new Dictionary<string, object>();
+                                d.Add("Name", dir.Name);
+                                d.Add("Path", GetSafeUrl(dir.Name));
+                                d.Add("Icon", "folder");
+                                d.Add("Sizetxt", Utility.FormatBytes(dir.Size));
+                                d.Add("Size", dir.Size);
+                                d.Add("LastModifiedtxt", DateTime.FromFileTime(dir.LastModified).ToShortDateString());
+                                d.Add("LastModified", dir.LastModified);
+                                files.Add(d);
+                                totalSize += dir.Size;
+                            }
 
-                        foreach (var file in fileInfo.Files)
-                        {
-                            DisplayInfo d = new DisplayInfo();
-                            d.SetData("Name", file.Name);
-                            string ext = Path.GetExtension(file.Name);
-                            if (ext != null && ext.StartsWith("."))
-                                ext = ext.Substring(1);
-                            d.SetData("Path", HttpUtility.UrlEncode(file.Name));
-                            d.SetData("Icon", ext);
-                            d.SetData("Size", file.Size);
-                            d.SetData("Sizetxt", Utility.FormatBytes(file.Size));
-                            d.SetData("LastModifiedtxt", DateTime.FromFileTime(file.LastModified).ToShortDateString());
-                            d.SetData("LastModified", file.LastModified);
-                            files.Add(d);
-                            totalSize += file.Size;
+                            foreach (var file in fileInfo.Files)
+                            {
+                                Dictionary<string, object> d = new Dictionary<string, object>();
+                                d.Add("Name", file.Name);
+                                string ext = Path.GetExtension(file.Name);
+                                if (ext != null && ext.StartsWith("."))
+                                    ext = ext.Substring(1);
+                                d.Add("Path", GetSafeUrl(file.Name));
+                                d.Add("Icon", ext);
+                                d.Add("Size", file.Size);
+                                d.Add("Sizetxt", Utility.FormatBytes(file.Size));
+                                d.Add("LastModifiedtxt", DateTime.FromFileTime(file.LastModified).ToShortDateString());
+                                d.Add("LastModified", file.LastModified);
+                                files.Add(d);
+                                totalSize += file.Size;
+                            }
                         }
                     }
                 }
@@ -250,43 +260,47 @@ namespace FAP.Domain.Handlers
                 pagedata.Add("files", files);
                 pagedata.Add("totalSize", Utility.FormatBytes(totalSize));
 
-                //Generate the page
-                page = TemplateEngineService.Generate(page, pagedata);
-                data = Encoding.UTF8.GetBytes(page);
-                e.Response.ContentType = contentTypes["html"];
+                if (validPath)
+                {
+                    //Generate the page
+                    page = TemplateEngineService.Generate(page, pagedata);
+                    data = Encoding.UTF8.GetBytes(page);
+                    e.Response.ContentType = contentTypes["html"];
+                }
 
                 //Clear up
                 foreach (var item in pagedata.Values)
                 {
-                    if (item is DisplayInfo)
+                    if (item is Dictionary<string, object>)
                     {
-                        DisplayInfo i = item as DisplayInfo;
+                        Dictionary<string, object> i = item as Dictionary<string, object>;
                         i.Clear();
                     }
                 }
                 pagedata.Clear();
             }
-             
+
             if (null == data)
             {
-                e.Response.Status = HttpStatusCode.NotFound;
-                ResponseWriter generator = new ResponseWriter();
-                e.Response.ContentLength.Value = 0;
-                generator.SendHeaders(e.Context, e.Response);
+                data = Encoding.UTF8.GetBytes("404 Not found");
             }
-            else
-            {
-                ResponseWriter generator = new ResponseWriter();
-                e.Response.ContentLength.Value = data.Length;
-                generator.SendHeaders(e.Context, e.Response);
-                e.Context.Stream.Write(data, 0, data.Length);
-                e.Context.Stream.Flush();
-            }
+            ResponseWriter generator = new ResponseWriter();
+            e.Response.ContentLength.Value = data.Length;
+            generator.SendHeaders(e.Context, e.Response);
+            e.Context.Stream.Write(data, 0, data.Length);
+            e.Context.Stream.Flush();
             data = null;
             return true;
         }
 
-        
+
+        private string GetSafeUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return string.Empty;
+            return HttpUtility.UrlEncode(url).Replace("#", "%23");
+        }
+
 
         private bool SendFile(RequestEventArgs e, string path, string url)
         {

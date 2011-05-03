@@ -44,6 +44,19 @@ namespace FAP.Domain.Services
             return token;
         }
 
+        public int GetActiveTokenCount()
+        {
+            lock (activeTokenList)
+                return activeTokenList.Where(n => n.GlobalQueuePosition == 0).Count();
+        }
+
+        public int GetQueueLength()
+        {
+            lock (activeTokenList)
+                return activeTokenList.Where(n => n.GlobalQueuePosition != 0).Count();
+        }
+
+
         public void FreeToken(ServerUploadToken itoken)
         {
             lock (activeTokenList)
