@@ -98,11 +98,16 @@
     <Reference Include="Autofac">
       <HintPath>..\libs\Autofac\Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="Castle.Components.Common.TemplateEngine">
-      <HintPath>F:\src\gfap\branches\rebuild\libs\Castle.Components.TemplateEngine\net35\Castle.Components.Common.TemplateEngine.dll</HintPath>
+    <Reference Include="Castle.Components.Common.TemplateEngine, Version=1.1.2.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\libs\Castle.Components.TemplateEngine\net35\Castle.Components.Common.TemplateEngine.dll</HintPath>
     </Reference>
-    <Reference Include="Castle.Components.Common.TemplateEngine.NVelocityTemplateEngine">
-      <HintPath>F:\src\gfap\branches\rebuild\libs\Castle.Components.TemplateEngine\net35\Castle.Components.Common.TemplateEngine.NVelocityTemplateEngine.dll</HintPath>
+    <Reference Include="Castle.Components.Common.TemplateEngine.NVelocityTemplateEngine, Version=1.1.2.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\libs\Castle.Components.TemplateEngine\net35\Castle.Components.Common.TemplateEngine.NVelocityTemplateEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Core">
+      <HintPath>..\libs\Castle.Components.TemplateEngine\net35\Castle.Core.dll</HintPath>
     </Reference>
     <Reference Include="Interop.Bonjour, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -116,8 +121,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\NLog\.NET Framework 3.5\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="NVelocity">
-      <HintPath>F:\src\gfap\branches\rebuild\libs\NVelocity\net35\NVelocity.dll</HintPath>
+    <Reference Include="NVelocity, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\libs\NVelocity\net35\NVelocity.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -133,6 +139,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\ServerUploadToken.cs" />
+    <Compile Include="Handlers\HTTPFileUploader.cs" />
     <Compile Include="Net\Client.cs" />
     <Compile Include="DomainModule.cs" />
     <Compile Include="Entities\BaseEntity.cs" />
@@ -168,8 +176,10 @@
     <Compile Include="Services\BufferService.cs" />
     <Compile Include="Services\DownloadWorkerService.cs" />
     <Compile Include="Services\Listener.cs" />
+    <Compile Include="Services\ServerUploadLimiterService.cs" />
     <Compile Include="Services\ShareInfoService.cs" />
     <Compile Include="Services\TemplateEngine.cs" />
+    <Compile Include="Services\UpdateCheckerService.cs" />
     <Compile Include="Verbs\BaseVerb.cs" />
     <Compile Include="Verbs\BrowseVerb.cs" />
     <Compile Include="Verbs\ChatVerb.cs" />
@@ -198,6 +208,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="VM_global_library.vm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Web.Resources\CSS\fap.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

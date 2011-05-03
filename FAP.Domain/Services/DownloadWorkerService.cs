@@ -144,7 +144,7 @@ namespace FAP.Domain.Services
                     }
                     else
                     {
-                        MemoryBuffer buffer = bufferService.GetArg();
+                        MemoryBuffer buffer = bufferService.GetBuffer();
                         buffer.SetDataLocation(0, buffer.Data.Length);
                         //Item is a file - download it
                         try
@@ -255,7 +255,7 @@ namespace FAP.Domain.Services
                         }
                         finally
                         {
-                            bufferService.FreeArg(buffer);
+                            bufferService.FreeBuffer(buffer);
                         }
                     }
                 }

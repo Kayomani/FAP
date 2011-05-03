@@ -58,6 +58,7 @@ namespace FAP.Application
         private ListenerService client;
         private ShareInfoService shareInfo;
         private ListenerService server;
+        private UpdateCheckerService updateChecker;
        
         private Model model;
         private MainWindowViewModel mainWindowModel;
@@ -72,6 +73,7 @@ namespace FAP.Application
             //Don't limit connections to a single node - 100 I think is the upper limit.
             System.Net.ServicePointManager.DefaultConnectionLimit = 100;
             model = container.Resolve<Model>();
+            updateChecker = container.Resolve<UpdateCheckerService>();
             interfaceController = container.Resolve<InterfaceController>();
         }
 
@@ -85,7 +87,6 @@ namespace FAP.Application
             model.Save();
             model.DownloadQueue.Save();
             connectionController.Exit();
-
             if (null != server)
                 server.Stop();
             if (null != client)
@@ -131,35 +132,15 @@ namespace FAP.Application
         public bool Load()
         {
             model.Load();
-
             model.IPAddress = interfaceController.CheckAddress(model.IPAddress);
             //User chose to quit rather than select an interface =s
             if (string.IsNullOrEmpty(model.IPAddress))
                 return false;
-            if (string.IsNullOrEmpty(model.LocalNode.ID))
-                model.LocalNode.ID = IDService.CreateID();
 
-            //Set default download folder
-            if (string.IsNullOrEmpty(model.DownloadFolder))
-                model.DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\FAP Downloads";
-
-            if (!Directory.Exists(model.DownloadFolder))
-                Directory.CreateDirectory(model.DownloadFolder);
-
-            //Set incomplete download folder
-            if (string.IsNullOrEmpty(model.IncompleteFolder) || !Directory.Exists(model.IncompleteFolder))
-                model.IncompleteFolder = model.DownloadFolder + "\\Incomplete";
-
-            if (!Directory.Exists(model.DownloadFolder))
-                Directory.CreateDirectory(model.DownloadFolder);
-
-            if (!Directory.Exists(model.IncompleteFolder))
-                Directory.CreateDirectory(model.IncompleteFolder);
-
+            model.CheckSetDefaults();
+            updateChecker.Run();
             //Delete any empty folders in the incomplete folder
             RemoveEmptyFolders(model.IncompleteFolder);
-
-
             LogManager.GetLogger("faplog").Info("Client started with ID: {0}", model.LocalNode.ID);
 
             model.DownloadQueue.Load();

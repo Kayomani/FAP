@@ -39,6 +39,8 @@ namespace FAP.Domain.Entities
             Node other = obj as Node;
             if (null != other)
             {
+                if (string.IsNullOrEmpty(other.ID))
+                    return Location == other.Location;
                 return other.ID == ID;
             }
             return base.Equals(obj);

@@ -42,7 +42,7 @@ namespace FAP.Domain.Handlers
         private ShareInfoService infoService;
         private Model model;
         private BufferService bufferService;
-
+        private ServerUploadLimiterService uploadLimiter;
 
         private Dictionary<string, ContentTypeHeader> contentTypes =
            new Dictionary<string, ContentTypeHeader>();
@@ -51,11 +51,12 @@ namespace FAP.Domain.Handlers
         private Dictionary<string, byte[]> iconCache = new Dictionary<string, byte[]>();
         private object sync = new object();
 
-        public HTTPHandler(ShareInfoService i, Model m, BufferService b)
+        public HTTPHandler(ShareInfoService i, Model m, BufferService b, ServerUploadLimiterService u)
         {
             infoService = i;
             model = m;
             bufferService = b;
+            uploadLimiter = u;
             AddDefaultMimeTypes();
         }
 
@@ -207,7 +208,7 @@ namespace FAP.Domain.Handlers
                     if (infoService.ToLocalPath(path,out localPath) && File.Exists(localPath))
                     {
                         //User has requested a file
-                        return SendFile(e, localPath);
+                        return SendFile(e, localPath, path);
                     }
                     else
                     {
@@ -287,7 +288,7 @@ namespace FAP.Domain.Handlers
 
         
 
-        private bool SendFile(RequestEventArgs e, string path)
+        private bool SendFile(RequestEventArgs e, string path, string url)
         {
             try
             {
@@ -328,7 +329,7 @@ namespace FAP.Domain.Handlers
                 {
                     e.Response.Add(new DateHeader("Last-Modified", modified));
                     // Send response and tell server to do nothing more with the request.
-                    SendFile(e.Context, e.Response, fs);
+                    SendFile(e.Context, fs,url);
                     return true;
                 }
             }
@@ -345,64 +346,30 @@ namespace FAP.Domain.Handlers
         /// <param name="context">HTTP context containing outbound stream.</param>
         /// <param name="response">Response containing headers.</param>
         /// <param name="stream">File stream</param>
-        private void SendFile(IHttpContext context, IResponse response, Stream stream)
+        private void SendFile(IHttpContext context, Stream stream, string url)
         {
-            var rangeHeader = context.Request.Headers.Where(n => n.Name.ToLowerInvariant() == "range").FirstOrDefault();
-            
-
+            HTTPFileUploader worker = new HTTPFileUploader(bufferService, uploadLimiter);
+            TransferSession session = null;
             try
             {
-                if (null != rangeHeader)
+                if (stream.Length > Model.WEB_FREE_FILE_LIMIT)
                 {
-                    //Partial request
-                    //Try to parse header - if we fail just send a 200 ok from zero
-                    long start = 0;
-                    long end = 0;
-
-                    if (rangeHeader.HeaderValue.StartsWith("bytes="))
-                    {
-                        string header = rangeHeader.HeaderValue.Substring(6).Trim();
-                        string starttxt = header.Substring(0, header.IndexOf("-"));
-                        string endtxt = header.Substring(header.IndexOf("-")+1,header.Length-(header.IndexOf("-")+1));
-
-                        if (!string.IsNullOrEmpty(starttxt))
-                            start = long.Parse(starttxt);
-                        if (!string.IsNullOrEmpty(endtxt))
-                            end = long.Parse(endtxt);
-                        //Only allow a partial request start.  May implement this at some point but its beyond the scope of this atm.
-                        if (start != 0 && end==0)
-                        {
-                            if (start > stream.Length)
-                                start = stream.Length;
-                            stream.Seek(start, SeekOrigin.Begin);
-                            response.Status = HttpStatusCode.PartialContent;
-                        }
-                    }
+                    session = new TransferSession(worker);
+                    model.TransferSessions.Add(session);
                 }
-            }
-            catch { }
-            response.ContentLength.Value = stream.Length-stream.Position;
 
-            ResponseWriter generator = new ResponseWriter();
-            generator.SendHeaders(context, response);
-            //Send data
-            var buffer = bufferService.GetArg();
-            try
-            {
-                int bytesRead = stream.Read(buffer.Data, 0, buffer.Data.Length);
-                while (bytesRead > 0)
-                {
-                    context.Stream.Write(buffer.Data, 0, bytesRead);
-                    bytesRead = stream.Read(buffer.Data, 0, buffer.Data.Length);
-                }
-            }
-            catch (Exception err)
-            {
-                LogManager.GetLogger("faplog").WarnException("Failed to send body through context stream.", err);
+                //Try to find the username of the request
+                string userName = context.RemoteEndPoint.Address.ToString();
+                var search = model.Network.Nodes.ToList().Where(n => n.NodeType != ClientType.Overlord && n.Host == userName).FirstOrDefault();
+                if (null != search && !string.IsNullOrEmpty(search.Nickname))
+                    userName = search.Nickname;
+
+                worker.DoUpload(context, stream, userName, url);
             }
             finally
             {
-                bufferService.FreeArg(buffer);
+                if(null!=session)
+                    model.TransferSessions.Remove(session);
             }
         }
 

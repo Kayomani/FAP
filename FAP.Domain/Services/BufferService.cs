@@ -69,7 +69,7 @@ namespace FAP.Domain.Services
 
 
 
-        public MemoryBuffer GetArg()
+        public MemoryBuffer GetBuffer()
         {
             lock (pool)
             {
@@ -80,7 +80,7 @@ namespace FAP.Domain.Services
             return a;
         }
 
-        public MemoryBuffer GetSmallArg()
+        public MemoryBuffer GetSmallBuffer()
         {
             lock (smallPool)
             {
@@ -91,7 +91,7 @@ namespace FAP.Domain.Services
             return a;
         }
 
-        public void FreeArg(MemoryBuffer input)
+        public void FreeBuffer(MemoryBuffer input)
         {
             input.SetDataLocation(0, 0);
             if (input.Data.Length == SmallBuffer)

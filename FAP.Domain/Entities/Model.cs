@@ -24,6 +24,8 @@ using System.Xml.Serialization;
 using Fap.Foundation;
 using NLog;
 using Newtonsoft.Json;
+using Fap.Foundation.Services;
+using System.Net;
 
 namespace FAP.Domain.Entities
 {
@@ -354,6 +356,52 @@ namespace FAP.Domain.Entities
                     LogManager.GetLogger("faplog").WarnException("Failed to read config", e);
                 }
             }
+        }
+
+        public void CheckSetDefaults()
+        {
+            if (string.IsNullOrEmpty(LocalNode.ID))
+                LocalNode.ID = IDService.CreateID();
+
+            //If there is no avatar set then set the default
+            if (string.IsNullOrEmpty(Avatar))
+            {
+                var stream = System.Windows.Application.GetResourceStream(new Uri("Images/Default_Avatar.png", UriKind.Relative)).Stream;
+                byte[] img = new byte[stream.Length];
+                stream.Read(img, 0, (int)stream.Length);
+                Avatar = Convert.ToBase64String(img);
+                Save();
+            }
+            //Set default nick
+            if (string.IsNullOrEmpty(Nickname))
+                Nickname = Dns.GetHostName();
+
+            //Set default limits
+            if (MaxDownloads == 0)
+                MaxDownloads = 3;
+            if (MaxDownloadsPerUser == 0)
+                MaxDownloadsPerUser = 3;
+            if (MaxUploads == 0)
+                MaxUploads = 3;
+            if (MaxUploadsPerUser == 0)
+                MaxUploadsPerUser = 4;
+
+            //Set default download folder
+            if (string.IsNullOrEmpty(DownloadFolder))
+                DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\FAP Downloads";
+
+            if (!Directory.Exists(DownloadFolder))
+                Directory.CreateDirectory(DownloadFolder);
+
+            //Set incomplete download folder
+            if (string.IsNullOrEmpty(IncompleteFolder) || !Directory.Exists(IncompleteFolder))
+                IncompleteFolder = DownloadFolder + "\\Incomplete";
+
+            if (!Directory.Exists(DownloadFolder))
+                Directory.CreateDirectory(DownloadFolder);
+
+            if (!Directory.Exists(IncompleteFolder))
+                Directory.CreateDirectory(IncompleteFolder);
         }
     }
 }

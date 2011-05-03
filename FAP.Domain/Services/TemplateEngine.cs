@@ -51,6 +51,7 @@ namespace FAP.Domain.Services
                     if (null == engine)
                     {
                         NVelocityTemplateEngine e = new NVelocityTemplateEngine();
+
                         (e as ISupportInitialize).BeginInit();
                         engine = e;
                     }

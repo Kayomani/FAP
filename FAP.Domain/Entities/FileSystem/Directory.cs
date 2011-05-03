@@ -51,8 +51,8 @@ namespace FAP.Domain.Entities.FileSystem
             System.IO.File.WriteAllText(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".dat", JsonConvert.SerializeObject(this));*/
 
             //XML save
-            if (!System.IO.Directory.Exists(Path.GetDirectoryName(ShareInfoService.SaveLocation)))
-                System.IO.Directory.CreateDirectory(Path.GetDirectoryName(ShareInfoService.SaveLocation));
+            /*if (!System.IO.Directory.Exists(Path.GetDirectoryName(ShareInfoService.SaveLocation)))
+                System.IO.Directory.CreateDirectory(Path.GetDirectoryName(ShareInfoService.SaveLocation));**/
 
             XmlSerializer serializer = new XmlSerializer(typeof(Directory));
             using (TextWriter textWriter = new StreamWriter(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".dat"))
@@ -62,6 +62,10 @@ namespace FAP.Domain.Entities.FileSystem
                 textWriter.Close();
             }
 
+           // using(Stream file = System.IO.File.Open(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".dat",FileMode.OpenOrCreate))
+           // {
+           //     ProtoBuf.Serializer.Serialize<Directory>(file, this);
+           // }
         }
 
         public void Load(string name)
@@ -87,6 +91,16 @@ namespace FAP.Domain.Entities.FileSystem
                     SubDirectories = m.SubDirectories;
                     Files = m.Files;
                 }
+
+                /**using (Stream stream = System.IO.File.Open(name, FileMode.Open))
+                {
+                    Directory m = ProtoBuf.Serializer.Deserialize<Directory>(stream);
+                    Name = m.Name;
+                    Size = m.Size;
+                    FileCount = m.FileCount;
+                    SubDirectories = m.SubDirectories;
+                    Files = m.Files;
+                }**/
             }
             catch (Exception e)
             {
