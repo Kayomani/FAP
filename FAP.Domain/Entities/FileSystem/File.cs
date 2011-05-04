@@ -18,14 +18,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ProtoBuf;
 
 namespace FAP.Domain.Entities.FileSystem
 {
-    [Serializable]
+    //[Serializable]
+    [ProtoContract]
+    [ProtoInclude(4, typeof(Directory))]
     public class File
     {
+        [ProtoMember(1)]
         public string Name { set; get; }
+        [ProtoMember(2)]
         public long Size { set; get; }
+        [ProtoMember(3)]
         public long LastModified { set; get; }
     }
 }

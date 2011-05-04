@@ -105,7 +105,7 @@ namespace FAP.Domain.Net
 #endif
                  //req.Pipelined = false;
                  //req.ConnectionGroupName = Guid.NewGuid().ToString();
-
+                
                 //Add headers
                 req.UserAgent = Model.AppVersion;
                 //Add fap headers

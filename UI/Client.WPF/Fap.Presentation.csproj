@@ -123,7 +123,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug2|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x86\Debug2\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;SEARCH</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUG2</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <CodeAnalysisLogFile>bin\x86\Debug\Fap.Presentation.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>

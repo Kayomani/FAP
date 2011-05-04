@@ -49,9 +49,12 @@ namespace FAP.Domain.Services
                 {
                     foreach (var file in System.IO.Directory.GetFiles(SaveLocation))
                     {
-                        Directory d = new Directory();
-                        d.Load(file);
-                        shares.Add(d.Name, d);
+                        if (file.EndsWith(".info"))
+                        {
+                            Directory d = new Directory();
+                            d.Load(file);
+                            shares.Add(d.Name, d);
+                        }
                     }
                 }
             }

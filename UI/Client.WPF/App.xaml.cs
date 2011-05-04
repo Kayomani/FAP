@@ -91,7 +91,9 @@ namespace Fap.Presentation
                 {
                     core.StartClientServer();
                     core.StartGUI();
+#if DEBUG2
                     core.StartOverlordServer();
+#endif
                 }
                 else
                 {
