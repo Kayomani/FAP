@@ -22,7 +22,7 @@
           \$('#files').dataTable({
               "bPaginate": false,
               "oLanguage": {
-                  "sZeroRecords": "No files found!"
+                  "sZeroRecords": "No files or folders found!"
               },
               "aoColumns": [
                             { "sWidth": "1px", "iDataSort": 6 },
@@ -45,7 +45,7 @@
       <h1>$model.LocalNode.Nickname$'s Shares</h1>
     </div>
 
-    <p><span class="$slotcolour$">$currentuploadslots$ of $uploadslots$ upload slots availible</span>. $queueInfo$ Free file limit $freelimit$.</p>
+    <p><span class="$slotcolour$">$currentuploadslots$ of $uploadslots$ upload slots availible</span>.$queueInfo$  Files under $freelimit$ are not queued.</p>
 
     <p><i>Please note that if the server runs out of upload slots then your download will stall untill a free slot is availible.</i></p>
 

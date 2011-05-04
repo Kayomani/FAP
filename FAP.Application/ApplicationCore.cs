@@ -402,7 +402,7 @@ namespace FAP.Application
 
                                 //Local stats
                                 {
-                                    if (model.LocalNode.DownloadSpeed == 0)
+                                    if (model.LocalNode.DownloadSpeed == 0 && model.LocalNode.UploadSpeed == 0)
                                     {
                                         string t = "Local: No transfers";
                                         if (mainWindowModel.LocalStats != t)

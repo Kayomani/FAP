@@ -36,7 +36,7 @@ namespace FAP.Domain.Entities
         public static readonly string ProtocolVersion = "FAP/1.0";
         public static int UPLINK_TIMEOUT = 60000;//1 minute
         public static int DOWNLOAD_RETRY_TIME = 120000;//2minutes
-        public static int WEB_FREE_FILE_LIMIT = 524288;//0.5mb
+        public static int WEB_FREE_FILE_LIMIT = 1048576;//1mb
 
         private readonly string oldSaveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
         private readonly string saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\ClientConfig.cfg";

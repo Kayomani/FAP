@@ -63,7 +63,7 @@ namespace FAP.Domain.Handlers
         public bool Handle(string req, RequestEventArgs e)
         {
             e.Response.Status = HttpStatusCode.OK;
-            string path = HttpUtility.UrlDecode(e.Request.Uri.AbsolutePath);
+            string path = DecodeURL(e.Request.Uri.AbsolutePath);
             byte[] data = null;
 
             if (path.StartsWith(WEB_ICON_PREFIX))
@@ -137,7 +137,7 @@ namespace FAP.Domain.Handlers
                 pagedata.Add("uploadslots", model.MaxUploads);
                 int freeslots = model.MaxUploads - uploadLimiter.GetActiveTokenCount();
                 pagedata.Add("currentuploadslots", freeslots);
-                pagedata.Add("queueInfo",  freeslots > 0 ? "" : "Queue length: " + uploadLimiter.GetQueueLength() + ". ");
+                pagedata.Add("queueInfo",  freeslots > 0 ? "" : "  Queue length: " + uploadLimiter.GetQueueLength() + ".");
                 pagedata.Add("slotcolour", freeslots > 0 ? "green" : "red");
 
                 pagedata.Add("util", new Utility());
@@ -196,7 +196,7 @@ namespace FAP.Domain.Handlers
                     {
                         Dictionary<string, object> d = new Dictionary<string, object>();
                         d.Add("Name", share.Name);
-                        d.Add("Path", GetSafeUrl(share.Name));
+                        d.Add("Path", EncodeURL(share.Name));
                         d.Add("Icon", "folder");
                         d.Add("Size", share.Size);
                         d.Add("Sizetxt", Utility.FormatBytes(share.Size));
@@ -223,11 +223,11 @@ namespace FAP.Domain.Handlers
                         if (null != fileInfo)
                         {
                             validPath = true;
-                            foreach (var dir in fileInfo.SubDirectories)
+                            foreach (var dir in fileInfo.SubDirectories.ToList())
                             {
                                 Dictionary<string, object> d = new Dictionary<string, object>();
                                 d.Add("Name", dir.Name);
-                                d.Add("Path", GetSafeUrl(dir.Name));
+                                d.Add("Path", EncodeURL(dir.Name));
                                 d.Add("Icon", "folder");
                                 d.Add("Sizetxt", Utility.FormatBytes(dir.Size));
                                 d.Add("Size", dir.Size);
@@ -237,14 +237,17 @@ namespace FAP.Domain.Handlers
                                 totalSize += dir.Size;
                             }
 
-                            foreach (var file in fileInfo.Files)
+                            foreach (var file in fileInfo.Files.ToList())
                             {
                                 Dictionary<string, object> d = new Dictionary<string, object>();
                                 d.Add("Name", file.Name);
                                 string ext = Path.GetExtension(file.Name);
                                 if (ext != null && ext.StartsWith("."))
                                     ext = ext.Substring(1);
-                                d.Add("Path", GetSafeUrl(file.Name));
+                                string name =file.Name;
+                                if(!string.IsNullOrEmpty(name))
+                                    name = name.Replace("#","%23");
+                                d.Add("Path", name);
                                 d.Add("Icon", ext);
                                 d.Add("Size", file.Size);
                                 d.Add("Sizetxt", Utility.FormatBytes(file.Size));
@@ -294,11 +297,63 @@ namespace FAP.Domain.Handlers
         }
 
 
-        private string GetSafeUrl(string url)
+        /// <summary>
+        ///  HttpUtility.UrlEncode does this wrong :E  Is there a better way than this??
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        private string EncodeURL(string url)
         {
             if (string.IsNullOrEmpty(url))
                 return string.Empty;
-            return HttpUtility.UrlEncode(url).Replace("#", "%23");
+
+            url = url.Replace("!","%21");
+            url = url.Replace("*","%2A");
+            url = url.Replace("'","%27");
+            url = url.Replace("(","%28");
+            url = url.Replace(")","%29");
+            url = url.Replace(";","%3B");
+            url = url.Replace(":","%3A");
+            url = url.Replace("@","%40");
+            url = url.Replace("&","%26");
+            url = url.Replace("=","%3D");
+            url = url.Replace("+","%2B");
+            url = url.Replace("$","%24");
+            url = url.Replace(",","%2C");
+            url = url.Replace("/","'%2F");
+            url = url.Replace("?","%3F");
+            url = url.Replace("%","%25");
+            url = url.Replace("#","%23");
+            url = url.Replace("[","%5B");
+            url = url.Replace("]","%5D");
+            return  url;
+        }
+
+         private string DecodeURL(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return string.Empty;
+
+            url = url.Replace("%21", "!");
+            url = url.Replace("%2A", "*");
+            url = url.Replace("%27", "'");
+            url = url.Replace("%28", "(");
+            url = url.Replace("%29", ")");
+            url = url.Replace("%3B", ";");
+            url = url.Replace("%3A", ":");
+            url = url.Replace("%40", "@");
+            url = url.Replace("%26", "&");
+            url = url.Replace("%3D", "=");
+            url = url.Replace("%2B", "+");
+            url = url.Replace("%24", "$");
+            url = url.Replace("%2C", ",");
+            url = url.Replace("%2F", "/");
+            url = url.Replace("%3F", "?");
+            url = url.Replace("%25", "%");
+            url = url.Replace("%23", "#");
+            url = url.Replace("%5B", "[");
+            url = url.Replace("%5D", "]");
+            return HttpUtility.UrlDecode(url);
         }
 
 
