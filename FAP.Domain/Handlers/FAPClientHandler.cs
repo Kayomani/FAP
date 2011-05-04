@@ -36,24 +36,26 @@ namespace FAP.Domain.Handlers
         private Model model;
         private ShareInfoService shareInfoService;
         private IConversationController chatController;
+        private Logger logger;
 
         public FAPClientHandler(Model m, ShareInfoService s, IConversationController c)
         {
             model = m;
             shareInfoService = s;
             chatController = c;
+            logger = LogManager.GetLogger("faplog");
         }
 
         public bool Handle(RequestEventArgs e)
         {
             NetworkRequest req = Multiplexor.Decode(e.Request);
-            LogManager.GetLogger("faplog").Info("Client rx: {0} p: {1} source: {2} overlord: {3}", req.Verb, req.Param,req.SourceID,req.OverlordID);
+            logger.Trace("Client rx: {0} p: {1} source: {2} overlord: {3}", req.Verb, req.Param,req.SourceID,req.OverlordID);
             switch (req.Verb)
             {
                 case "INFO":
                     return HandleInfo(e);
                 case "NOOP":
-                    return HandleNOOP(e);
+                    return HandleNOOP(e, req);
                 case "DISCONNECT":
                     return HandleDisconnect(e);
                 case "UPDATE":
@@ -195,9 +197,12 @@ namespace FAP.Domain.Handlers
             return true;
         }
 
-        private bool HandleNOOP(RequestEventArgs e)
+        private bool HandleNOOP(RequestEventArgs e, NetworkRequest req)
         {
-            SendOk(e);
+            //Noop is usually used as a heartbeat message however if the authkey is set then it came from a overlord
+            //Check the authkey is correct for our current overlord just incase we disconnected incorrectly and reconnected elsewhere
+            if (string.IsNullOrEmpty(req.AuthKey) || req.AuthKey == model.Network.Overlord.Secret)
+                SendOk(e);
             return true;
         }
 

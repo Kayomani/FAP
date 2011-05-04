@@ -22,9 +22,10 @@ using ProtoBuf;
 
 namespace FAP.Domain.Entities.FileSystem
 {
-    //[Serializable]
+    [Serializable]
     [ProtoContract]
-    [ProtoInclude(4, typeof(Directory))]
+    [ProtoInclude(20, typeof(Directory))]
+    
     public class File
     {
         [ProtoMember(1)]

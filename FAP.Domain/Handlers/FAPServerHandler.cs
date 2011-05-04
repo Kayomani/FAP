@@ -46,17 +46,23 @@ namespace FAP.Domain.Handlers
         private Model model;
         private Overlord serverNode;
         private Entities.Network network;
-
-        private BackgroundSafeObservable<ClientStream> connectedNodes = new BackgroundSafeObservable<ClientStream>();
+        //List of nodes 
+        private BackgroundSafeObservable<ClientStream> connectedClientNodes = new BackgroundSafeObservable<ClientStream>();
+        //List of nodes provided by external overlords
         private BackgroundSafeObservable<Node> externalNodes = new BackgroundSafeObservable<Node>();
-        private BackgroundSafeObservable<Uplink> activeOverlords = new BackgroundSafeObservable<Uplink>();
+        //List of external overlords on which this overlord is logged onto
+        private BackgroundSafeObservable<Uplink> extOverlordServers = new BackgroundSafeObservable<Uplink>();
+        //List if client id's currently triyng ot connect
         private BackgroundSafeObservable<string> connectingIDs = new BackgroundSafeObservable<string>();
 
         private MulticastServerService multicastServer = new MulticastServerService();
         private MulticastClientService multicastClient;
 
+        private Logger logger;
+
         public FAPServerHandler(IPAddress host, int port, Model m,MulticastClientService c,LANPeerFinderService p)
         {
+            logger = LogManager.GetLogger("faplog");
             peerFinder = p;
             serverNode = new Overlord();
             serverNode.Nickname = "Overlord";
@@ -82,13 +88,14 @@ namespace FAP.Domain.Handlers
 
         public void Start(string networkId, string networkName)
         {
-            LogManager.GetLogger("faplog").Info("Server started with ID: {0}", serverNode.ID);
+            logger.Info("Local overlord started.");
+            logger.Debug("Local overlord started with ID: {0}", serverNode.ID);
             peerFinder.Start();
             network.NetworkID = networkId;
             network.NetworkName = networkName;
             HelloVerb verb = new HelloVerb();
             multicastServer.Start(verb.CreateRequest(serverNode.Location, network.NetworkName, serverNode.ID, network.NetworkID,serverNode.Strength));
-#if SEARCH
+#if DEBUG
             ThreadPool.QueueUserWorkItem(new WaitCallback(ProcessLanConnections));
 #endif
         }
@@ -106,16 +113,16 @@ namespace FAP.Domain.Handlers
                         continue;
 
                     //If not already connected to that peer then connect
-                    if (activeOverlords.Where(o => o.Destination.Location == peer.Address).Count() == 0)
+                    if (extOverlordServers.Where(o => o.Destination.Location == peer.Address).Count() == 0)
                     {
-                        LogManager.GetLogger("faplog").Info("Server connecting as client to external overlord at {0}", peer.Address);
+                        logger.Debug("Server connecting as client to external overlord at {0}", peer.Address);
                         ConnectVerb verb = new ConnectVerb();
                         verb.Address = serverNode.Location;
                         verb.ClientType = ClientType.Overlord;
                         verb.Secret = IDService.CreateID();
 
                         Uplink uplink = new Uplink(model.LocalNode, new Node() { ID = peer.OverlordID, Location = peer.Address, NodeType = ClientType.Overlord,Secret=verb.Secret });
-                        activeOverlords.Add(uplink);
+                        extOverlordServers.Add(uplink);
 
 
                         Client client = new Client(serverNode);
@@ -126,15 +133,15 @@ namespace FAP.Domain.Handlers
                             uplink.OnDisconnect += new Uplink.Disconnect(uplink_OnDisconnect);
                             
                             uplink.Start();
-                            LogManager.GetLogger("faplog").Info("Server connected to client to external overlord at {0}", peer.Address);
+                            logger.Debug("Server connected to client to external overlord at {0}", peer.Address);
                             break;
                         }
                         else
                         {
                             //Failed to connect ot the external overlord
-                            LogManager.GetLogger("faplog").Info("Server failed to connect to external overlord at {0}", peer.Address);
+                            logger.Debug("Server failed to connect to external overlord at {0}", peer.Address);
                             peerFinder.RemovePeer(peer);
-                            activeOverlords.Remove(uplink);
+                            extOverlordServers.Remove(uplink);
                         }
                     }
                 }
@@ -147,18 +154,24 @@ namespace FAP.Domain.Handlers
             //A remote overlord has disconnected, notify local clients of all associated peering going offline.
             lock (sync)
             {
-                LogManager.GetLogger("faplog").Info("Server had uplink disconnect to {0}", s.Destination.ID);
-                activeOverlords.Remove(s);
+                logger.Debug("Server had uplink disconnect to {0}", s.Destination.ID);
+                extOverlordServers.Remove(s);
                 UpdateVerb verb = new UpdateVerb();
-                foreach (var node in externalNodes)
+                foreach (var node in externalNodes.ToList())
                 {
                     if (node.OverlordID == s.Destination.ID)
                     {
+                        //Check the node isnt now logged on locally
+                        if (connectedClientNodes.Where(n => n.Node.ID == node.ID).Count()>0)
+                            continue;
                         verb.Nodes.Add(new Node(){ID = node.ID,Online =false});
                     }
+                    externalNodes.Remove(node);
                 }
                 verb.Nodes.Add(new Node(){ID = s.Destination.ID,Online =false});
-                TransmitToLocalClients(verb.CreateRequest());
+                var req = verb.CreateRequest();
+                req.OverlordID = serverNode.ID;
+                SendToStandardClients(req);
             }
         }
 
@@ -181,7 +194,7 @@ namespace FAP.Domain.Handlers
         public bool Handle(RequestEventArgs e)
         {
             NetworkRequest req = Multiplexor.Decode(e.Request);
-            LogManager.GetLogger("faplog").Info("Server rx: {0} p: {1} source: {2} overlord: {3}", req.Verb, req.Param, req.SourceID, req.OverlordID);
+            logger.Trace("Server rx: {0} p: {1} source: {2} overlord: {3}", req.Verb, req.Param, req.SourceID, req.OverlordID);
             switch (req.Verb)
             {
                 case "INFO":
@@ -203,15 +216,21 @@ namespace FAP.Domain.Handlers
         #region Helper methods
        
 
-        private void TransmitToLocalClients(NetworkRequest r)
+        private void SendToStandardClients(NetworkRequest r)
         {
-            foreach (var peer in connectedNodes.ToList())
+            foreach (var peer in connectedClientNodes.ToList().Where(c=>c.Node.NodeType == ClientType.Client))
                 peer.AddMessage(r);
         }
 
-        private void TransmitToAllOverlords(NetworkRequest r)
+        private void SendToOverlordClients(NetworkRequest r)
         {
-            foreach (var peer in activeOverlords)
+            foreach (var peer in connectedClientNodes.ToList().Where(c => c.Node.NodeType == ClientType.Overlord))
+                peer.AddMessage(r);
+        }
+
+        private void SendToOverlordServers(NetworkRequest r)
+        {
+            foreach (var peer in extOverlordServers)
                 peer.AddMessage(r);
         }
         #endregion
@@ -229,52 +248,66 @@ namespace FAP.Domain.Handlers
                 UpdateVerb verb = new UpdateVerb();
                 verb.ProcessRequest(req);
 
+                //Ignore updates about ourself
+                if (verb.Nodes != null && verb.Nodes.Count == 1 && verb.Nodes[0].ID == serverNode.ID)
+                {
+                    SendResponse(e, null);
+                    return true;
+                }
+
                 //Is the call from a local client?
-                var localClient = connectedNodes.ToList().Where(n => n.Node.ID == req.SourceID && n.Node.Secret == req.AuthKey && n.Node.NodeType != ClientType.Overlord).FirstOrDefault();
+                var localClient = connectedClientNodes.ToList().Where(n => n.Node.ID == req.SourceID && n.Node.Secret == req.AuthKey && n.Node.NodeType != ClientType.Overlord).FirstOrDefault();
                 if (null != localClient)
                 {
                     //Only allow updates about itself
                     var client = verb.Nodes.Where(n => n.ID == localClient.Node.ID).FirstOrDefault();
                     if (null != client && verb.Nodes.Count==1)
                     {
-                        LogManager.GetLogger("faplog").Info("Server got update from local client {0}", client.ID);
+                        logger.Trace("Server got update from local client {0}", client.ID);
 
                         //Copy to local store
                         foreach (var value in verb.Nodes[0].Data)
                             localClient.Node.SetData(value.Key, value.Value);
+
+                        req.OverlordID = serverNode.ID;
                         //Retransmit
-                        TransmitToLocalClients(req);
-                        TransmitToAllOverlords(req);
+                        SendToOverlordClients(req);
+                        SendToStandardClients(req);
                         SendResponse(e, null);
                         //Has the client disconnected?
                         if (!localClient.Node.Online)
                         {
                             localClient.Kill();
-                            connectedNodes.Remove(localClient);
+                            connectedClientNodes.Remove(localClient);
                         }
                         return true;
                     }
                 }
                 else
                 {
+                    
                     //Is the update from an external overlord?
-                    var overlord = activeOverlords.ToList().Where(n => n.Destination.ID == req.OverlordID && n.Destination.Secret == req.AuthKey && n.Destination.NodeType == ClientType.Overlord).FirstOrDefault();
+                    var overlord = extOverlordServers.ToList().Where(n => n.Destination.ID == req.OverlordID && n.Destination.Secret == req.AuthKey && n.Destination.NodeType == ClientType.Overlord).FirstOrDefault();
                     if (null != overlord)
                     {
-                        LogManager.GetLogger("faplog").Info("Server got update from external overlord {0}", overlord.Destination.ID);
+                        logger.Trace("Server got update from external overlord {0}", overlord.Destination.ID);
                         //Check each update
                         UpdateVerb nverb = new UpdateVerb();
                         foreach (var update in verb.Nodes)
                         {
                             if (!string.IsNullOrEmpty(update.ID))
                             {
+                                //Ignore updates about ourself
+                                if (update.ID == serverNode.ID)
+                                    continue;
+
                                 lock (sync)
                                 {
                                     //Is the update about the overlord itself?
-                                    var osearch = activeOverlords.Where(o => o.Destination.ID == update.ID && o.Destination.Secret == req.AuthKey).FirstOrDefault();
+                                    var osearch = extOverlordServers.Where(o => o.Destination.ID == update.ID && o.Destination.Secret == req.AuthKey).FirstOrDefault();
                                     if (null != osearch)
                                     {
-                                        LogManager.GetLogger("faplog").Info("Server got update from external about itself: {0}", osearch.Destination.ID);
+                                        logger.Trace("Server got update from external about itself: {0}", osearch.Destination.ID);
                                         //Copy to local store
                                         foreach (var value in update.Data)
                                             osearch.Destination.SetData(value.Key, value.Value);
@@ -294,7 +327,7 @@ namespace FAP.Domain.Handlers
                                                     externalNodes.Remove(enode);
                                                     //Only signal disconnect is the node isnt a local node
                                                     //I.e. they connected locally without disconnecting externally.
-                                                    var search = connectedNodes.Where(n => n.Node.ID == enode.ID).FirstOrDefault();
+                                                    var search = connectedClientNodes.Where(n => n.Node.ID == enode.ID).FirstOrDefault();
                                                     if (null == search)
                                                     {
                                                         //The node isn't connected locally so notify local clients of disconnect.
@@ -306,7 +339,7 @@ namespace FAP.Domain.Handlers
                                     }
                                     else
                                     {
-                                        LogManager.GetLogger("faplog").Info("Server got update from external server about : {0}", update.ID);
+                                        logger.Trace("Server got update from external server about : {0}", update.ID);
 
                                         //Update about an external node from an external overlord
                                         var search = externalNodes.Where(n => n.ID == update.ID).FirstOrDefault();
@@ -344,14 +377,18 @@ namespace FAP.Domain.Handlers
                         }
                         //Only transmit external node info to local clients
                         if (nverb.Nodes.Count > 0)
-                            TransmitToLocalClients(nverb.CreateRequest());
+                        {
+                            var nreq = nverb.CreateRequest();
+                            nreq.OverlordID = req.OverlordID;
+                            SendToStandardClients(nreq);
+                        }
                         SendResponse(e, null);
                         return true;
                     }
                 }
             }
             catch { }
-            LogManager.GetLogger("faplog").Warn("Server received an invalid update");
+            logger.Debug("Server received an invalid update");
             return false;
         }
 
@@ -393,12 +430,12 @@ namespace FAP.Domain.Handlers
             if (string.IsNullOrEmpty(r.OverlordID))
             {
                 r.OverlordID = serverNode.ID;
-                TransmitToLocalClients(r);
-                TransmitToAllOverlords(r);
+                SendToStandardClients(r);
+                SendToOverlordClients(r);
             }
             else
             {
-                TransmitToLocalClients(r);
+                SendToStandardClients(r);
             }
             SendResponse(e, null);
             return true;
@@ -460,10 +497,11 @@ namespace FAP.Domain.Handlers
                     req.OverlordID = serverNode.ID;
                     req.AuthKey = iv.Secret;
 
-                    TransmitToLocalClients(req);
-                    TransmitToAllOverlords(req);
-
-                    connectedNodes.Add(c);
+                    SendToStandardClients(req);
+                    //Dont send overlord logs to other overlords
+                    if (n.NodeType != ClientType.Overlord)
+                        SendToOverlordClients(req);
+                    connectedClientNodes.Add(c);
                 }
                 //Find client servers
                 ThreadPool.QueueUserWorkItem(new WaitCallback(ScanClientAsync), n);
@@ -488,7 +526,7 @@ namespace FAP.Domain.Handlers
                     
                     update.Nodes.Add(serverNode as Node);
                     c.Start(n, serverNode);
-                    foreach (var peer in connectedNodes.ToList())
+                    foreach (var peer in connectedClientNodes.ToList())
                         update.Nodes.Add(peer.Node);
                     var req = update.CreateRequest();
                     req.SourceID = serverNode.ID;
@@ -506,18 +544,18 @@ namespace FAP.Domain.Handlers
                     lock (sync)
                     {
                         //Send local nodes
-                        foreach (var peer in connectedNodes)
+                        foreach (var peer in connectedClientNodes)
                             update.Nodes.Add(peer.Node);
                         //Send nodes on external overlords
                         foreach (var peer in externalNodes)
                         {
                             //Only send if the peer isnt locally connected
-                            var search = connectedNodes.Where(ns => ns.Node.ID == peer.ID).FirstOrDefault();
+                            var search = connectedClientNodes.Where(ns => ns.Node.ID == peer.ID).FirstOrDefault();
                             if (null != search)
                                 update.Nodes.Add(peer);
                         }
                         //Send external overlords
-                        foreach (var peer in activeOverlords)
+                        foreach (var peer in extOverlordServers)
                             update.Nodes.Add(peer.Destination);
                     }
 
@@ -543,15 +581,17 @@ namespace FAP.Domain.Handlers
             {
                 lock (sync)
                 {
-                    if (connectedNodes.Contains(s))
+                    if (connectedClientNodes.Contains(s))
                     {
-                        LogManager.GetLogger("faplog").Warn("Server dropped client {0}",s.Node.ID);
-                        connectedNodes.Remove(s);
+                        logger.Debug("Server dropped client {0}", s.Node.ID);
+                        connectedClientNodes.Remove(s);
                         s.OnDisconnect -= new ClientStream.Disconnect(c_OnDisconnect);
                         UpdateVerb info = new UpdateVerb();
                         info.Nodes.Add(new Node() { ID = s.Node.ID, Online = false });
-                        TransmitToAllOverlords(info.CreateRequest());
-                        TransmitToLocalClients(info.CreateRequest());
+                        var req = info.CreateRequest();
+                        req.OverlordID = serverNode.ID;
+                        SendToOverlordClients(req);
+                        SendToStandardClients(req);
                     }
                 }
             }
@@ -685,9 +725,12 @@ namespace FAP.Domain.Handlers
 
                 UpdateVerb verb = new UpdateVerb();
                 verb.Nodes.Add(r);
-                TransmitToLocalClients(verb.CreateRequest());
-                TransmitToAllOverlords(verb.CreateRequest());
-
+                var req = verb.CreateRequest();
+                req.OverlordID = serverNode.ID;
+                SendToStandardClients(req);
+                //Dont updates about overlords to other overlords
+                if (n.NodeType != ClientType.Overlord)
+                    SendToOverlordClients(req);
                 //Store info
                 n.SetData("HTTP", webTitle.Replace("\n", "").Replace("\r", ""));
                 n.SetData("FTP", ftp.Replace("\n", "").Replace("\r", ""));

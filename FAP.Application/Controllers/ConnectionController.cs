@@ -118,14 +118,24 @@ namespace FAP.Application.Controllers
         {
             run = false;
             workerEvent.Set();
+            Disconnect();
+        }
 
+        public void Disconnect()
+        {
             //Notify log off
             if (model.Network.State == ConnectionState.Connected)
             {
                 Client c = new Client(model.LocalNode);
                 UpdateVerb verb = new UpdateVerb();
-                verb.Nodes.Add(new Node() { ID = model.LocalNode.ID,Online = false });
-                c.Execute(verb, model.Network.Overlord,3000);
+                verb.Nodes.Add(new Node() { ID = model.LocalNode.ID, Online = false });
+                c.Execute(verb, model.Network.Overlord, 3000);
+
+                //Remove peer so we dont reconnect straight away most likely
+                var peer = peerFinder.Peers.Where(p => p.Address == model.Network.Overlord.Location).FirstOrDefault();
+                if (null != peer)
+                    peerFinder.RemovePeer(peer);
+                model.Network.State = ConnectionState.Disconnected;
             }
         }
 
@@ -143,7 +153,7 @@ namespace FAP.Application.Controllers
                     //Build up a prioritised server list
                     List<DetectedNode> availibleNodes = new List<DetectedNode>();
 
-                    var detectedPeers = peerFinder.Peers.Where(n=>n.Address=="10.0.0.6:40").ToList();
+                    var detectedPeers = peerFinder.Peers.ToList();
 
                     //Prioritise a server we havent connected to already
                     foreach (var peer in detectedPeers)
@@ -254,7 +264,7 @@ namespace FAP.Application.Controllers
                 net.Overlord = new Node();
                 net.Overlord.Location = n.Address;
                 net.Overlord.Secret = verb.Secret;
-                LogManager.GetLogger("faplog").Info("Client using secret {0}", verb.Secret);
+                LogManager.GetLogger("faplog").Debug("Client using secret {0}", verb.Secret);
                 if (client.Execute(verb, n.Address))
                 {
                     net.State = ConnectionState.Connected;

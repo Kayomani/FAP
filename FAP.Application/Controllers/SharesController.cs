@@ -76,7 +76,7 @@ namespace FAP.Application.Controllers
 
                 if (model.Shares.Where(os => os.Path == folder).Count() > 0)
                 {
-                    logger.Error("A share with this path already exists");
+                    logger.Debug("A share with this path already exists");
                 }
 
                 try

@@ -24,7 +24,8 @@ using FAP.Domain.Verbs;
 
 namespace FAP.Application
 {
-    public class ApplicationModule : Module
+    public class
+        ApplicationModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
@@ -32,6 +33,7 @@ namespace FAP.Application
             builder.RegisterType<PopupWindowController>().As<PopupWindowController>().SingleInstance();
             builder.RegisterType<ConnectionController>().SingleInstance();
             builder.RegisterType<WatchdogController>().SingleInstance();
+            builder.RegisterType<InterfaceController>();
         }
     }
 }

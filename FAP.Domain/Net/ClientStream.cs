@@ -30,6 +30,7 @@ namespace FAP.Domain.Net
     /// </summary>
     public class ClientStream
     {
+        public readonly int PRE_TIMEOUT_PERIOD = 10000;
         private BackgroundSafeObservable<NetworkRequest> pendingRequests = new BackgroundSafeObservable<NetworkRequest>();
         private Node destination;
         private Node serverNode;
@@ -95,8 +96,14 @@ namespace FAP.Domain.Net
                         return;
                     }
                     //If the client is going to timeout in the next 15 seconds then do an update
-                    if (pendingRequests.Count == 0 && Environment.TickCount - destination.LastUpdate > Model.UPLINK_TIMEOUT - 15000)
-                        pendingRequests.Add(new NetworkRequest() { Data = string.Empty, Param = string.Empty, Verb = "NOOP" });
+                    if (pendingRequests.Count == 0 && Environment.TickCount - destination.LastUpdate > Model.UPLINK_TIMEOUT - PRE_TIMEOUT_PERIOD)
+                        pendingRequests.Add(new NetworkRequest()
+                                             {
+                                                 Data = string.Empty,
+                                                 Param = string.Empty,
+                                                 Verb = "NOOP",
+                                                 SourceID = serverNode.ID
+                                             });
 
                     while (pendingRequests.Count > 0)
                     {

@@ -87,11 +87,11 @@ namespace Fap.Presentation
                 }
 
                 ApplicationCore core = new ApplicationCore(container);
-                if (core.Load())
+                if (core.Load(false))
                 {
                     core.StartClientServer();
                     core.StartGUI();
-#if DEBUG2
+#if DEBUG
                     core.StartOverlordServer();
 #endif
                 }
@@ -111,10 +111,7 @@ namespace Fap.Presentation
         {
             Console.WriteLine(e.Exception.Message);
             if (null != container)
-            {
-                var logger = LogManager.GetLogger("faplog");
-                logger.FatalException("Unhandled dispatcher exception",e.Exception);
-            }
+                 LogManager.GetLogger("faplog").FatalException("Unhandled dispatcher exception",e.Exception);
             e.Handled = true;
         }
 
@@ -122,10 +119,7 @@ namespace Fap.Presentation
         {
             Console.WriteLine(e.Exception.Message);
             if (null != container)
-            {
-                var logger = LogManager.GetLogger("faplog");
-                logger.FatalException("Unhandled exception", e.Exception);
-            }
+                LogManager.GetLogger("faplog").FatalException("Unhandled exception", e.Exception);
             e.Handled = true;
         }
 

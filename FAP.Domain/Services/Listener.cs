@@ -50,6 +50,11 @@ namespace FAP.Domain.Services
             model = container.Resolve<Model>();
         }
 
+        public bool IsRunning
+        {
+            get { return listener != null; }
+        }
+
         public void Start(int inport)
         {
             listener = new NodeServer();

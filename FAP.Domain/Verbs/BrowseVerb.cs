@@ -100,27 +100,13 @@ namespace FAP.Domain.Verbs
                             //Get directories
                             foreach (var dir in directories)
                             {
-                                var info = scanInfo.SubDirectories.Where(d => d.Name == dir.Name).FirstOrDefault();
-                                if (null != info)
+                                Results.Add(new BrowsingFile()
                                 {
-                                    Results.Add(new BrowsingFile()
-                                       {
-                                           IsFolder = true,
-                                           Size = info.Size,
-                                           Name = dir.Name,
-                                           LastModified = dir.LastWriteTime
-                                       });
-                                }
-                                else
-                                {
-                                    Results.Add(new BrowsingFile()
-                                    {
-                                        IsFolder = true,
-                                        Size = 0,
-                                        Name = dir.Name,
-                                        LastModified = dir.LastWriteTime
-                                    });
-                                }
+                                    IsFolder = true,
+                                    Size = 0,
+                                    Name = dir.Name,
+                                    LastModified = dir.LastWriteTime
+                                });
                             }
                             //Get files
                             FileInfo[] files = directory.GetFiles();

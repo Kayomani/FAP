@@ -26,7 +26,7 @@ using ProtoBuf;
 
 namespace FAP.Domain.Entities.FileSystem
 {
-   // [Serializable]
+    [Serializable]
     [ProtoContract]
     public class Directory : File
     {
@@ -56,18 +56,18 @@ namespace FAP.Domain.Entities.FileSystem
             System.IO.File.WriteAllText(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".dat", JsonConvert.SerializeObject(this));*/
 
             //XML save
-            /*if (!System.IO.Directory.Exists(Path.GetDirectoryName(ShareInfoService.SaveLocation)))
-                System.IO.Directory.CreateDirectory(Path.GetDirectoryName(ShareInfoService.SaveLocation));**/
+            /*   if (!System.IO.Directory.Exists(Path.GetDirectoryName(ShareInfoService.SaveLocation)))
+                 System.IO.Directory.CreateDirectory(Path.GetDirectoryName(ShareInfoService.SaveLocation));
 
-            /*XmlSerializer serializer = new XmlSerializer(typeof(Directory));
-            using (TextWriter textWriter = new StreamWriter(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".dat"))
-            {
-                serializer.Serialize(textWriter, this);
-                textWriter.Flush();
-                textWriter.Close();
-            }*/
+             XmlSerializer serializer = new XmlSerializer(typeof(Directory));
+             using (TextWriter textWriter = new StreamWriter(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".dat"))
+             {
+                 serializer.Serialize(textWriter, this);
+                 textWriter.Flush();
+                 textWriter.Close();
+             }*/
 
-            using(Stream file = System.IO.File.Open(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".info",FileMode.OpenOrCreate))
+            using (Stream file = System.IO.File.Open(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".info", FileMode.Create))
             {
                 ProtoBuf.Serializer.Serialize<Directory>(file, this);
             }
@@ -86,17 +86,17 @@ namespace FAP.Domain.Entities.FileSystem
                 Files = m.Files;*/
 
                 //Xml load
-                /*XmlSerializer deserializer = new XmlSerializer(typeof(Directory));
-                using (TextReader textReader = new StreamReader(name))
-                {
-                    Directory m = (Directory)deserializer.Deserialize(textReader);
-                    Name = m.Name;
-                    Size = m.Size;
-                    FileCount = m.FileCount;
-                    SubDirectories = m.SubDirectories;
-                    Files = m.Files;
-                }*/
-
+                  /* XmlSerializer deserializer = new XmlSerializer(typeof(Directory));
+                    using (TextReader textReader = new StreamReader(name))
+                    {
+                        Directory m = (Directory)deserializer.Deserialize(textReader);
+                        Name = m.Name;
+                        Size = m.Size;
+                        FileCount = m.FileCount;
+                        SubDirectories = m.SubDirectories;
+                        Files = m.Files;
+                    }*/
+                
                 using (Stream stream = System.IO.File.Open(name, FileMode.Open))
                 {
                     Directory m = ProtoBuf.Serializer.Deserialize<Directory>(stream);

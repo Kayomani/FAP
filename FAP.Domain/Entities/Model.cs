@@ -34,7 +34,7 @@ namespace FAP.Domain.Entities
     {
         public static readonly string AppVersion = "FAP Alpha 5";
         public static readonly string ProtocolVersion = "FAP/1.0";
-        public static int UPLINK_TIMEOUT = 60000;//1 minute
+        public static int UPLINK_TIMEOUT = 20000;//1 minute
         public static int DOWNLOAD_RETRY_TIME = 120000;//2minutes
         public static int WEB_FREE_FILE_LIMIT = 1048576;//1mb
 
@@ -309,46 +309,49 @@ namespace FAP.Domain.Entities
             {
                 try
                 {
-                    Model saved = null;
-                    bool doneConvert = false;
-
-                    //If the config file does not exist then check for the legacy format.
-                    if (!File.Exists(saveLocation))
+                    if (File.Exists(saveLocation) || File.Exists(oldSaveLocation))
                     {
-                        if (File.Exists(oldSaveLocation))
+                        Model saved = null;
+                        bool doneConvert = false;
+
+                        //If the config file does not exist then check for the legacy format.
+                        if (!File.Exists(saveLocation))
                         {
-                            XmlSerializer deserializer = new XmlSerializer(typeof(Model));
-                            using (TextReader textReader = new StreamReader(oldSaveLocation))
+                            if (File.Exists(oldSaveLocation))
                             {
-                                saved = (Model)deserializer.Deserialize(textReader);
-                                doneConvert = true;
+                                XmlSerializer deserializer = new XmlSerializer(typeof(Model));
+                                using (TextReader textReader = new StreamReader(oldSaveLocation))
+                                {
+                                    saved = (Model)deserializer.Deserialize(textReader);
+                                    doneConvert = true;
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        saved = JsonConvert.DeserializeObject<Model>(File.ReadAllText(saveLocation));
-                    }
+                        else
+                        {
+                            saved = JsonConvert.DeserializeObject<Model>(File.ReadAllText(saveLocation));
+                        }
 
-                    Shares.Clear();
-                    Shares.AddRange(saved.Shares.OrderBy(s => s.Name).ToList());
-                    Avatar = saved.Avatar;
-                    Description = saved.Description;
-                    Nickname = saved.Nickname;
-                    DownloadFolder = saved.DownloadFolder;
-                    MaxDownloads = saved.MaxDownloads;
-                    MaxDownloadsPerUser = saved.MaxDownloadsPerUser;
-                    MaxUploads = saved.MaxUploads;
-                    MaxUploadsPerUser = saved.MaxUploadsPerUser;
-                    DisableComparision = saved.DisableComparision;
-                    IPAddress = saved.IPAddress;
-                    AlwaysNoCacheBrowsing = saved.AlwaysNoCacheBrowsing;
+                        Shares.Clear();
+                        Shares.AddRange(saved.Shares.OrderBy(s => s.Name).ToList());
+                        Avatar = saved.Avatar;
+                        Description = saved.Description;
+                        Nickname = saved.Nickname;
+                        DownloadFolder = saved.DownloadFolder;
+                        MaxDownloads = saved.MaxDownloads;
+                        MaxDownloadsPerUser = saved.MaxDownloadsPerUser;
+                        MaxUploads = saved.MaxUploads;
+                        MaxUploadsPerUser = saved.MaxUploadsPerUser;
+                        DisableComparision = saved.DisableComparision;
+                        IPAddress = saved.IPAddress;
+                        AlwaysNoCacheBrowsing = saved.AlwaysNoCacheBrowsing;
 
-                    //Converted config so delete the old one
-                    if (doneConvert)
-                    {
-                        Save();
-                        // File.Delete(oldSaveLocation);
+                        //Converted config so delete the old one
+                        if (doneConvert)
+                        {
+                            Save();
+                            // File.Delete(oldSaveLocation);
+                        }
                     }
                 }
                 catch (Exception e)

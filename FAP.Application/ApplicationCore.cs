@@ -59,6 +59,7 @@ namespace FAP.Application
         private ShareInfoService shareInfo;
         private ListenerService server;
         private UpdateCheckerService updateChecker;
+        private LogService logService;
        
         private Model model;
         private MainWindowViewModel mainWindowModel;
@@ -67,12 +68,14 @@ namespace FAP.Application
         public ApplicationCore(IContainer c)
         {
             container = c;
+            model = container.Resolve<Model>();
+            logService = new LogService(model);
+
             connectionController = c.Resolve<ConnectionController>();
             //Don't send two request went doing a post..
             System.Net.ServicePointManager.Expect100Continue = false;
             //Don't limit connections to a single node - 100 I think is the upper limit.
             System.Net.ServicePointManager.DefaultConnectionLimit = 100;
-            model = container.Resolve<Model>();
             updateChecker = container.Resolve<UpdateCheckerService>();
             interfaceController = container.Resolve<InterfaceController>();
         }
@@ -129,7 +132,7 @@ namespace FAP.Application
             ThreadPool.QueueUserWorkItem(new WaitCallback(MainWindowUpdater));
         }
 
-        public bool Load()
+        public bool Load(bool server)
         {
             model.Load();
             model.IPAddress = interfaceController.CheckAddress(model.IPAddress);
@@ -139,21 +142,25 @@ namespace FAP.Application
 
             model.CheckSetDefaults();
             updateChecker.Run();
-            //Delete any empty folders in the incomplete folder
-            RemoveEmptyFolders(model.IncompleteFolder);
-            LogManager.GetLogger("faplog").Info("Client started with ID: {0}", model.LocalNode.ID);
 
-            model.DownloadQueue.Load();
+            if (!server)
+            {
+                //Delete any empty folders in the incomplete folder
+                RemoveEmptyFolders(model.IncompleteFolder);
+                LogManager.GetLogger("faplog").Debug("Client started with ID: {0}", model.LocalNode.ID);
 
-            shareInfo = container.Resolve<ShareInfoService>();
-            shareInfo.Load();
+                model.DownloadQueue.Load();
 
-            shareController = new SharesController(container, model);
-            shareController.Initalise();
-            popupController = container.Resolve<PopupWindowController>();
-            conversationController = (ConversationController)container.Resolve<IConversationController>();
-            watchdogController = container.Resolve<WatchdogController>();
-            watchdogController.Start();
+                shareInfo = container.Resolve<ShareInfoService>();
+                shareInfo.Load();
+
+                shareController = new SharesController(container, model);
+                shareController.Initalise();
+                popupController = container.Resolve<PopupWindowController>();
+                conversationController = (ConversationController)container.Resolve<IConversationController>();
+                watchdogController = container.Resolve<WatchdogController>();
+                watchdogController.Start();
+            }
             return true;
         }
 
@@ -281,12 +288,37 @@ namespace FAP.Application
         {
             switch (mainWindowModel.CurrentChatMessage)
             {
+                case "/trace":
+                    logService.Filter = LogLevel.Trace;
+                    model.Messages.Add("Debug level set to: Trace");
+                    break;
                 case "/debug":
-                   // logReceiver.MoreDebug = !logReceiver.MoreDebug;
-                  //  logger.Info("Debug mode is " + (logReceiver.MoreDebug ? "Activated" : "Deactivated"));
+                    logService.Filter = LogLevel.Debug;
+                    model.Messages.Add("Debug level set to: Debug");
+                    break;
+                case "/info":
+                    logService.Filter = LogLevel.Debug;
+                    model.Messages.Add("Debug level set to: Info");
+                    break;
+                case "/warn":
+                    logService.Filter = LogLevel.Debug;
+                    model.Messages.Add("Debug level set to: Warning");
+                    break;
+                case "/error":
+                    logService.Filter = LogLevel.Debug;
+                    model.Messages.Add("Debug level set to: Error");
+                    break;
+                case "/fatal":
+                    logService.Filter = LogLevel.Debug;
+                    model.Messages.Add("Debug level set to: Fatal");
+                    break;
+                case "/off":
+                    logService.Filter = LogLevel.Off;
+                    model.Messages.Add("Debug level set to: Fatal");
                     break;
                 case "/disconnect":
-                    //peerController.Disconnect();
+                    model.Messages.Add("Disconnecting from current overlord..");
+                    connectionController.Disconnect();
                     break;
                 default:
                     if (!string.IsNullOrEmpty(mainWindowModel.CurrentChatMessage))
@@ -346,7 +378,10 @@ namespace FAP.Application
                                     sbs.Append(model.Network.State);
                                     sbs.Append(" as ");
                                     sbs.Append(model.Nickname);
-
+                                    if(server!=null && server.IsRunning)
+                                    {
+                                        sbs.Append(" (Overlord host)");
+                                    }
                                     /*var search = model.Peers.ToList().Where(p => p.ID == mainWindowModel.CurrentNetwork.OverlordID).FirstOrDefault();
 
                                     if (null != search)

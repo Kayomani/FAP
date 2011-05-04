@@ -8,6 +8,8 @@ using FAP.Domain.Services;
 using FAP.Application;
 using FAP.Network;
 using System.Net;
+using System.Waf.Applications.Services;
+using FAP.Application.Views;
 
 namespace Server.Console
 {
@@ -30,8 +32,8 @@ namespace Server.Console
             {
 
                 ApplicationCore core = new ApplicationCore(container);
-                core.Load();
-                core.StartClientServer();
+                core.Load(true);
+                //core.StartClientServer();
                 core.StartOverlordServer();
                
                 System.Console.WriteLine("Server started");
@@ -48,9 +50,19 @@ namespace Server.Console
              var builder = new ContainerBuilder();
              try
              {
+                 builder.RegisterAssemblyTypes((typeof(DomainModule).Assembly));
+                 builder.RegisterAssemblyTypes((typeof(NetworkModule).Assembly));
+                 builder.RegisterAssemblyTypes((typeof(ApplicationModule).Assembly));
+
                  builder.RegisterModule<DomainModule>();
                  builder.RegisterModule<NetworkModule>();
                  builder.RegisterModule<ApplicationModule>();
+
+                 builder.RegisterType<MessageService>().As<IMessageService>();
+                 builder.RegisterType<InterfaceSelectionView>().As<IInterfaceSelectionView>();
+                 builder.RegisterType<SharesView>().As<ISharesView>();
+                 builder.RegisterType<Query>().As<IQuery>();
+
                  container = builder.Build();
                  builder = new ContainerBuilder();
                  builder.RegisterInstance<IContainer>(container).SingleInstance();
