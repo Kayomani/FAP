@@ -155,7 +155,7 @@ namespace FAP.Domain.Handlers
         {
             if (req.AuthKey == model.Network.Overlord.Secret)
             {
-
+                model.Network.Overlord.LastUpdate = Environment.TickCount;
                 UpdateVerb verb = new UpdateVerb();
                 verb.ProcessRequest(req);
                 foreach (var node in verb.Nodes)
@@ -173,7 +173,10 @@ namespace FAP.Domain.Handlers
                             search.SetData(param.Key, param.Value);
                         //Has the client disconnected?
                         if (!search.Online)
+                        {
                             model.Network.Nodes.Remove(node);
+                            logger.Trace("Client: Node offline update: " + node.ID);
+                        }
                     }
                 }
                 SendOk(e);

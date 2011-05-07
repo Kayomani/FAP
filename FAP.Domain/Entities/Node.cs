@@ -335,6 +335,7 @@ namespace FAP.Domain.Entities
 
         public void SetData(string key, string data)
         {
+            lastUpdate = Environment.TickCount;
             this.data.Set(key, data);
             NotifyChange(key);
 

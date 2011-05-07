@@ -156,20 +156,20 @@ namespace FAP.Domain.Services
                             FileStream fileStream = null;
 
                             StringBuilder mainsb = new StringBuilder();
-                            mainsb.Append(model.DownloadFolder);
-                            mainsb.Append("\\");
+                           // mainsb.Append(model.DownloadFolder);
+                           // 
                             mainsb.Append(currentItem.LocalPath);
-                           
+                            mainsb.Append("\\");
                              string mainfolder = mainsb.ToString();
 
                              mainsb.Append("\\");
                             mainsb.Append(currentItem.FileName);
 
                             StringBuilder incompletesb = new StringBuilder();
-                            incompletesb.Append(model.IncompleteFolder);
-                            incompletesb.Append("\\");
+                           // incompletesb.Append(model.IncompleteFolder);
+                           
                             incompletesb.Append(currentItem.LocalPath);
-
+                            incompletesb.Append("\\");
                             string incompleteFolder = incompletesb.ToString();
 
                             incompletesb.Append("\\");

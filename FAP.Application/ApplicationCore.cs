@@ -208,8 +208,8 @@ namespace FAP.Application
                 mainWindowModel.Search = new DelegateCommand(Search);
 
                 SafeFilteredObservingCollection<Node> f = new SafeFilteredObservingCollection<Node>(new SafeObservingCollection<Node>(model.Network.Nodes));
-                //f.Filter = s => s.NodeType != ClientType.Overlord;
-                f.Filter = s => true;
+                f.Filter = s => s.NodeType != ClientType.Overlord;
+               // f.Filter = s => true;
                 mainWindowModel.Peers = f;
                 mainWindowModel.ChatMessages = new SafeObservingCollection<string>(model.Messages);
                 mainWindowModel.Show();
@@ -461,8 +461,8 @@ namespace FAP.Application
                                 //Global stats
                                 {
 
-                                    long upload = model.Network.Nodes.Select(s => s.DownloadSpeed).Sum();
-                                    long download = model.Network.Nodes.Select(s => s.UploadSpeed).Sum();
+                                    long upload = model.Network.Nodes.ToList().Select(s => s.DownloadSpeed).Sum();
+                                    long download = model.Network.Nodes.ToList().Select(s => s.UploadSpeed).Sum();
 
 
                                     if (upload == 0 && download == 0)

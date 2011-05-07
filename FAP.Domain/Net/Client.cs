@@ -40,7 +40,7 @@ namespace FAP.Domain.Net
 
         public bool Execute(IVerb verb, Node destinationNode)
         {
-           return Execute(verb, destinationNode, DEFAULT_TIMEOUT);
+            return Execute(verb, destinationNode, DEFAULT_TIMEOUT);
         }
 
         public bool Execute(IVerb verb, string destination)
@@ -55,10 +55,16 @@ namespace FAP.Domain.Net
 
         public bool Execute(NetworkRequest req, Node destination)
         {
-             NetworkRequest output = new NetworkRequest();
-             if (!string.IsNullOrEmpty(destination.Secret) && string.IsNullOrEmpty(req.AuthKey))
-                 req.AuthKey = destination.Secret;
-            return DoRequest(destination.Location, req, out output, 30000);
+            return Execute(req, destination, 30000);
+        }
+
+        public bool Execute(NetworkRequest req, Node destination, int timeout)
+        {
+            destination.LastUpdate = Environment.TickCount;
+            NetworkRequest output = new NetworkRequest();
+            if (!string.IsNullOrEmpty(destination.Secret) && string.IsNullOrEmpty(req.AuthKey))
+                req.AuthKey = destination.Secret;
+            return DoRequest(destination.Location, req, out output, timeout);
         }
 
         public bool Execute(IVerb verb, string destination, string authKey, int timeout)
@@ -72,6 +78,7 @@ namespace FAP.Domain.Net
             {
                 NetworkRequest request = verb.CreateRequest();
                 NetworkRequest output = new NetworkRequest();
+                destination.LastUpdate = Environment.TickCount;
 
                 if (!string.IsNullOrEmpty(destination.Secret) && string.IsNullOrEmpty(request.AuthKey))
                     request.AuthKey = destination.Secret;
@@ -101,11 +108,11 @@ namespace FAP.Domain.Net
                 HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(Multiplexor.Encode(url, input.Verb, input.Param));
                 req.Timeout = timeout;
 #if DEBUG
-                 req.Timeout= DEFAULT_TIMEOUT*10;
+                //req.Timeout = DEFAULT_TIMEOUT * 10;
 #endif
-                 //req.Pipelined = false;
-                 //req.ConnectionGroupName = Guid.NewGuid().ToString();
-                
+                //req.Pipelined = false;
+                //req.ConnectionGroupName = Guid.NewGuid().ToString();
+
                 //Add headers
                 req.UserAgent = Model.AppVersion;
                 //Add fap headers
@@ -143,13 +150,13 @@ namespace FAP.Domain.Net
                 {
                     using (Stream s = resp.GetResponseStream())
                     {
-                        using (System.IO.StreamReader sr = new System.IO.StreamReader(s,Encoding.Unicode))
+                        using (System.IO.StreamReader sr = new System.IO.StreamReader(s, Encoding.Unicode))
                         {
                             result.Data = sr.ReadToEnd().Trim();
                         }
                     }
                 }
-               
+
                 //Get the headers
                 foreach (var header in resp.Headers.AllKeys)
                 {

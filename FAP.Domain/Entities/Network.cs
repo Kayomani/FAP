@@ -33,13 +33,16 @@ namespace FAP.Domain.Entities
 
         public ConnectionState State
         {
-            set { state = value; NotifyChange("State"); }
+            set
+            {
+                state = value;
+                NotifyChange("State");
+            }
             get { return state; }
         }
 
         public SafeObservedCollection<Node> Nodes
         {
-            set { nodes = value; NotifyChange("Nodes"); }
             get { return nodes; }
         }
 

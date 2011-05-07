@@ -94,7 +94,11 @@ namespace FAP.Application.Controllers
                 if (model.Network.State == ConnectionState.Connected)
                 {
                     Client client = new Client(model.LocalNode);
-                    client.Execute((NetworkRequest)o, model.Network.Overlord);
+                    if (!client.Execute((NetworkRequest)o, model.Network.Overlord))
+                    {
+                        if (model.Network.State == ConnectionState.Connected)
+                            model.Network.State = ConnectionState.Disconnected;
+                    }
                 }
                 else
                 {
@@ -150,6 +154,12 @@ namespace FAP.Application.Controllers
                 {
                     //Not connected so connect automatically..
 
+                    //Regenerate local secret to stop any updates if we reconnecting..
+                    network.Overlord = new Node();
+                    network.Overlord.Secret = IDService.CreateID();
+                    //Clear old peers
+                    network.Nodes.Clear();
+
                     //Build up a prioritised server list
                     List<DetectedNode> availibleNodes = new List<DetectedNode>();
 
@@ -177,6 +187,22 @@ namespace FAP.Application.Controllers
                 if (network.State == ConnectionState.Connected)
                 {
                     CheckModelChanges();
+                    //Check for network timeout
+
+                    if ((Environment.TickCount - model.Network.Overlord.LastUpdate) > Model.UPLINK_TIMEOUT)
+                    {
+                        //We havent recently sent/recieved so went a noop so check we are still connected.
+                        NetworkRequest req = new NetworkRequest() { Verb = "NOOP", SourceID = model.LocalNode.ID, AuthKey = model.Network.Overlord.Secret };
+                        Client client = new Client(model.LocalNode);
+                        if (!client.Execute(req, model.Network.Overlord,4000))
+                        {
+                            if (network.State == ConnectionState.Connected)
+                            {
+                                Disconnect();
+                            }
+                        }
+                    }
+
                     workerEvent.WaitOne(10000);
                 }
                 else

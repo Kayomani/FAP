@@ -91,7 +91,7 @@ namespace FAP.Domain.Net
                     {
                         if (null != OnDisconnect)
                             OnDisconnect(this);
-                        NetworkRequest req = new NetworkRequest() { Verb = "DISCONNECT" };
+                        NetworkRequest req = new NetworkRequest() { Verb = "DISCONNECT", SourceID=serverNode.ID };
                         TransmitRequest(req);
                         return;
                     }
@@ -120,11 +120,10 @@ namespace FAP.Domain.Net
                     OnDisconnect(this);
             }
             //Clean up
-            AutoResetEvent w = workerEvent;
-            workerEvent = null;
-            w.Close();
+            //AutoResetEvent w = workerEvent;
+            //workerEvent = null;
+            //w.Close();
             pendingRequests.Clear();
-            destination = null;
         }
 
         private void TransmitRequest(NetworkRequest req)

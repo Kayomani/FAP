@@ -100,13 +100,18 @@ namespace FAP.Domain.Net
                     }
 
                     //Check for client time out
-                   /* if ((Environment.TickCount - destination.LastUpdate) > Model.UPLINK_TIMEOUT)
+                    if ((Environment.TickCount - destination.LastUpdate) > Model.UPLINK_TIMEOUT)
                     {
-                        //Timed out
-                        running = false;
-                        return;
-                    }*/
-
+                        //We havent recently sent/recieved so went a noop so check we are still connected.
+                        NetworkRequest req = new NetworkRequest() { Verb = "NOOP", SourceID = source.ID, AuthKey = destination.Secret };
+                        Client client = new Client(source);
+                        if (!client.Execute(req, destination, 4000))
+                        {
+                            //Error
+                            running = false;
+                            return;
+                        }
+                    }
 
                     //Wait until there is work to do or 5 seconds have elapsed
                     workerEvent.WaitOne(5000);
