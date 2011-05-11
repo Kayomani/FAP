@@ -11,58 +11,99 @@
             <GradientStop Color="#FF3F4F56" Offset="0.869"/>
         </LinearGradientBrush>
     </UserControl.Background>
-    <StackPanel Orientation="Vertical">
+    <StackPanel Orientation="Vertical" >
+        <GroupBox Header="User info" Height="120" >
+            <Grid Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150px" />
+                    <ColumnDefinition Width="200px" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="28px" />
+                    <RowDefinition Height="28px" />
+                    <RowDefinition Height="28px" />
+                </Grid.RowDefinitions>
 
-        <GroupBox Header="User info" Height="131">
-            <Grid>
-                <Label Content="Nickname" Height="28" HorizontalAlignment="Left" Margin="24,11,0,0" Name="label12" VerticalAlignment="Top" />
-                <TextBox MaxLength="15" Height="23" HorizontalAlignment="Left" Margin="145,10,0,0" Name="textBox1" VerticalAlignment="Top" Width="208" Text="{Binding  Model.Nickname}" />
-                <Label Content="Description" Height="28" HorizontalAlignment="Left" Margin="23,39,0,0" Name="label22" VerticalAlignment="Top" />
-                <TextBox MaxLength="15" Height="23" HorizontalAlignment="Left" Margin="145,39,0,0" Name="textBox2" VerticalAlignment="Top" Width="208" Text="{Binding  Model.Description}" />
-                <Label Content="Avatar" Height="27" HorizontalAlignment="Left" Margin="23,69,0,0" Name="label33" VerticalAlignment="Top" />
-                <Button Command="{Binding ChangeAvatar}" Content="Change" Height="23" HorizontalAlignment="Left" Margin="145,68,0,0" VerticalAlignment="Top" Width="65" />
+                <Label Content="Nickname" VerticalAlignment="Center"  />
+                <TextBox MaxLength="15" Grid.Column="1" Height="23" Text="{Binding  Model.Nickname}" />
+
+                <Label Content="Description" Grid.Row="1" VerticalAlignment="Center" />
+                <TextBox MaxLength="15" Height="23" Grid.Row="1" Grid.Column="1" Text="{Binding  Model.Description}" />
+
+                <Label Content="Avatar" Grid.Row="2" VerticalAlignment="Center" />
+                <Button Command="{Binding ChangeAvatar}" Content="Change" Height="23"   Grid.Row="2" Grid.Column="1" Width="65" HorizontalAlignment="Left" />
             </Grid>
         </GroupBox>
-        <GroupBox Header="Client config" Height="205">
-            <Grid>
-                <Label Content="Download Directory" Height="26" HorizontalAlignment="Left" Margin="21,6,0,0" Name="label23" VerticalAlignment="Top" />
-                <TextBox Height="23" Margin="143,6,79,0" Name="textBox3" Text="{Binding Model.DownloadFolder}" VerticalAlignment="Top" IsReadOnly="True" IsEnabled="False" />
-                <Button Content="Edit" Height="23" Margin="0,6,6,0"  Command="{Binding EditDownloadDir}" VerticalAlignment="Top" HorizontalAlignment="Right" Width="65" />
-                <Label Content="Incomplete Directory" Height="31" HorizontalAlignment="Left" Margin="19,33,0,0" Name="label1" VerticalAlignment="Top" />
-                <TextBox Height="23" IsEnabled="False" IsReadOnly="True" Margin="143,35,79,0" Name="textBox4" Text="{Binding Model.IncompleteFolder}" VerticalAlignment="Top" />
-                <Button Visibility="Collapsed" Command="{Binding EditDownloadDir}" Content="Edit" Height="23" HorizontalAlignment="Right" Margin="0,36,6,0" VerticalAlignment="Top" Width="65" />
-                <Label Content="Disable spec comparision" Height="32" HorizontalAlignment="Left" Margin="21,124,0,0" Name="label2" VerticalAlignment="Top" />
-                <CheckBox Margin="175,124,0,0" IsChecked="{Binding Model.DisableComparision}" HorizontalAlignment="Left" Width="35" Height="22" VerticalAlignment="Top" />
-                <Label Content="Selected Interface" Height="29" HorizontalAlignment="Left" Margin="21,92,0,0"  VerticalAlignment="Top" />
+        <GroupBox Header="Client config" Height="210">
+            <Grid Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150px" />
+                    <ColumnDefinition Width="*" MinWidth="300px"  />
+                    <ColumnDefinition Width="100px" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="28px" />
+                    <RowDefinition Height="28px" />
+                    <RowDefinition Height="28px" />
+                    <RowDefinition Height="28px" />
+                    <RowDefinition Height="28px" />
+                    <RowDefinition Height="28px" />
+                </Grid.RowDefinitions>
 
-                <Label Content="Overlord host priority" Height="29" HorizontalAlignment="Left" Margin="20,63,0,0" Name="label3" VerticalAlignment="Top" />
-                <Border Margin="143,63,0,0" HorizontalAlignment="Left" BorderBrush="Black" BorderThickness="1" CornerRadius="2" Height="24" VerticalAlignment="Top" Width="131">
+                <Label Content="Download Directory" VerticalAlignment="Center" />
+                <TextBox Height="23" Text="{Binding Model.DownloadFolder}" Grid.Column="1" IsReadOnly="True" IsEnabled="False" />
+                <Button Content="Edit" Height="23"  Command="{Binding EditDownloadDir}"  Grid.Column="2" Width="65" />
+
+                <Label Content="Incomplete Directory" Grid.Row="1" VerticalAlignment="Center" />
+                <TextBox Height="23" IsEnabled="False" IsReadOnly="True" Text="{Binding Model.IncompleteFolder}" Grid.Column="1" Grid.Row="1" />
+                <Button Visibility="Hidden" Command="{Binding EditDownloadDir}" Content="Edit" Height="23" Width="65" Grid.Column="2" Grid.Row="1" />
+
+                <Label Content="Overlord host priority" Grid.Row="2" VerticalAlignment="Center" />
+                <Border  BorderBrush="Black" BorderThickness="1" CornerRadius="2" Height="24"  Grid.Column="1" Grid.Row="2" HorizontalAlignment="Left" Width="131">
                     <ComboBox  Width="129" Name="overlordpri" SelectionChanged="overlordpri_SelectionChanged" >
                         <ComboBoxItem Content="High" />
                         <ComboBoxItem Content="Normal" />
                         <ComboBoxItem Content="Low" />
                     </ComboBox>
                 </Border>
-                <TextBox Height="23" HorizontalAlignment="Left" Margin="143,93,0,0" Text="{Binding Model.IPAddress}" IsEnabled="False" VerticalAlignment="Top" Width="208" />
-                <Button Command="{Binding ResetInterface}" Content="Reset" Height="23" HorizontalAlignment="Left" Margin="357,93,0,0" VerticalAlignment="Top" Width="65" />
-                <Label Content="Never cache browsing" Height="28" HorizontalAlignment="Left" Margin="21,148,0,0" Name="label4" VerticalAlignment="Top" />
-                <CheckBox Height="22" HorizontalAlignment="Left" IsChecked="{Binding Model.AlwaysNoCacheBrowsing}" Margin="175,149,0,0" VerticalAlignment="Top" Width="35" />
+
+                <Label Content="Selected Interface" Grid.Row="3" VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" Grid.Row="3" Orientation="Horizontal">
+                    <TextBox Height="23" HorizontalAlignment="Left"  Text="{Binding Model.LocalNode.Host}" IsEnabled="False"  Width="200"  />
+                    <Button Command="{Binding ResetInterface}" Content="Reset" Height="23" HorizontalAlignment="Left" Margin="5,0,0,0"  Width="65" />
+                </StackPanel>
+
+                <Label Content="Disable spec comparision" Grid.Row="4" VerticalAlignment="Center" />
+                <CheckBox  IsChecked="{Binding Model.DisableComparision}"  Grid.Column="1" Grid.Row="4" HorizontalAlignment="Left" VerticalAlignment="Center" />
+
+                <Label Content="Never cache browsing" Grid.Row="5" VerticalAlignment="Center" />
+                <CheckBox  IsChecked="{Binding Model.AlwaysNoCacheBrowsing}" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Left" VerticalAlignment="Center" />
             </Grid>
         </GroupBox>
-        <GroupBox Header="Transfer limits" Height="110">
-            <Grid>
-                <Label Content="Max downloads" Height="28" HorizontalAlignment="Left" Margin="22,22,0,0" VerticalAlignment="Top" />
-                <TextBox Height="23" HorizontalAlignment="Left" Margin="121,24,0,0"  VerticalAlignment="Top" Width="60" Text="{Binding Model.MaxDownloads}" />
-                
-                <Label Content="Max uploads" Height="28" HorizontalAlignment="Left" Margin="22,50,0,0" VerticalAlignment="Top" />
-                <TextBox Height="23" HorizontalAlignment="Left" Margin="121,52,0,0" Text="{Binding  Model.MaxUploads}" VerticalAlignment="Top" Width="60" />
+        <GroupBox Header="Transfer limits" Height="100">
+            <Grid Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150px" />
+                    <ColumnDefinition Width="60px" />
+                    <ColumnDefinition Width="100px" />
+                    <ColumnDefinition Width="60px" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="28px" />
+                    <RowDefinition Height="28px" />
+                </Grid.RowDefinitions>
 
-                <Label  Visibility="Hidden" Content="Max downloads" HorizontalAlignment="Left" Margin="22,78,0,0" Height="28" VerticalAlignment="Top" />
-                <TextBox Visibility="Hidden"  Height="23" HorizontalAlignment="Left" Margin="121,83,0,0"  VerticalAlignment="Top" Width="60" Text="{Binding  Model.MaxDownloadsPerUser}" />
-                <Label  Visibility="Hidden" Content="per user" Height="28" HorizontalAlignment="Left" Margin="23,88,0,0" VerticalAlignment="Top" />
-                <Label  Visibility="Hidden" Content="Max uploads" Height="28" HorizontalAlignment="Left" Margin="22,104,0,0" VerticalAlignment="Top" />
+                <Label Content="Total Max downloads" VerticalAlignment="Center" />
+                <TextBox Height="23" Grid.Column="1" Text="{Binding Model.MaxDownloads}" />
+                <Label Margin="5,0,0,0" Content="Per User" Grid.Column="2" VerticalAlignment="Center" />
+                <TextBox  Height="23" Text="{Binding  Model.MaxDownloadsPerUser}" Grid.Column="3" />
+
+                <Label Content="Total Max uploads" Grid.Row="1" VerticalAlignment="Center" />
+                <TextBox Height="23" Text="{Binding  Model.MaxUploads}" Grid.Row="1" Grid.Column="1" />
+
+                <!--<Label  Visibility="Hidden" Content="Max uploads" Height="28" HorizontalAlignment="Left" Margin="22,104,0,0" VerticalAlignment="Top" />
                 <TextBox Visibility="Hidden" Height="23" HorizontalAlignment="Left" Margin="121,115,0,0" Text="{Binding  Model.MaxUploadsPerUser}" VerticalAlignment="Top" Width="60" />
-                <Label Visibility="Hidden" Content="per user" Height="28" HorizontalAlignment="Left" Margin="22,117,0,0" VerticalAlignment="Top" />
+                <Label Visibility="Hidden" Content="per user" Height="28" HorizontalAlignment="Left" Margin="22,117,0,0" VerticalAlignment="Top" />-->
             </Grid>
         </GroupBox>
     </StackPanel>

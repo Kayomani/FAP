@@ -36,6 +36,11 @@ using FAP.Domain;
 using FAP.Application;
 using FAP.Network;
 using Fap.Foundation;
+using BlogsPrajeesh.BlogSpot.WPFControls;
+using System.Text;
+using FAP.Domain.Net;
+using FAP.Domain.Entities;
+using FAP.Domain.Verbs;
 
 namespace Fap.Presentation
 {
@@ -67,16 +72,12 @@ namespace Fap.Presentation
 
         protected override void OnStartup(StartupEventArgs e)
         {
-
+            SplashScreen appSplash = null;
             Fap.Foundation.SafeObservableStatic.Dispatcher = System.Windows.Application.Current.Dispatcher;
             SafeObservingCollectionManager.Start();
             this.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(App_DispatcherUnhandledException);
+            FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
 
-            FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));           
-
-            string img = GetImage();
-            SplashScreen appSplash = new SplashScreen(img);
-            appSplash.Show(true);
             base.OnStartup(e);
             if (Compose())
             {
@@ -87,13 +88,60 @@ namespace Fap.Presentation
                 }
 
                 ApplicationCore core = new ApplicationCore(container);
+
+                if (!core.CheckSingleInstance())
+                {
+                    //An instance of fap is already running.
+
+                    //If we got a download url then forward onto the runing instance of FAP
+                    if (e.Args.Length == 2 && e.Args[0] == "-url")
+                    {
+                        Model model = new Model();
+                        model.Load();
+
+                        Client client = new Client(model.LocalNode);
+                        AddDownload verb = new AddDownload();
+                        verb.URL = e.Args[1];
+                        if (client.Execute(verb, model.LocalNode))
+                        {
+                            //Download sent successfully
+                            Shutdown(0);
+                            return;
+                        }
+                        else
+                        {
+                            //Unsuccessful - Notify user
+                            WPFMessageBox.Show("FAP", "Failed to add download via RPC!");
+                            Shutdown(1);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        //Inform the user they cannot run multiple instances
+                        WPFMessageBox.Show("FAP", "An instance of FAP is already running");
+                        Shutdown(1);
+                        return;
+                    }
+                }
+
+                string img = GetImage();
+                appSplash = new SplashScreen(img);
+                appSplash.Show(true);
+
                 if (core.Load(false))
                 {
+
                     core.StartClientServer();
                     core.StartGUI();
 #if DEBUG
                     core.StartOverlordServer();
 #endif
+                    //Was a url passed on startup?
+                    if (e.Args.Length == 2 && e.Args[0] == "-url")
+                    {
+                        core.AddDownloadUrlWhenConnected(e.Args[1]);
+                    }
                 }
                 else
                 {
@@ -104,7 +152,8 @@ namespace Fap.Presentation
             {
                 Shutdown(1);
             }
-            appSplash.Close(TimeSpan.FromSeconds(0));
+            if (null != appSplash)
+                appSplash.Close(TimeSpan.FromSeconds(0));
         }
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

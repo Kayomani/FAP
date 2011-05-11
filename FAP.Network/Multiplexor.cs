@@ -23,6 +23,8 @@ using HttpServer;
 using System.IO;
 using System.Net;
 using HttpServer.Headers;
+using Fap.Foundation;
+using System.Web;
 
 namespace FAP.Network
 {
@@ -44,7 +46,8 @@ namespace FAP.Network
             if (!string.IsNullOrEmpty(param))
             {
                 sb.Append("?p=");
-                sb.Append(Convert.ToBase64String(Encoding.Unicode.GetBytes(param)));
+                Base32Encoder e = new Base32Encoder('1');
+                sb.Append(e.Encode(Encoding.UTF8.GetBytes(param))); 
             }
             string result = sb.ToString();
             sb.Length = 0;
@@ -61,7 +64,10 @@ namespace FAP.Network
 
             var param = r.Parameters.Where(p => p.Name == "p").FirstOrDefault();
             if (null != param)
-                req.Param = Encoding.Unicode.GetString(Convert.FromBase64String(param.Value));
+            {
+                Base32Encoder e = new Base32Encoder('1');
+                req.Param = Encoding.UTF8.GetString(e.Decode(param.Value));
+            }
             if (r.Method == "POST")
             {
                 req.Data = GetPostString(r);

@@ -25,6 +25,7 @@ using Directory = FAP.Domain.Entities.FileSystem.Directory;
 using NLog;
 using FAP.Domain.Entities;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace FAP.Domain.Services
 {
@@ -41,7 +42,6 @@ namespace FAP.Domain.Services
 
         public void Load()
         {
-            int start = Environment.TickCount;
             shares.Clear();
             try
             {
@@ -51,10 +51,26 @@ namespace FAP.Domain.Services
                     {
                         if (file.EndsWith(".info"))
                         {
-                            Directory d = new Directory();
-                            d.Load(file);
-                            shares.Add(d.Name, d);
+                            try
+                            {
+                                Directory d = new Directory();
+                                d.Load(file);
+                                shares.Add(d.Name, d);
+                            }
+                            catch (Exception e)
+                            {
+                                LogManager.GetLogger("faplog").DebugException("Failed to load share info from " + file, e);
+                            }
                         }
+                    }
+                }
+                //Check that each share has had info loaded for it
+                foreach (var share in model.Shares)
+                {
+                    if (!shares.ContainsKey(share.Name))
+                    {
+                        //Share info has failed to load
+                        ThreadPool.QueueUserWorkItem(new WaitCallback(DoRefreshPath), share);
                     }
                 }
             }
@@ -62,8 +78,6 @@ namespace FAP.Domain.Services
             {
                 LogManager.GetLogger("faplog").WarnException("Failed to load share info", e);
             }
-            //3650
-            start = Environment.TickCount - start;
         }
 
         public void RenameShare(string name, string destination)
@@ -77,49 +91,62 @@ namespace FAP.Domain.Services
             info.Save();
         }
 
-        public Directory RefreshPath(Share share)
+        private void DoRefreshPath(object o)
         {
-            Directory info = null;
-            if (shares.ContainsKey(share.Name))
-                info = shares[share.Name];
-            else
-            {
-                info = new Directory();
-                shares.Add(share.Name, info);
-            }
-            info.Name = share.Name;
-            info.Size = 0;
-            info.FileCount = 0;
-            info.Clean();
-            GetDirectorySizeRecursive(new DirectoryInfo(share.Path), info);
-            try
-            {
-                info.Save();
-            }
-            catch (Exception e)
-            {
-                LogManager.GetLogger("faplog").WarnException("Failed save share info for " + share.Name, e);
-            }
-            System.GC.Collect();
-            return info;
+            Share s = o as Share;
+            if (null != s)
+                RefreshPath(s);
         }
 
+        public Directory RefreshPath(Share share)
+        {
+            try
+            {
+                model.GetAntiShutdownLock();
+                lock (share)
+                {
+                    Directory info = null;
+                    if (shares.ContainsKey(share.Name))
+                        info = shares[share.Name];
+                    else
+                    {
+                        info = new Directory();
+                        shares.Add(share.Name, info);
+                    }
+                    info.Name = share.Name;
+                    info.Size = 0;
+                    info.FileCount = 0;
+                    info.Clean();
+                    GetDirectorySizeRecursive(new DirectoryInfo(share.Path), info);
+                    try
+                    {
+                        info.Save();
+                    }
+                    catch (Exception e)
+                    {
+                        LogManager.GetLogger("faplog").WarnException("Failed save share info for " + share.Name, e);
+                    }
+                    System.GC.Collect();
+                    return info;
+                }
+            }
+            finally
+            {
+                model.ReleaseAntiShutdownLock();
+            }
+        }
 
         public List<SearchResult> Search(string expression, int limit, long modifiedBefore, long modifiedAfter, double smallerThan, double largerThan)
         {
-            int start = Environment.TickCount;
             List<SearchResult> results = new List<SearchResult>();
 
             StringMatcher matcher = new StringMatcher(expression);
             
             foreach (var share in shares.ToList())
             {
-                if (!SearchRecursive(share.Value, matcher, share.Value.Name, results, limit,modifiedBefore,modifiedAfter,smallerThan,largerThan))
+                if (!SearchRecursive(share.Value, matcher, string.Empty, results, limit,modifiedBefore,modifiedAfter,smallerThan,largerThan))
                     break;
             }
-
-            //94
-            start = Environment.TickCount - start;
             return results;
         }
 
@@ -142,6 +169,7 @@ namespace FAP.Domain.Services
 
                 for (int i = 0; i < split.Length; i++)
                 {
+                    //Performance comparision:
                     //http://blogs.msdn.com/b/noahc/archive/2007/06/29/string-equals-performance-comparison.aspx
                     index = name.IndexOf(split[i], index,StringComparison.OrdinalIgnoreCase);
                     if (-1 == index)
@@ -168,10 +196,12 @@ namespace FAP.Domain.Services
                                           {
                                               FileName = file.Name,
                                               Modified = DateTime.FromFileTime(file.LastModified),
-                                              Path = currentPath,
+                                              Path = string.IsNullOrEmpty(currentPath)?dir.Name:currentPath + "/" + dir.Name,
                                               IsFolder = false,
                                               Size = file.Size
                                           });
+
+
                         if (results.Count >= limit)
                             return false;
                     }
@@ -191,7 +221,7 @@ namespace FAP.Domain.Services
                         {
                             FileName = d.Name,
                             Modified = DateTime.FromFileTime(d.LastModified),
-                            Path = currentPath,
+                            Path = string.IsNullOrEmpty(currentPath) ? dir.Name : currentPath + "/" + dir.Name,
                             IsFolder = true,
                             Size = d.Size
                         });
@@ -203,8 +233,16 @@ namespace FAP.Domain.Services
 
             foreach (var subdir in dir.SubDirectories)
             {
-                if (!SearchRecursive(subdir, matcher, currentPath + "/" + dir.Name, results, limit,modifiedBefore,modifiedAfter,smallerThan,largerThan))
-                    return false;
+                if (string.IsNullOrEmpty(currentPath))
+                {
+                    if (!SearchRecursive(subdir, matcher, dir.Name, results, limit, modifiedBefore, modifiedAfter, smallerThan, largerThan))
+                        return false;
+                }
+                else
+                {
+                    if (!SearchRecursive(subdir, matcher, currentPath + "/" + dir.Name, results, limit, modifiedBefore, modifiedAfter, smallerThan, largerThan))
+                        return false;
+                }
             }
             return true;
         }

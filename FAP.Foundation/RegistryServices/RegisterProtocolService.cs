@@ -17,16 +17,15 @@ namespace Fap.Foundation.RegistryServices
             return Register(protocol, application, arguments, Registry.LocalMachine);
         }
 
-
         public bool Register(string protocol, string application, string arguments, RegistryKey registry)
         {
 
             RegistryKey cl = Registry.ClassesRoot.OpenSubKey(protocol);
 
-            if (cl != null && cl.GetValue("URL Protocol") != null && cl.GetValue("CustomUrlApplication") == null)
-            {
-
-            }
+          //  if (cl != null && cl.GetValue("URL Protocol") != null && cl.GetValue("CustomUrlApplication") != null)
+           // {
+           //     return true;
+           // }
 
             
             try
@@ -48,7 +47,7 @@ namespace Fap.Foundation.RegistryServices
                 if (r == null)
                     r = registry.CreateSubKey("SOFTWARE\\Classes\\" + protocol + "\\shell\\open\\command");
 
-                r.SetValue("", "CustomURL.exe \"%1\"");
+                r.SetValue("", application + " " + arguments);
 
 
                 // If 64-bit OS, also register in the 32-bit registry area. 
@@ -70,7 +69,7 @@ namespace Fap.Foundation.RegistryServices
                     if (r == null)
                         r = registry.CreateSubKey("SOFTWARE\\Wow6432Node\\Classes\\" + protocol + "\\shell\\open\\command");
 
-                    r.SetValue("", "CustomURL.exe \"%1\"");
+                    r.SetValue("", application + " " + arguments);
 
                 }
                 r.Close();

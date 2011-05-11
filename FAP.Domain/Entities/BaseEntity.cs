@@ -20,16 +20,52 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace FAP.Domain.Entities
 {
     [DataContract]  
     public class BaseEntity : INotifyPropertyChanged
     {
+        protected readonly string DATA_FOLDER = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\";
+        private static readonly string BACKUP_EXT = ".bak";
         protected void NotifyChange(string path)
         {
             if (null != PropertyChanged)
                 PropertyChanged(this, new PropertyChangedEventArgs(path));
+        }
+
+        protected void SafeSave(object o, string fileName, Formatting f)
+        {
+            if (string.IsNullOrEmpty(fileName))
+                throw new Exception("Unable to save as no filename was specified.");
+            if (!Directory.Exists(DATA_FOLDER))
+                Directory.CreateDirectory(DATA_FOLDER);
+
+            var obj = JsonConvert.SerializeObject(o, f);
+
+            File.WriteAllText(DATA_FOLDER + fileName, obj);
+            File.WriteAllText(DATA_FOLDER + fileName + BACKUP_EXT, obj);
+            obj = null;
+        }
+
+        protected T SafeLoad<T>(string fileName)
+        {
+            try
+            {
+                if (File.Exists(DATA_FOLDER + fileName))
+                    return  JsonConvert.DeserializeObject<T>(File.ReadAllText(DATA_FOLDER + fileName));
+            }
+            catch { }
+
+            try
+            {
+                if (File.Exists(DATA_FOLDER + fileName + BACKUP_EXT))
+                    return JsonConvert.DeserializeObject<T>(File.ReadAllText(DATA_FOLDER + fileName + BACKUP_EXT));
+            }
+            catch { }
+            throw new Exception("Unable to read " + fileName);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

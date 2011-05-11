@@ -27,18 +27,12 @@ using NLog;
 namespace FAP.Domain.Entities
 {
     [Serializable]
-    public class DownloadQueue
+    public class DownloadQueue: BaseEntity
     {
         private SafeObservedCollection<DownloadRequest> queue = new SafeObservedCollection<DownloadRequest>();
 
-        private readonly string saveLocation;
+        private readonly string saveLocation = "Queue.cfg";
         private object sync = new object();
-
-        public DownloadQueue()
-        {
-            saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Queue.cfg";
-        }
-
 
         public SafeObservedCollection<DownloadRequest> List
         {
@@ -51,7 +45,7 @@ namespace FAP.Domain.Entities
         public void Save()
         {
             lock (sync)
-                File.WriteAllText(saveLocation, JsonConvert.SerializeObject(this, Formatting.Indented));
+                SafeSave(this, saveLocation, Formatting.None);
         }
 
         public void Load()
@@ -60,9 +54,12 @@ namespace FAP.Domain.Entities
             {
                 try
                 {
-                    DownloadQueue saved = JsonConvert.DeserializeObject<DownloadQueue>(File.ReadAllText(saveLocation));
                     queue.Clear();
-                    queue.AddRange(saved.List.ToList());
+                    if (File.Exists(saveLocation))
+                    {
+                        DownloadQueue saved = SafeLoad<DownloadQueue>(saveLocation);
+                        queue.AddRange(saved.List.ToList());
+                    }
                 }
                 catch (Exception e)
                 {

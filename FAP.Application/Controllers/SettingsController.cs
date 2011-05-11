@@ -125,7 +125,7 @@ namespace FAP.Application.Controllers
 
         private void ResetInterface()
         {
-            model.IPAddress = null;
+            model.LocalNode.Host = null;
             model.Save();
             container.Resolve<IMessageService>().ShowWarning("Interface selection reset.  FAP will now restart.");
             Process notePad = new Process();

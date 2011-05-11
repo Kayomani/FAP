@@ -30,7 +30,7 @@ namespace FAP.Domain.Services
 #if DEBUG
             LoggingConfiguration config = LogManager.Configuration;
             target = new LogServiceTarget(m.Messages);
-            target.Layout = "${level}=> ${message}. ${exception:format=Message} ${exception:format=Type} ${exception:format=StackTrace}";
+            target.Layout = "${level}=> ${message} ${exception:format=Message} ${exception:format=Type} ${exception:format=StackTrace}";
             target.Name = "LogService";
             AsyncTargetWrapper wrapper = new AsyncTargetWrapper(target);
 

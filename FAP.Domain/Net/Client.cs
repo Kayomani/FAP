@@ -108,7 +108,7 @@ namespace FAP.Domain.Net
                 HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(Multiplexor.Encode(url, input.Verb, input.Param));
                 req.Timeout = timeout;
 #if DEBUG
-                //req.Timeout = DEFAULT_TIMEOUT * 10;
+                req.Timeout = DEFAULT_TIMEOUT * 100;
 #endif
                 //req.Pipelined = false;
                 //req.ConnectionGroupName = Guid.NewGuid().ToString();

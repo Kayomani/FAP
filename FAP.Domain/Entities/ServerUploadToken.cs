@@ -12,8 +12,7 @@ namespace FAP.Domain.Entities
     public class ServerUploadToken : IDisposable
     {
         private int globalQueuePosition = 0;
-        private bool canUpload = false;
-        private Node remoteClient;
+        private string remoteEndPoint;
         private AutoResetEvent sync = new AutoResetEvent(true);
 
         public int GlobalQueuePosition
@@ -31,17 +30,17 @@ namespace FAP.Domain.Entities
             }
         }
 
-        public Node RemoteClient
+        public string RemoteEndPoint
         {
             set
             {
                 lock (sync)
-                    remoteClient = value;
+                    remoteEndPoint = value;
             }
             get
             {
                 lock (sync)
-                    return remoteClient;
+                    return remoteEndPoint;
             }
         }
 

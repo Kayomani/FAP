@@ -53,7 +53,7 @@ DispatcherUnhandledException="Application_DispatcherUnhandledException"
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsEnabled" Value="false">
                                 <Setter Property="Background" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -1622,7 +1622,7 @@ DispatcherUnhandledException="Application_DispatcherUnhandledException"
                 <Trigger Property="IsEnabled" Value="False">
                     <Setter Property="Background" TargetName="Border" Value="{DynamicResource DisabledBackgroundBrush}" />
                     <Setter Property="BorderBrush" TargetName="Border" Value="{DynamicResource DisabledBorderBrush}" />
-                    <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
+                    <Setter Property="Foreground" Value="#EAE6DE" />
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>

@@ -21,6 +21,7 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 using Newtonsoft.Json;
+using FAP.Domain.Entities.FileSystem;
 
 namespace FAP.Domain.Entities
 {

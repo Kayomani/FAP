@@ -63,7 +63,7 @@ namespace FAP.Domain.Handlers
         public bool Handle(string req, RequestEventArgs e)
         {
             e.Response.Status = HttpStatusCode.OK;
-            string path = DecodeURL(e.Request.Uri.AbsolutePath);
+            string path = Utility.DecodeURL(e.Request.Uri.AbsolutePath);
             byte[] data = null;
 
             if (path.StartsWith(WEB_ICON_PREFIX))
@@ -133,7 +133,7 @@ namespace FAP.Domain.Handlers
 
                 pagedata.Add("model", model);
                 pagedata.Add("appver", Model.AppVersion);
-                pagedata.Add("freelimit", Utility.FormatBytes(Model.WEB_FREE_FILE_LIMIT));
+                pagedata.Add("freelimit", Utility.FormatBytes(Model.FREE_FILE_LIMIT));
                 pagedata.Add("uploadslots", model.MaxUploads);
                 int freeslots = model.MaxUploads - uploadLimiter.GetActiveTokenCount();
                 pagedata.Add("currentuploadslots", freeslots);
@@ -196,7 +196,7 @@ namespace FAP.Domain.Handlers
                     {
                         Dictionary<string, object> d = new Dictionary<string, object>();
                         d.Add("Name", share.Name);
-                        d.Add("Path", EncodeURL(share.Name));
+                        d.Add("Path", Utility.EncodeURL(share.Name));
                         d.Add("Icon", "folder");
                         d.Add("Size", share.Size);
                         d.Add("Sizetxt", Utility.FormatBytes(share.Size));
@@ -227,7 +227,7 @@ namespace FAP.Domain.Handlers
                             {
                                 Dictionary<string, object> d = new Dictionary<string, object>();
                                 d.Add("Name", dir.Name);
-                                d.Add("Path", EncodeURL(dir.Name));
+                                d.Add("Path", Utility.EncodeURL(dir.Name));
                                 d.Add("Icon", "folder");
                                 d.Add("Sizetxt", Utility.FormatBytes(dir.Size));
                                 d.Add("Size", dir.Size);
@@ -296,67 +296,6 @@ namespace FAP.Domain.Handlers
             return true;
         }
 
-
-        /// <summary>
-        ///  HttpUtility.UrlEncode does this wrong :E  Is there a better way than this??
-        /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        private string EncodeURL(string url)
-        {
-            if (string.IsNullOrEmpty(url))
-                return string.Empty;
-
-            url = url.Replace("!","%21");
-            url = url.Replace("*","%2A");
-            url = url.Replace("'","%27");
-            url = url.Replace("(","%28");
-            url = url.Replace(")","%29");
-            url = url.Replace(";","%3B");
-            url = url.Replace(":","%3A");
-            url = url.Replace("@","%40");
-            url = url.Replace("&","%26");
-            url = url.Replace("=","%3D");
-            url = url.Replace("+","%2B");
-            url = url.Replace("$","%24");
-            url = url.Replace(",","%2C");
-            url = url.Replace("/","'%2F");
-            url = url.Replace("?","%3F");
-            url = url.Replace("%","%25");
-            url = url.Replace("#","%23");
-            url = url.Replace("[","%5B");
-            url = url.Replace("]","%5D");
-            return  url;
-        }
-
-         private string DecodeURL(string url)
-        {
-            if (string.IsNullOrEmpty(url))
-                return string.Empty;
-
-            url = url.Replace("%21", "!");
-            url = url.Replace("%2A", "*");
-            url = url.Replace("%27", "'");
-            url = url.Replace("%28", "(");
-            url = url.Replace("%29", ")");
-            url = url.Replace("%3B", ";");
-            url = url.Replace("%3A", ":");
-            url = url.Replace("%40", "@");
-            url = url.Replace("%26", "&");
-            url = url.Replace("%3D", "=");
-            url = url.Replace("%2B", "+");
-            url = url.Replace("%24", "$");
-            url = url.Replace("%2C", ",");
-            url = url.Replace("%2F", "/");
-            url = url.Replace("%3F", "?");
-            url = url.Replace("%25", "%");
-            url = url.Replace("%23", "#");
-            url = url.Replace("%5B", "[");
-            url = url.Replace("%5D", "]");
-            return HttpUtility.UrlDecode(url);
-        }
-
-
         private bool SendFile(RequestEventArgs e, string path, string url)
         {
             try
@@ -421,7 +360,7 @@ namespace FAP.Domain.Handlers
             TransferSession session = null;
             try
             {
-                if (stream.Length > Model.WEB_FREE_FILE_LIMIT)
+                if (stream.Length > Model.FREE_FILE_LIMIT)
                 {
                     session = new TransferSession(worker);
                     model.TransferSessions.Add(session);

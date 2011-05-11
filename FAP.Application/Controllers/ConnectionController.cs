@@ -279,7 +279,7 @@ namespace FAP.Application.Controllers
 
                 ConnectVerb verb = new ConnectVerb();
                 verb.ClientType = ClientType.Client;
-                verb.Address = model.IPAddress + ":" + model.ClientPort;
+                verb.Address = model.LocalNode.Location;
                 verb.Secret = IDService.CreateID();
                 Client client = new Client(model.LocalNode);
 

@@ -10,6 +10,9 @@ using FAP.Network;
 using System.Net;
 using System.Waf.Applications.Services;
 using FAP.Application.Views;
+using NLog.Filters;
+using NLog;
+using FAP.Domain.Entities;
 
 namespace Server.Console
 {
@@ -24,16 +27,21 @@ namespace Server.Console
         }
 
         private IContainer container;
+        private LogService logService;
+        private Model model;
 
         private void Run()
         {
 
             if(Compose())
             {
+                logService = container.Resolve<LogService>();
+                logService.Filter = LogLevel.Debug;
+                model = container.Resolve<Model>();
+                model.Messages.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(Messages_CollectionChanged);
 
                 ApplicationCore core = new ApplicationCore(container);
                 core.Load(true);
-                //core.StartClientServer();
                 core.StartOverlordServer();
                
                 System.Console.WriteLine("Server started");
@@ -45,6 +53,16 @@ namespace Server.Console
                 System.Console.ReadKey();
             }
         }
+
+        private void Messages_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            {
+                foreach (var item in e.NewItems)
+                    System.Console.WriteLine(item);
+            }
+        }
+
         private bool Compose()
         {
              var builder = new ContainerBuilder();

@@ -69,6 +69,7 @@ namespace FAP.Application.Controllers
 
         private void Download(object o)
         {
+            viewModel.AllowSearch = false;
             System.Collections.ObjectModel.ObservableCollection<object> i = o as System.Collections.ObjectModel.ObservableCollection<object>;
             List<SearchResult> items = new List<SearchResult>();
             if (null != i)
@@ -78,11 +79,15 @@ namespace FAP.Application.Controllers
             }
             foreach (var item in items)
             {
+                string fullpath = item.Path;
+
+                if (!fullpath.EndsWith("/"))
+                    fullpath += "/";
                 model.DownloadQueue.List.Add(new DownloadRequest()
                 {
                     Added = DateTime.Now,
-                    FullPath = item.Path + item.FileName,
-                    LocalPath = model.DownloadFolder,
+                    FullPath = fullpath + item.FileName,
+                    LocalPath = item.Path,
                     Nickname = item.User,
                     Size = item.Size,
                     State = DownloadRequestState.None,
@@ -96,11 +101,10 @@ namespace FAP.Application.Controllers
 
         private void Search()
         {
+            viewModel.AllowSearch = false;
+            ThreadPool.QueueUserWorkItem(new WaitCallback(EnableSearch));
             results.Clear();
             var peerlist = model.Network.Nodes.ToList();
-
-
-          
             
 
             outstandingrequests = 0;
@@ -121,6 +125,12 @@ namespace FAP.Application.Controllers
                 foreach (var peer in peerlist)
                     ThreadPool.QueueUserWorkItem(new WaitCallback(RunAsync), peer);
             }
+        }
+
+        private void EnableSearch(object b)
+        {
+            Thread.Sleep(8000);
+            viewModel.AllowSearch = true;
         }
 
         private double GetSearchSize()

@@ -27,8 +27,16 @@ namespace FAP.Application.ViewModel
         private double? sizeText;
         private string modifiedSearchType;
         private DateTime? modifiedDate = null;
+        private bool allowSearch = true;
 
         public SearchViewModel(ISearchView v) : base(v) { }
+
+
+        public bool AllowSearch
+        {
+            get { return allowSearch; }
+            set { allowSearch = value; RaisePropertyChanged("AllowSearch"); }
+        }
 
         public string SizeSearchType
         {

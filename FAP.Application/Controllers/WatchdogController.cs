@@ -73,6 +73,8 @@ namespace FAP.Application.Controllers
                 }
                 catch { }
 
+                bufferService.Clean();
+
                 //Poke share controller to check if shares need updating every 5 minutes
                 if (runCount % 60 == 0)
                 {
@@ -84,14 +86,14 @@ namespace FAP.Application.Controllers
                 {
                     try
                     {
-                        model.BlockShutdown = true;
+                        model.GetAntiShutdownLock();
                         model.Save();
                         model.DownloadQueue.Save();
                     }
                     catch { }
                     finally
                     {
-                        model.BlockShutdown = false;
+                        model.ReleaseAntiShutdownLock();
                     }
                 }
 
@@ -121,16 +123,27 @@ namespace FAP.Application.Controllers
 
         private void ScanForDownloads()
         {
+            long start = Environment.TickCount;
             lock (sync)
             {
-                foreach (var worker in workers.ToList())
+                foreach (var item in model.DownloadQueue.List.ToList())
                 {
-                    if (worker.IsComplete)
-                        workers.Remove(worker);
+                    switch (item.State)
+                    {
+                        case DownloadRequestState.Downloaded:
+                            //Remove completed items if they have some how leaked in, this should never occur.
+                            model.DownloadQueue.List.Remove(item);
+                            break;
+                        case DownloadRequestState.Error:
+                            //Set items to retry
+                            if (item.NextTryTime < Environment.TickCount)
+                                item.State = DownloadRequestState.None;
+                            break;
+                    }
                 }
 
                 var downloads =
-                from download in model.DownloadQueue.List.ToList()
+                from download in model.DownloadQueue.List.ToList().Where(d => d.State == DownloadRequestState.None)
                 group download by download.ClientID into g
                 select new
                 {
@@ -147,50 +160,37 @@ namespace FAP.Application.Controllers
 
                     if (null != client)
                     {
-                        var workerlist = workers.Where(w => w.Node == client).ToList();
-                        var currentDownloads = group.Downloads.Where(d => d.State != DownloadRequestState.None && d.State != DownloadRequestState.Downloaded).Count();
                         foreach (var item in group.Downloads)
                         {
-                            if (workers.Count > model.MaxDownloads)
-                                break;
-
-                            if (item.State == DownloadRequestState.Downloaded)
-                            {
-                                model.DownloadQueue.List.Remove(item);
-                            }
-                            else if (item.State == DownloadRequestState.None && item.NextTryTime < Environment.TickCount)
+                            if (item.State == DownloadRequestState.None)
                             {
                                 bool addedDownload = false;
-                                //Try to place item with a worker
 
-                                for (int i = currentDownloads; i < model.MaxDownloadsPerUser; i++)
+                                if (workers.Where(w => w.Node == client).Count() < model.MaxDownloadsPerUser &&
+                                    workers.Count < model.MaxDownloads)
                                 {
-                                    if (i >= workerlist.Count)
+                                    addedDownload = true;
+                                    //Max workers not reached, add download via new worker.
+                                    var worker = new DownloadWorkerService(client, model, bufferService);
+                                    worker.OnWorkerFinished += new EventHandler(worker_OnWorkerFinished);
+                                    workers.Add(worker);
+                                    worker.AddDownload(item);
+                                    model.TransferSessions.Add(new TransferSession(worker) { Status = "Connecting..", User = client.Nickname, Size = item.Size, IsDownload = true });
+                                }
+                                else
+                                {
+                                    //Max downloaders reached, try to add to an existing queue
+                                    foreach (var worker in workers.Where(w => w.Node == client))
                                     {
-                                        logger.Info("Added download to new downloader");
-                                        //Add a new worker
-                                        var worker = new DownloadWorkerService(client,model,bufferService);
-                                        worker.AddDownload(item);
-                                        //worker.OnDownloaderFinished += new DownloadWorkerService.DownloaderFinished(worker_OnDownloaderFinished);
-                                        workers.Add(worker);
-                                        model.TransferSessions.Add(new TransferSession(worker) { Status = "Connecting..", User = client.Nickname, Size = item.Size, IsDownload = true });
-                                        workerlist.Add(worker);
-                                        addedDownload = true;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        //Is the worker busy? if no give it the request
-                                        //if (!workerlist[i].IsBusy)
+                                        if (!worker.IsQueueFull)
                                         {
-                                            logger.Info("Added download to existing downloader");
-                                            workerlist[i].AddDownload(item);
+                                            worker.AddDownload(item);
                                             addedDownload = true;
                                             break;
                                         }
                                     }
-
                                 }
+
                                 if (!addedDownload)
                                 {
                                     //Could not place the download so skip the rest of the queue for this host
@@ -199,15 +199,24 @@ namespace FAP.Application.Controllers
                             }
                         }
                     }
-                    //Remove redundant workers
-                    foreach (var worker in workers.Where(w => w.IsComplete).ToList())
-                    {
-                        workers.Remove(worker);
-                        //worker.OnDownloaderFinished -= new DownloadWorkerService.DownloaderFinished(worker_OnDownloaderFinished);
-                        //worker.Stop();
-                    }
+                }
+
+                //Remove redundant workers
+                foreach (var worker in workers.Where(w => w.IsComplete).ToList())
+                {
+                    worker.OnWorkerFinished -= new EventHandler(worker_OnWorkerFinished);
+                    workers.Remove(worker);
+                    var session = model.TransferSessions.ToList().Where(t => t.Worker == worker).FirstOrDefault();
+                    if (null != session)
+                        model.TransferSessions.Remove(session);
                 }
             }
+            LogManager.GetLogger("faplog").Trace("DL Scan time {0}", Environment.TickCount-start);
+        }
+
+        private void worker_OnWorkerFinished(object sender, EventArgs e)
+        {
+            ScanForDownloads();
         }
     }
 }

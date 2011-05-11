@@ -37,6 +37,7 @@ namespace FAP.Domain
             builder.RegisterType<LANPeerFinderService>().SingleInstance();
             builder.RegisterType<BufferService>().SingleInstance();
             builder.RegisterType<ServerUploadLimiterService>().SingleInstance();
+            builder.RegisterType<LogService>().SingleInstance();
         }
     }
 }

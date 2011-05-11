@@ -14,7 +14,7 @@ namespace FAP.Domain.Services
         private Logger logger;
 
         public const int Buffer = 2621440;//2mb
-        public const int SmallBuffer = 256000;//256kb
+        public const int SmallBuffer = 25600;//25kb
 
         private int largeCount = 10;
         private int smallCount = 10;
@@ -28,7 +28,7 @@ namespace FAP.Domain.Services
         {
             lock (pool)
             {
-                while (pool.Count > largeCount * 2)
+                while (pool.Count > largeCount )
                 {
                     MemoryBuffer arg = pool.Pop();
                     arg.Dispose();
@@ -36,7 +36,7 @@ namespace FAP.Domain.Services
             }
             lock (smallPool)
             {
-                while (smallPool.Count > smallCount * 2)
+                while (smallPool.Count > smallCount)
                 {
                     MemoryBuffer arg = smallPool.Pop();
                     arg.Dispose();
@@ -44,8 +44,8 @@ namespace FAP.Domain.Services
             }
         }
 
-
-        public void Setup(int smallCount, int largeCount)
+        /* Do not prepopulate
+         * public void Setup(int smallCount, int largeCount)
         {
             lock (smallPool)
             {
@@ -65,7 +65,7 @@ namespace FAP.Domain.Services
                     pool.Push(a);
                 }
             }
-        }
+        }*/
 
 
 

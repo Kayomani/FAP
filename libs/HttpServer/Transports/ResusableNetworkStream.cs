@@ -122,13 +122,20 @@ namespace HttpServer.Transports
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected override void Dispose(bool disposing)
         {
-            if (!_isDisposed)
+            try
             {
-                _isDisposed = true;
-                if (Socket != null && Socket.Connected)
-                    Socket.Disconnect(true);
+                if (!_isDisposed)
+                {
+                    _isDisposed = true;
+                    if (Socket != null && Socket.Connected)
+                        Socket.Disconnect(true);
+                }
+                base.Dispose(disposing);
             }
-            base.Dispose(disposing);
+            catch
+            {
+                //There seems to be a bug where this might get disposed twice on program exit.
+            }
         }
     }
 }

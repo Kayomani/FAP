@@ -90,6 +90,7 @@ namespace FAP.Domain.Handlers
         {
             logger.Info("Local overlord started.");
             logger.Debug("Local overlord started with ID: {0}", serverNode.ID);
+            logger.Debug("Local overlord address: {0}", serverNode.Location);
             peerFinder.Start();
             network.NetworkID = networkId;
             network.NetworkName = networkName;

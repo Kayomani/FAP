@@ -21,6 +21,7 @@
       \$(document).ready(function () {
           \$('#files').dataTable({
               "bPaginate": false,
+              "aaSorting": [],
               "oLanguage": {
                   "sZeroRecords": "No files or folders found!"
               },
@@ -72,7 +73,7 @@
         <tbody>
          $files:{file|
           <tr class="even">
-            <td><image height="16px" width="16px" src="/Fap.app.web/icon/$file.Icon$" /></td>
+            <td><img height="16px" width="16px" src="/Fap.app.web/icon/$file.Icon$" alt="icon" /><a  title="Download via FAP" href="fap://$model.LocalNode.ID$$path$$file.Path$"><img alt="FAP Download" src="/Fap.app.web/images/fap.png" class="fapDownload" /></a></td>
             <td><a href="$path$$file.Path$">$file.Name$</a></td>
             <td>$file.LastModifiedtxt$</td>
             <td class="center">$file.Sizetxt$</td>

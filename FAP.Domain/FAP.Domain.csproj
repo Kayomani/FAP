@@ -120,10 +120,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\NLog\.NET Framework 3.5\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="NVelocity, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\libs\NVelocity\net35\NVelocity.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationFramework" />
     <Reference Include="protobuf-net, Version=1.0.0.280, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -143,6 +139,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities\ServerUploadToken.cs" />
+    <Compile Include="Handlers\FAPFileUploader.cs" />
     <Compile Include="Handlers\HTTPFileUploader.cs" />
     <Compile Include="Net\Client.cs" />
     <Compile Include="DomainModule.cs" />
@@ -190,6 +187,7 @@
     <Compile Include="Verbs\CompareVerb.cs" />
     <Compile Include="Verbs\ConnectVerb.cs" />
     <Compile Include="Verbs\ConversationVerb.cs" />
+    <Compile Include="Verbs\LocalDownload.cs" />
     <Compile Include="Verbs\Multicast\HelloVerb.cs" />
     <Compile Include="Verbs\InfoVerb.cs" />
     <Compile Include="Verbs\IVerb.cs" />
@@ -259,6 +257,11 @@
     <None Include="Web.Resources\Images\folder.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Web.Resources\Images\fap.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

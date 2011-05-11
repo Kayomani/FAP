@@ -66,17 +66,17 @@ namespace FAP.Domain.Services
             {
                 try
                 {
-                    listener.Start(IPAddress.Parse(model.IPAddress), port);
+                    listener.Start(IPAddress.Parse(model.LocalNode.Host), port);
                     trybind = false;
                     if (isServer) 
                     {
-                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse(model.IPAddress), port, model, container.Resolve<MulticastClientService>(), container.Resolve<LANPeerFinderService>());
+                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse(model.LocalNode.Host), port, model, container.Resolve<MulticastClientService>(), container.Resolve<LANPeerFinderService>());
                         fap = f;
                         f.Start("Local", "Local");
                     }
                     else
                     {
-                        FAPClientHandler f = new FAPClientHandler(model, container.Resolve<ShareInfoService>(), container.Resolve<IConversationController>());
+                        FAPClientHandler f = new FAPClientHandler(model, container.Resolve<ShareInfoService>(), container.Resolve<IConversationController>(),container.Resolve<BufferService>(),container.Resolve<ServerUploadLimiterService>());
                         fap = f;
                         f.Start();
                         model.ClientPort = port;

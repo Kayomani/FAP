@@ -141,6 +141,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\libs\Autofac\Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="BlogsPrajeesh.BlogSpot.WPFControls">
+      <HintPath>..\..\libs\Messagebox\BlogsPrajeesh.BlogSpot.WPFControls.dll</HintPath>
+    </Reference>
     <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\NLog\.NET Framework 3.5\NLog.dll</HintPath>

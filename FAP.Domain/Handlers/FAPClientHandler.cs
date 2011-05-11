@@ -28,6 +28,7 @@ using FAP.Network;
 using NLog;
 using Fap.Foundation;
 using FAP.Domain.Services;
+using System.IO;
 
 namespace FAP.Domain.Handlers
 {
@@ -36,13 +37,17 @@ namespace FAP.Domain.Handlers
         private Model model;
         private ShareInfoService shareInfoService;
         private IConversationController chatController;
+        private BufferService bufferService;
+        private ServerUploadLimiterService serverUploadLimiterService;
         private Logger logger;
 
-        public FAPClientHandler(Model m, ShareInfoService s, IConversationController c)
+        public FAPClientHandler(Model m, ShareInfoService s, IConversationController c,BufferService b,ServerUploadLimiterService sl)
         {
             model = m;
             shareInfoService = s;
             chatController = c;
+            bufferService = b;
+            serverUploadLimiterService = sl;
             logger = LogManager.GetLogger("faplog");
         }
 
@@ -52,14 +57,18 @@ namespace FAP.Domain.Handlers
             logger.Trace("Client rx: {0} p: {1} source: {2} overlord: {3}", req.Verb, req.Param,req.SourceID,req.OverlordID);
             switch (req.Verb)
             {
+                case "BROWSE":
+                    return HandleBrowse(e, req);
+                case "UPDATE":
+                    return HandleUpdate(e, req);
                 case "INFO":
                     return HandleInfo(e);
                 case "NOOP":
                     return HandleNOOP(e, req);
+                case "GET":
+                    return HandleGet(e, req);
                 case "DISCONNECT":
                     return HandleDisconnect(e);
-                case "UPDATE":
-                    return HandleUpdate(e,req);
                 case "CHAT":
                     return HandleChat(e, req);
                 case "COMPARE":
@@ -68,8 +77,8 @@ namespace FAP.Domain.Handlers
                     return HandleSearch(e, req);
                 case "CONVERSTATION":
                     return HandleConversation(e,req);
-                case "BROWSE":
-                    return HandleBrowse(e, req);
+                case "ADDDOWNLOAD":
+                    return HandleAddDownload(e, req);
             }
             return false;
         }
@@ -77,6 +86,60 @@ namespace FAP.Domain.Handlers
         public void Start()
         {
 
+        }
+
+        private bool HandleGet(RequestEventArgs e, NetworkRequest req)
+        {
+            //No url?
+            if(string.IsNullOrEmpty(req.Param))
+                return false;
+
+            string localPath = string.Empty;
+
+
+            if (shareInfoService.ToLocalPath(req.Param, out localPath))
+            {
+                if (System.IO.File.Exists(localPath))
+                {
+                    FAPFileUploader ffu = new FAPFileUploader(bufferService, serverUploadLimiterService);
+                    TransferSession session = new TransferSession(ffu);
+                    model.TransferSessions.Add(session);
+                    try
+                    {
+                        //Try to find the username of the request
+                        string userName = e.Context.RemoteEndPoint.Address.ToString();
+                        var search = model.Network.Nodes.ToList().Where(n => n.ID == req.SourceID).FirstOrDefault();
+                        if (null != search && !string.IsNullOrEmpty(search.Nickname))
+                            userName = search.Nickname;
+
+                        using (FileStream fs = File.Open(localPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        {
+                            ffu.DoUpload(e.Context, fs, userName, localPath);
+                        }
+                    }
+                    finally
+                    {
+                        model.TransferSessions.Remove(session);
+                    }
+                    return true;
+                }
+            }
+
+            e.Response.Status = HttpStatusCode.NotFound;
+            var generator = new ResponseWriter();
+            generator.SendHeaders(e.Context, e.Response);
+            return true;
+        }
+
+        private bool HandleAddDownload(RequestEventArgs e, NetworkRequest req)
+        {
+            if (req.AuthKey == model.LocalNode.Secret && !string.IsNullOrEmpty(req.Param))
+            {
+                model.AddDownloadURL(req.Param);
+                SendOk(e);
+                return true;
+            }
+            return false;
         }
 
         private bool HandleBrowse(RequestEventArgs e, NetworkRequest req)
@@ -91,7 +154,6 @@ namespace FAP.Domain.Handlers
             e.Context.Stream.Flush();
             data = null;
             return true;
-
         }
 
         private bool HandleConversation(RequestEventArgs e, NetworkRequest req)

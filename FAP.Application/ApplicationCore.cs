@@ -37,6 +37,7 @@ using System.Net;
 using FAP.Application.Controllers;
 using NLog;
 using System.IO;
+using Fap.Foundation.RegistryServices;
 
 namespace FAP.Application
 {
@@ -65,11 +66,14 @@ namespace FAP.Application
         private MainWindowViewModel mainWindowModel;
         private TrayIconViewModel trayIcon;
 
+        private SingleInstanceService singleInstanceService;
+        private RegisterProtocolService registerProtocolService;
+
         public ApplicationCore(IContainer c)
         {
             container = c;
             model = container.Resolve<Model>();
-            logService = new LogService(model);
+            logService = container.Resolve<LogService>(); 
 
             connectionController = c.Resolve<ConnectionController>();
             //Don't send two request went doing a post..
@@ -78,6 +82,13 @@ namespace FAP.Application
             System.Net.ServicePointManager.DefaultConnectionLimit = 100;
             updateChecker = container.Resolve<UpdateCheckerService>();
             interfaceController = container.Resolve<InterfaceController>();
+            singleInstanceService = new SingleInstanceService("FAP");
+            registerProtocolService = new RegisterProtocolService();
+        }
+
+        public bool CheckSingleInstance()
+        {
+            return singleInstanceService.GetLock();
         }
 
         public void Exit()
@@ -106,8 +117,8 @@ namespace FAP.Application
                      mainWindowModel.Close();
                      trayIcon.Dispose();
 
-                     while (model.BlockShutdown)
-                         Thread.Sleep(10);
+                     model.GetShutdownLock();
+                     singleInstanceService.Dispose();
                      System.Windows.Application.Current.Shutdown(0);
                  }
              }
@@ -135,16 +146,22 @@ namespace FAP.Application
         public bool Load(bool server)
         {
             model.Load();
-            model.IPAddress = interfaceController.CheckAddress(model.IPAddress);
+            model.LocalNode.Host = interfaceController.CheckAddress(model.LocalNode.Host);
             //User chose to quit rather than select an interface =s
-            if (string.IsNullOrEmpty(model.IPAddress))
+            if (string.IsNullOrEmpty(model.LocalNode.Host))
                 return false;
 
             model.CheckSetDefaults();
+
+            model.Save();
             updateChecker.Run();
 
             if (!server)
             {
+                //Register FAP protocol
+                string location = Assembly.GetCallingAssembly().Location;
+                registerProtocolService.Register("fap", location, "-url \"%1\"");
+
                 //Delete any empty folders in the incomplete folder
                 RemoveEmptyFolders(model.IncompleteFolder);
                 LogManager.GetLogger("faplog").Debug("Client started with ID: {0}", model.LocalNode.ID);
@@ -164,10 +181,23 @@ namespace FAP.Application
             return true;
         }
 
+        public void AddDownloadUrlWhenConnected(string url)
+        {
+            ThreadPool.QueueUserWorkItem(new WaitCallback(AddDownloadAsync), url);
+        }
+
+        private void AddDownloadAsync(object url)
+        {
+            while (model.Network.State != ConnectionState.Connected)
+                Thread.Sleep(250);
+            Thread.Sleep(2000);
+            model.AddDownloadURL(url as string);
+        }
+
         public void StartClientServer()
         {
             client = new ListenerService(container, false);
-            client.Start(30);
+            client.Start(model.LocalNode.Port);
             connectionController.Start();
         }
 
@@ -177,8 +207,6 @@ namespace FAP.Application
             server.Start(40);
         }
 
-       
-
         private void ShowMainWindow()
         {
             if (null == mainWindowModel)
@@ -186,9 +214,6 @@ namespace FAP.Application
                 mainWindowModel = container.Resolve<MainWindowViewModel>();
               
                 mainWindowModel.WindowTitle = Model.AppVersion;
-#if SINGLE_SERVER
-                mainWindowModel.WindowTitle += " Client only mode";
-#endif
                 mainWindowModel.SendChatMessage = new DelegateCommand(sendChatMessage);
                 mainWindowModel.ViewShare = new DelegateCommand(viewShare);
                 mainWindowModel.EditShares = new DelegateCommand(EditShares);
@@ -202,14 +227,13 @@ namespace FAP.Application
                 mainWindowModel.Avatar = model.Avatar;
                 mainWindowModel.Nickname = model.Nickname;
                 mainWindowModel.Description = model.Description;
-                mainWindowModel.Sessions = model.TransferSessions;
+                mainWindowModel.Sessions = model.UITransferSessions;
                 mainWindowModel.Node = model.LocalNode;
                 mainWindowModel.Model = model;
                 mainWindowModel.Search = new DelegateCommand(Search);
 
                 SafeFilteredObservingCollection<Node> f = new SafeFilteredObservingCollection<Node>(new SafeObservingCollection<Node>(model.Network.Nodes));
                 f.Filter = s => s.NodeType != ClientType.Overlord;
-               // f.Filter = s => true;
                 mainWindowModel.Peers = f;
                 mainWindowModel.ChatMessages = new SafeObservingCollection<string>(model.Messages);
                 mainWindowModel.Show();

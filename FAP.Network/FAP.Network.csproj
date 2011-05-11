@@ -102,12 +102,14 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base32Encoder.cs" />
     <Compile Include="Entities\NetworkRequest.cs" />
     <Compile Include="Multiplexor.cs" />
     <Compile Include="NetworkModule.cs" />

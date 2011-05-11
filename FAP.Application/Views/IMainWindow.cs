@@ -27,7 +27,6 @@ namespace FAP.Application.Views
     {
         void Show();
         void Close();
-        void AddWindow(string title, object content);
         void Flash();
         Dispatcher Dispatcher
         {

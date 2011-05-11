@@ -55,10 +55,10 @@ namespace FAP.Domain.Handlers
             try
             {
 
-                if (stream.Length > Model.WEB_FREE_FILE_LIMIT)
+                if (stream.Length > Model.FREE_FILE_LIMIT)
                 {
                     //File isnt free leech, acquire a token before we send the file
-                    token = uploadLimiter.RequestUploadToken(new Node() { Host = context.RemoteEndPoint.Address.ToString() });
+                    token = uploadLimiter.RequestUploadToken(context.RemoteEndPoint.Address.ToString());
                     while (token.GlobalQueuePosition > 0)
                     {
                         status = string.Format("HTTP ({0}) queued upload in slot {1}", user,token.GlobalQueuePosition); 

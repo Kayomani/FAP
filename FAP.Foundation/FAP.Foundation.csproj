@@ -124,6 +124,7 @@
     <Reference Include="System.ServiceModel">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -159,10 +160,12 @@
     <Compile Include="SafeObservingCollection.cs" />
     <Compile Include="Services\IDService.cs" />
     <Compile Include="SambaShare.cs" />
+    <Compile Include="Services\SingleInstanceService.cs" />
     <Compile Include="SimpleCrypt.cs" />
     <Compile Include="Sorting\MergeSort.cs" />
     <Compile Include="Sorting\QuickSort.cs" />
     <Compile Include="Sorting\TreeSort.cs" />
+    <Compile Include="StreamTokenizer.cs" />
     <Compile Include="SystemInfo.cs" />
     <Compile Include="TreeViewItemViewModel.cs" />
     <Compile Include="Utility.cs" />

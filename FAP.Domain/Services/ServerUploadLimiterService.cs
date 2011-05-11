@@ -17,7 +17,7 @@ namespace FAP.Domain.Services
             this.model = model;
         }
 
-        public ServerUploadToken RequestUploadToken(Node node)
+        public ServerUploadToken RequestUploadToken(string node)
         {
             ServerUploadToken token;
             lock (activeTokenList)
@@ -29,7 +29,7 @@ namespace FAP.Domain.Services
                     token = new ServerUploadToken();
 
                 activeTokenList.Add(token);
-                token.RemoteClient = node;
+                token.RemoteEndPoint = node;
 
                 int totalUploads = activeTokenList.Where(t => t.GlobalQueuePosition == 0).Count();
                 //If we have reached the global uploads then pause the download
@@ -62,7 +62,7 @@ namespace FAP.Domain.Services
             lock (activeTokenList)
             {
                 //Recycle token
-                itoken.RemoteClient = null;
+                itoken.RemoteEndPoint = null;
                 itoken.GlobalQueuePosition = 0;
                 recycledList.Enqueue(itoken);
                 activeTokenList.Remove(itoken);

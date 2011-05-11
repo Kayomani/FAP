@@ -31,7 +31,7 @@ namespace FAP.Application.ViewModels
     public class MainWindowViewModel : ViewModel<IMainWindow>
     {
         private SafeObservingCollection<string> chatList;
-        private SafeObservable<TransferSession> sessions;
+        private SafeObservingCollection<TransferSession> sessions;
 
         private string currentChatMessage;
         private ICommand sendChatMessage;
@@ -93,8 +93,6 @@ namespace FAP.Application.ViewModels
         {
             ViewCore.Flash();
         }
-
-
 
         public string NodeStatus
         {
@@ -249,7 +247,7 @@ namespace FAP.Application.ViewModels
             }
         }
 
-        public SafeObservable<TransferSession> Sessions
+        public SafeObservingCollection<TransferSession> Sessions
         {
             get { return sessions; }
             set
@@ -388,8 +386,6 @@ namespace FAP.Application.ViewModels
                 RaisePropertyChanged("SelectedClient");
             }
         }
-
-
         
 
         public void Show()
@@ -403,11 +399,6 @@ namespace FAP.Application.ViewModels
             visible = false;
             AllowClose = true;
             ViewCore.Close();
-        }
-
-        public void AddWindow(string title, object content)
-        {
-            ViewCore.AddWindow(title, content);
         }
 
         public Dispatcher Dispatcher
