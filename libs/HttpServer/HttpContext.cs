@@ -24,8 +24,8 @@ namespace HttpServer
 		[ThreadStatic] private static IHttpContext _context;
 		private readonly byte[] _buffer = new byte[65535];
 		private readonly ILogger _logger = LogFactory.CreateLogger(typeof (HttpContext));
-		private Timer _keepAlive;
-        private int _keepAliveTimeout = 10000000; // 100 seconds.
+
+        public DateTime LastAction { set; get; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="HttpContext"/> class.
@@ -38,6 +38,7 @@ namespace HttpServer
 			MessageFactoryContext = context;
 			MessageFactoryContext.RequestCompleted += OnRequest;
 			MessageFactoryContext.ContinueResponseRequested += On100Continue;
+            LastAction = DateTime.Now;
 		}
 
 		/// <summary>
@@ -125,6 +126,7 @@ namespace HttpServer
 		/// </summary>
 		public void Disconnect()
 		{
+            HTTPContextManager.Unregister(this);
 			Close();
 		}
 
@@ -157,12 +159,7 @@ namespace HttpServer
 
                 try
                 {
-                    if (_keepAlive != null)
-                    {
-                        _keepAlive.Dispose();
-                        _keepAlive = null;
-                    }
-
+                    HTTPContextManager.Unregister(this);
                     Socket.Disconnect(true);
                     Socket.Close();
                     Socket = null;
@@ -267,35 +264,24 @@ namespace HttpServer
 			_logger.Debug("Received '" + e.Request.Method + " " + e.Request.Uri.PathAndQuery + "' from " +
 			              Socket.RemoteEndPoint);
 
+            LastAction = DateTime.Now;
 			// keep alive.
 			if (e.Request.Connection != null && e.Request.Connection.Type == ConnectionType.KeepAlive)
-			{
-				Response.Add(new StringHeader("Keep-Alive", "timeout=5, max=10000"));
-
-				// refresh timer
-				if (_keepAlive != null)
-					_keepAlive.Change(_keepAliveTimeout, _keepAliveTimeout);
-			}
+                Response.Add(new StringHeader("Keep-Alive", "timeout=5, max=" + HTTPContextManager.MAX_KEEPALIVE));
 
 		    Request = e.Request;
             CurrentRequestReceived(this, new RequestEventArgs(this, e.Request, Response));
             RequestReceived(this, new RequestEventArgs(this, e.Request, Response));
 
-			//
             if (Response.Connection.Type == ConnectionType.KeepAlive)
-			{
-				if (_keepAlive == null)
-					_keepAlive = new Timer(OnConnectionTimeout, null, _keepAliveTimeout, _keepAliveTimeout);
-			}
-
+                HTTPContextManager.Register(this);
             RequestCompleted(this, new RequestEventArgs(this, e.Request, Response));
             CurrentRequestCompleted(this, new RequestEventArgs(this, e.Request, Response));
 		}
 
 		private void OnConnectionTimeout(object state)
 		{
-			if (_keepAlive != null)
-				_keepAlive.Dispose();
+            HTTPContextManager.Unregister(this);
 			_logger.Info("Keep-Alive timeout");
 			Disconnect();
 		}

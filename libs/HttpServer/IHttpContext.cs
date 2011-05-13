@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Security;
 using HttpServer.Logging;
 using HttpServer.Messages;
+using System;
 
 namespace HttpServer
 {
@@ -11,6 +12,10 @@ namespace HttpServer
     /// </summary>
     public interface IHttpContext
     {
+        /// <summary>
+        /// Last point in time an operation occured on the stream
+        /// </summary>
+        DateTime LastAction { set; get; }
         /// <summary>
         /// Gets if current context is using a secure connection.
         /// </summary>

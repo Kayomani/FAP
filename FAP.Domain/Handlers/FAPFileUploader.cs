@@ -131,6 +131,7 @@ namespace FAP.Domain.Handlers
                         int bytesRead = 0;
                         while (dataSent < chunkSize)
                         {
+                            context.LastAction = DateTime.Now;
                             int toRead = buffer.Data.Length;
                             //Less that one buffer to send, ensure we dont send too much data just incase the file size has increased.
                             if (chunkSize - dataSent < toRead)
@@ -168,6 +169,7 @@ namespace FAP.Domain.Handlers
 
         private void SendChunkedData(IHttpContext context, byte[] data)
         {
+            context.LastAction = DateTime.Now;
             string length = data.Length.ToString("X");
             byte[] hexLength = Encoding.ASCII.GetBytes(length);
             //Send chunk length

@@ -40,6 +40,7 @@ namespace HttpServer
         /// </summary>
         public HttpFactory()
         {
+            HTTPContextManager.Start();
             _current = this;
             AddDefaultCreators();
         }

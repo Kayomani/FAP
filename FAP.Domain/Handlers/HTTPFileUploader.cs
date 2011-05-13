@@ -61,7 +61,8 @@ namespace FAP.Domain.Handlers
                     token = uploadLimiter.RequestUploadToken(context.RemoteEndPoint.Address.ToString());
                     while (token.GlobalQueuePosition > 0)
                     {
-                        status = string.Format("HTTP ({0}) queued upload in slot {1}", user,token.GlobalQueuePosition); 
+                        context.LastAction = DateTime.Now;
+                        status = string.Format("HTTP ({0}) queued upload in slot {1}", user,token.GlobalQueuePosition);
                         token.WaitTimeout();
                     }
                 }
@@ -121,6 +122,7 @@ namespace FAP.Domain.Handlers
                     int bytesRead = stream.Read(buffer.Data, 0, buffer.Data.Length);
                     while (bytesRead > 0)
                     {
+                        context.LastAction = DateTime.Now;
                         context.Stream.Write(buffer.Data, 0, bytesRead);
                         position += bytesRead;
                         nsm.PutData(bytesRead);

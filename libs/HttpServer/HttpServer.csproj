@@ -12,7 +12,7 @@
     <AssemblyName>HttpServer</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>httpserver.snk</AssemblyOriginatorKeyFile>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -124,6 +124,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AuthenticationRequiredException.cs" />
@@ -152,6 +153,7 @@
     <Compile Include="Headers\Parsers\AuthorizationParser.cs" />
     <Compile Include="Headers\Parsers\CookieParser.cs" />
     <Compile Include="Helpers\PropertyAssigner.cs" />
+    <Compile Include="HTTPContextManager.cs" />
     <Compile Include="HttpFile.cs" />
     <Compile Include="HttpFileCollection.cs" />
     <Compile Include="IHttpListener.cs" />
@@ -275,6 +277,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\FAP.Foundation\FAP.Foundation.csproj">
+      <Project>{D8890820-A42F-4642-BCDB-B864C3A7B741}</Project>
+      <Name>FAP.Foundation</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
