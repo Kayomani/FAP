@@ -58,7 +58,6 @@ namespace FAP.Application
 
         private ListenerService client;
         private ShareInfoService shareInfo;
-        private ListenerService server;
         private UpdateCheckerService updateChecker;
         private LogService logService;
        
@@ -68,6 +67,7 @@ namespace FAP.Application
 
         private SingleInstanceService singleInstanceService;
         private RegisterProtocolService registerProtocolService;
+        private OverlordManagerService overlordManagerService;
 
         public ApplicationCore(IContainer c)
         {
@@ -80,8 +80,10 @@ namespace FAP.Application
             System.Net.ServicePointManager.Expect100Continue = false;
             //Don't limit connections to a single node - 100 I think is the upper limit.
             System.Net.ServicePointManager.DefaultConnectionLimit = 100;
+            //System.Net.ServicePointManager.MaxServicePointIdleTime = 20000000;
             updateChecker = container.Resolve<UpdateCheckerService>();
             interfaceController = container.Resolve<InterfaceController>();
+            overlordManagerService = container.Resolve<OverlordManagerService>();
             singleInstanceService = new SingleInstanceService("FAP");
             registerProtocolService = new RegisterProtocolService();
         }
@@ -101,8 +103,9 @@ namespace FAP.Application
             model.Save();
             model.DownloadQueue.Save();
             connectionController.Exit();
-            if (null != server)
-                server.Stop();
+            watchdogController.Stop();
+            //Kill local overlord if running
+            overlordManagerService.Stop();
             if (null != client)
                 client.Stop();
 
@@ -194,7 +197,7 @@ namespace FAP.Application
             model.AddDownloadURL(url as string);
         }
 
-        public void StartClientServer()
+        public void StartClient()
         {
             client = new ListenerService(container, false);
             client.Start(model.LocalNode.Port);
@@ -203,8 +206,8 @@ namespace FAP.Application
 
         public void StartOverlordServer()
         {
-            server = new ListenerService(container, true);
-            server.Start(40);
+            model.IsDedicated = true;
+            overlordManagerService.Start();
         }
 
         private void ShowMainWindow()
@@ -402,25 +405,28 @@ namespace FAP.Application
                                     sbs.Append(model.Network.State);
                                     sbs.Append(" as ");
                                     sbs.Append(model.Nickname);
-                                    if(server!=null && server.IsRunning)
-                                    {
+
+                                    if (overlordManagerService.IsOverlordActive)
                                         sbs.Append(" (Overlord host)");
-                                    }
-                                    /*var search = model.Peers.ToList().Where(p => p.ID == mainWindowModel.CurrentNetwork.OverlordID).FirstOrDefault();
 
-                                    if (null != search)
+                                    if (model.Network.State == ConnectionState.Connected)
                                     {
-                                        sbs.Append(" on ");
-                                        sbs.Append(search.Host);
-                                        sbs.Append(" ");
+                                        if (model.Network.Overlord.Host == model.LocalNode.Host)
+                                        {
+                                            sbs.Append(" on yourself.");
+                                        }
+                                        else
+                                        {
+                                            sbs.Append(" on ");
+                                            var search = model.Network.Nodes.ToList().Where(n => n.Host == model.Network.Overlord.Host && n.NodeType == ClientType.Client).FirstOrDefault();
+                                            if (null == search)
+                                                sbs.Append(model.Network.Overlord.Host);
+                                            else
+                                                sbs.Append(search.Nickname);
+                                        }
                                     }
-
-                                    if (peerController.IsOverlord)
-                                        sbs.Append(" (Server host)");
-                                    */
 
                                     window.NodeStatus = sbs.ToString();
-
                                     sbs.Length = 0;
                                     sbs = null;
                                 }
@@ -455,7 +461,8 @@ namespace FAP.Application
                                     else
                                         xfer.Percent = (int)(((double)xfer.Worker.Position / xfer.Worker.Length) * 100);
                                     xfer.Size = xfer.Worker.Length;
-                                    xfer.Speed = xfer.Worker.Speed;
+                                    if (!xfer.Worker.IsComplete)
+                                        xfer.Speed = xfer.Worker.Speed;
                                     xfer.Status = xfer.Worker.Status;
                                 }
 

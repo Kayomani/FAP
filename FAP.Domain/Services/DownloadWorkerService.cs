@@ -11,6 +11,7 @@ using System.Reflection;
 using Fap.Foundation;
 using System.Threading;
 using FAP.Network;
+using NLog;
 
 namespace FAP.Domain.Services
 {
@@ -233,6 +234,8 @@ namespace FAP.Domain.Services
                             req.UserAgent = Model.AppVersion;
                             req.Headers.Add("FAP-SOURCE", model.LocalNode.ID);
 
+                           // req.Timeout = 300000;
+                           // req.ReadWriteTimeout = 3000000;
                             //If we are resuming then add range
                             if (fileStream.Length != 0)
                             {
@@ -253,6 +256,8 @@ namespace FAP.Domain.Services
                             {
                                 using (Stream responseStream = resp.GetResponseStream())
                                 {
+
+                                    
                                     StreamTokenizer tokenizer = new StreamTokenizer(Encoding.ASCII,"|");
                                     List<MemoryBuffer> utilisedBuffers = new List<MemoryBuffer>();
                                     try
@@ -274,10 +279,18 @@ namespace FAP.Domain.Services
 
                                                 if (queuePosition == 0)
                                                 {
+                                                    if (tokenizer.Buffers.Count > 0)
+                                                    {
+                                                        LogManager.GetLogger("faplog").Warn("Queue info overlaps with file data.  File: {0}", currentItem.FileName);
+                                                        //Due to the way chunks are delivered we should never get here
+                                                        //Just incase write left over data
+                                                        foreach (var buff in tokenizer.Buffers)
+                                                            fileStream.Write(buff.Data, 0, buff.DataSize);
+                                                    }
+
                                                     status = currentItem.Nickname + " - " + currentItem.FileName + " - " + Utility.FormatBytes(currentItem.Size);
                                                     while (true)
                                                     {
-                                                        //TODO: write tokenizer data
                                                         //Receive file
                                                         int read = responseStream.Read(buffer.Data, 0, buffer.Data.Length);
                                                         if (read == 0)

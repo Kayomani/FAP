@@ -145,7 +145,7 @@ namespace FAP.Application.Controllers
 
         private void ProcessLanConnection(object o)
         {
-            mserver.AddMessage(WhoVerb.CreateRequest());
+            mserver.SendMessage(WhoVerb.CreateRequest());
             Domain.Entities.Network network = model.Network;
             network.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(network_PropertyChanged);
             while (run)

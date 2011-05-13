@@ -23,7 +23,8 @@ namespace FAP.Domain.Handlers
         private long length = 0;
         private bool isComplete = false;
         private string status = "FAP Upload - Connecting..";
-        private static byte[] CRLF = Encoding.UTF8.GetBytes("\r\n");
+        private static readonly byte[] CRLF = Encoding.ASCII.GetBytes("\r\n");
+        private static readonly int CHUNK_SIZE_LIMIT = 2000000000;//1.86gb
         private long position = 0;
 
         public FAPFileUploader(BufferService b, ServerUploadLimiterService u)
@@ -50,8 +51,19 @@ namespace FAP.Domain.Handlers
                     if (rangeHeader.HeaderValue.StartsWith("bytes="))
                     {
                         string header = rangeHeader.HeaderValue.Substring(6).Trim();
-                        string starttxt = header.Substring(0, header.IndexOf("-"));
-                        string endtxt = header.Substring(header.IndexOf("-") + 1, header.Length - (header.IndexOf("-") + 1));
+                        string starttxt = string.Empty;
+                        string endtxt = string.Empty;
+
+                        if (header.Contains('-'))
+                        {
+
+                            starttxt = header.Substring(0, header.IndexOf("-"));
+                            endtxt = header.Substring(header.IndexOf("-") + 1, header.Length - (header.IndexOf("-") + 1));
+                        }
+                        else
+                        {
+                            starttxt = header;
+                        }
 
                         if (!string.IsNullOrEmpty(starttxt))
                             start = long.Parse(starttxt);
@@ -94,43 +106,53 @@ namespace FAP.Domain.Handlers
                 //Zero queue flag, data follows
                 SendChunkedData(context, Encoding.ASCII.GetBytes("0|"));
                 status = string.Format("{0} - {1} - {2}", user, Path.GetFileName(url), Utility.FormatBytes(stream.Length));
-                //Send file length
-                string hexlength = length.ToString("X");
-                byte[] hexbytes = Encoding.ASCII.GetBytes(hexlength);
-                context.Stream.Write(hexbytes, 0, hexbytes.Length);
-                context.Stream.Write(CRLF, 0, CRLF.Length);
-
-                //TODO: Chunked encododing >int32
-
+                
                 //Send data
                 var buffer = bufferService.GetBuffer();
                 try
                 {
-                    long dataSent = 0;
-                    int bytesRead = 0;
-                    while (dataSent < length)
+                   //Unfortunatly the microsoft http client implementation uses an int32 for chunk sizes which limits them to 2047mb. 
+                   //so sigh, send it smaller chunks.  Use a limit to 1.86gb for as it is more clean..
+
+                    for (long i = 0; i < length; i += CHUNK_SIZE_LIMIT)
                     {
-                        int toRead = buffer.Data.Length;
-                        //Less that one buffer to send, ensure we dont send too much data just incase the file size has increased.
-                        if (length - dataSent < toRead)
-                            toRead = (int)(length - dataSent);
-                        bytesRead = stream.Read(buffer.Data, 0, toRead);
-                        context.Stream.Write(buffer.Data, 0, bytesRead);
-                        nsm.PutData(bytesRead);
-                        dataSent += bytesRead;
-                        position += bytesRead;
+                        int chunkSize = 0;
+                        if (length - position > CHUNK_SIZE_LIMIT)
+                            chunkSize = CHUNK_SIZE_LIMIT;
+                        else
+                            chunkSize = (int)(length - position);
+
+                        //Send chunk length
+                        byte[] hexbytes = Encoding.ASCII.GetBytes(chunkSize.ToString("X"));
+                        context.Stream.Write(hexbytes, 0, hexbytes.Length);
+                        context.Stream.Write(CRLF, 0, CRLF.Length);
+                        //Send data
+                        long dataSent = 0;
+                        int bytesRead = 0;
+                        while (dataSent < chunkSize)
+                        {
+                            int toRead = buffer.Data.Length;
+                            //Less that one buffer to send, ensure we dont send too much data just incase the file size has increased.
+                            if (chunkSize - dataSent < toRead)
+                                toRead = (int)(chunkSize - dataSent);
+                            bytesRead = stream.Read(buffer.Data, 0, toRead);
+                            context.Stream.Write(buffer.Data, 0, bytesRead);
+                            nsm.PutData(bytesRead);
+                            dataSent += bytesRead;
+                            position += bytesRead;
+                        }
+                        //End data chunk
+                        context.Stream.Write(CRLF, 0, CRLF.Length);
                     }
                 }
                 catch (Exception err)
                 {
-                    LogManager.GetLogger("faplog").TraceException("Failed to send body through context stream.", err);
+                    LogManager.GetLogger("faplog").TraceException("Failed write file to http stream", err);
                 }
                 finally
                 {
                     bufferService.FreeBuffer(buffer);
                 }
-                //End data chunk
-                context.Stream.Write(CRLF, 0, CRLF.Length);
                 //Send empty chunk, to flag stream end
                 SendChunkedData(context, new byte[0]);
             }

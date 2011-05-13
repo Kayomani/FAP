@@ -79,8 +79,18 @@ namespace FAP.Domain.Handlers
                         if (rangeHeader.HeaderValue.StartsWith("bytes="))
                         {
                             string header = rangeHeader.HeaderValue.Substring(6).Trim();
-                            string starttxt = header.Substring(0, header.IndexOf("-"));
-                            string endtxt = header.Substring(header.IndexOf("-") + 1, header.Length - (header.IndexOf("-") + 1));
+                            string starttxt = string.Empty;
+                            string endtxt = string.Empty;
+
+                            if (header.Contains('-'))
+                            {
+                                starttxt = header.Substring(0, header.IndexOf("-"));
+                                endtxt = header.Substring(header.IndexOf("-") + 1, header.Length - (header.IndexOf("-") + 1));
+                            }
+                            else
+                            {
+                                starttxt = header;
+                            }
 
                             if (!string.IsNullOrEmpty(starttxt))
                                 start = long.Parse(starttxt);

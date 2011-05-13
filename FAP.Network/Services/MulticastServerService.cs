@@ -30,11 +30,7 @@ namespace FAP.Network.Services
         private Socket broadcastSocket;
         private Logger logService;
 
-        private byte[] message;
-        private bool run = false;
-
-        private AutoResetEvent workerEvent = new AutoResetEvent(true);
-        private List<string> announceQueue = new List<string>();
+        private object sync = new object();
 
         public MulticastServerService()
         {
@@ -49,58 +45,22 @@ namespace FAP.Network.Services
             broadcastSocket.Connect(broadcastAddress, broadcastPort);
         }
 
-        public void Start(string cmd)
+        public void SendMessage(string msg)
         {
-            message = Encoding.Unicode.GetBytes(cmd);
-            CheckStart();
-        }
-
-        private void CheckStart()
-        {
-            if (!run)
+            lock (sync)
             {
-                run = true;
-                ConnectBroadcast();
-                ThreadPool.QueueUserWorkItem(new WaitCallback(DoWork));
+                if (null == broadcastSocket)
+                    ConnectBroadcast();
+                broadcastSocket.SendTo(Encoding.Unicode.GetBytes(msg), broadcastSocket.RemoteEndPoint);
             }
-        }
-
-        public void AddMessage(string msg)
-        {
-            lock (announceQueue)
-                announceQueue.Add(msg);
-            CheckStart();
-        }
-
-        public void TriggerAnnounce()
-        {
-            workerEvent.Set();
         }
 
         public void Stop()
         {
-            if (run)
+            if (null != broadcastSocket)
             {
-                run = false;
                 broadcastSocket.Close();
-            }
-        }
-
-        private void DoWork(object o)
-        {
-            while (run)
-            {
-                lock (announceQueue)
-                {
-                    while (announceQueue.Count > 0)
-                    {
-                        broadcastSocket.SendTo(Encoding.Unicode.GetBytes(announceQueue[0]), broadcastSocket.RemoteEndPoint);
-                        announceQueue.RemoveAt(0);
-                    }
-                }
-                if (message != null && message.Length!=0)
-                    broadcastSocket.SendTo(message, broadcastSocket.RemoteEndPoint);
-                workerEvent.WaitOne(10000);
+                broadcastSocket = null;
             }
         }
     }

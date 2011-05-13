@@ -177,6 +177,13 @@ namespace FAP.Domain.Entities
         }
 
         [JsonIgnore]
+        public bool IsDedicated
+        {
+            set;
+            get;
+        }
+
+        [JsonIgnore]
         public Network Network
         {
             set { network = value; NotifyChange("Network"); }
@@ -336,6 +343,7 @@ namespace FAP.Domain.Entities
                         DisableComparision = saved.DisableComparision;
                         LocalNode = saved.LocalNode;
                         AlwaysNoCacheBrowsing = saved.AlwaysNoCacheBrowsing;
+                        OverlordPriority = saved.OverlordPriority;
                     }
                 }
                 catch (Exception e)

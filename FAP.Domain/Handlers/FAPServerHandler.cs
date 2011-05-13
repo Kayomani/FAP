@@ -55,13 +55,17 @@ namespace FAP.Domain.Handlers
         //List if client id's currently triyng ot connect
         private BackgroundSafeObservable<string> connectingIDs = new BackgroundSafeObservable<string>();
 
-        private MulticastServerService multicastServer = new MulticastServerService();
+        private MulticastServerService multicastServer;
         private MulticastClientService multicastClient;
 
         private Logger logger;
 
-        public FAPServerHandler(IPAddress host, int port, Model m,MulticastClientService c,LANPeerFinderService p)
+        private bool run = true;
+        private AutoResetEvent announcerSync = new AutoResetEvent(true);
+
+        public FAPServerHandler(IPAddress host, int port, Model m,MulticastClientService c,LANPeerFinderService p, MulticastServerService ms)
         {
+            multicastServer = ms;
             logger = LogManager.GetLogger("faplog");
             peerFinder = p;
             serverNode = new Overlord();
@@ -81,9 +85,7 @@ namespace FAP.Domain.Handlers
         private void multicastClient_OnMultiCastRX(string cmd)
         {
             if (cmd.StartsWith(WhoVerb.Message))
-            {
-                multicastServer.TriggerAnnounce();
-            }
+                announcerSync.Set();
         }
 
         public void Start(string networkId, string networkName)
@@ -94,17 +96,46 @@ namespace FAP.Domain.Handlers
             peerFinder.Start();
             network.NetworkID = networkId;
             network.NetworkName = networkName;
-            HelloVerb verb = new HelloVerb();
-            multicastServer.Start(verb.CreateRequest(serverNode.Location, network.NetworkName, serverNode.ID, network.NetworkID,serverNode.Strength));
-#if DEBUG
             ThreadPool.QueueUserWorkItem(new WaitCallback(ProcessLanConnections));
-#endif
+            ThreadPool.QueueUserWorkItem(new WaitCallback(processAnnounce));
+        }
+
+        private void processAnnounce(object o)
+        {
+            while (run)
+            {
+                HelloVerb verb = new HelloVerb();
+
+                int maxClients = 0;
+                if (model.IsDedicated)
+                {
+                    maxClients = 100;
+                }
+                else
+                {
+                    switch (model.OverlordPriority)
+                    {
+                        case OverlordPriority.High:
+                            maxClients = 100;
+                            break;
+                        case OverlordPriority.Normal:
+                            maxClients = 50;
+                            break;
+                        case OverlordPriority.Low:
+                            maxClients = 40;
+                            break;
+                    }
+                }
+
+                multicastServer.SendMessage(verb.CreateRequest(serverNode.Location, network.NetworkName, serverNode.ID, network.NetworkID, serverNode.Strength, connectedClientNodes.Count, maxClients));
+                announcerSync.WaitOne(10000);
+            }
         }
 
 
         private void ProcessLanConnections(object no)
         {
-            while (true)
+            while (run)
             {
                 var localNodes = peerFinder.Peers.ToList();
 
@@ -182,10 +213,16 @@ namespace FAP.Domain.Handlers
             }
         }
 
-
         public void Stop()
         {
-          
+            run = false;
+            //Kill client connections to external overlords
+            foreach (var client in extOverlordServers.ToList())
+                client.Kill();
+            
+            NetworkRequest req = new NetworkRequest() { Verb = "DISCONNECT", SourceID = serverNode.ID };
+            SendToStandardClients(req);
+            SendToOverlordClients(req);
         }
 
         private void m_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -259,6 +296,7 @@ namespace FAP.Domain.Handlers
                     }
                 }
             }
+            SendError(e);
             return false;
         }
 
@@ -439,6 +477,7 @@ namespace FAP.Domain.Handlers
             }
             catch { }
             logger.Debug("Server received an invalid update");
+            SendError(e);
             return false;
         }
 
@@ -649,6 +688,7 @@ namespace FAP.Domain.Handlers
             {
                 connectingIDs.Remove(address);
             }
+            SendError(e);
             return false;
         }
 
@@ -704,6 +744,14 @@ namespace FAP.Domain.Handlers
             }
         }
 
+        private void SendError(RequestEventArgs e)
+        {
+            e.Response.Status = HttpStatusCode.MethodNotAllowed;
+            e.Response.ContentLength.Value = 0;
+            var generator = new ResponseWriter();
+            generator.SendHeaders(e.Context, e.Response);
+        }
+
         #region Client port service scanner
         private void ScanClientAsync(object o)
         {
@@ -725,7 +773,7 @@ namespace FAP.Domain.Handlers
                 if (!string.IsNullOrEmpty(html))
                 {
                     webTitle = RegexEx.FindMatches("<title>.*</title>", html).FirstOrDefault();
-                    if (!string.IsNullOrEmpty(html) && webTitle.Length > 14)
+                    if (null!=webTitle && !string.IsNullOrEmpty(html) && webTitle.Length > 14)
                     {
                         webTitle = webTitle.Substring(7);
                         webTitle = webTitle.Substring(0, webTitle.Length - 8);

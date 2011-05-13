@@ -36,7 +36,7 @@ namespace Server.Console
             if(Compose())
             {
                 logService = container.Resolve<LogService>();
-                logService.Filter = LogLevel.Debug;
+                logService.Filter = LogLevel.Trace;
                 model = container.Resolve<Model>();
                 model.Messages.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(Messages_CollectionChanged);
 

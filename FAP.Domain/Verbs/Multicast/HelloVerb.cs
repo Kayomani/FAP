@@ -26,7 +26,7 @@ namespace FAP.Domain.Verbs
     {
         public static readonly string Preamble = "FAPHELLO";
 
-        public string CreateRequest(string address, string name, string overlordid, string networkid, int priority)
+        public string CreateRequest(string address, string name, string overlordid, string networkid, int priority, int userCount, int maxUsers)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(Preamble);
@@ -40,6 +40,10 @@ namespace FAP.Domain.Verbs
             sb.Append(Convert.ToBase64String(Encoding.Unicode.GetBytes(networkid)));
             sb.Append("\n");
             sb.Append(priority);
+            sb.Append("\n");
+            sb.Append(userCount);
+            sb.Append("\n");
+            sb.Append(maxUsers);
             return sb.ToString();
         }
 
@@ -48,14 +52,16 @@ namespace FAP.Domain.Verbs
             try
             {
                 string[] split = input.Split('\n');
-                if (split.Length == 6)
+                if (split.Length == 8)
                     return new DetectedNode() 
                     { 
                         Address = DecodeString(split[1]), 
                         NetworkName = DecodeString(split[2]), 
                         OverlordID = DecodeString(split[3]), 
                         NetworkID = DecodeString(split[4]), 
-                        Priority = int.Parse(split[5]) 
+                        Priority = int.Parse(split[5]),
+                        CurrentUsers = int.Parse(split[6]),
+                        MaxUsers = int.Parse(split[7])
                     };
             }
             catch { }

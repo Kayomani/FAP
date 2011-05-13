@@ -18,6 +18,15 @@ namespace FAP.Domain.Net
         public LANPeerFinderService(IContainer c)
         {
             container = c;
+            announcedAddresses.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(announcedAddresses_CollectionChanged);
+        }
+
+        void announcedAddresses_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            {
+
+            }
         }
 
         public List<DetectedNode> Peers
@@ -57,14 +66,19 @@ namespace FAP.Domain.Net
                     var search = announcedAddresses.Where(s => s.Address == node.Address).FirstOrDefault();
                     if (null == search)
                     {
+                        node.LastAnnounce = DateTime.Now;
                         announcedAddresses.Add(node);
+                        
                     }
                     else
                     {
+                        search.LastAnnounce = DateTime.Now;
                         search.OverlordID = node.OverlordID;
                         search.NetworkName = node.NetworkName;
                         search.NetworkID = node.NetworkID;
                         search.Priority = node.Priority;
+                        search.CurrentUsers = node.CurrentUsers;
+                        search.MaxUsers = node.MaxUsers;
                     }
                 }
             }

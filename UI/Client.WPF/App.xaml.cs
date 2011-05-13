@@ -132,11 +132,8 @@ namespace Fap.Presentation
                 if (core.Load(false))
                 {
 
-                    core.StartClientServer();
+                    core.StartClient();
                     core.StartGUI();
-#if DEBUG
-                    core.StartOverlordServer();
-#endif
                     //Was a url passed on startup?
                     if (e.Args.Length == 2 && e.Args[0] == "-url")
                     {

@@ -25,7 +25,7 @@ namespace HttpServer
 		private readonly byte[] _buffer = new byte[65535];
 		private readonly ILogger _logger = LogFactory.CreateLogger(typeof (HttpContext));
 		private Timer _keepAlive;
-		private int _keepAliveTimeout = 100000; // 100 seconds.
+        private int _keepAliveTimeout = 10000000; // 100 seconds.
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="HttpContext"/> class.
@@ -270,7 +270,7 @@ namespace HttpServer
 			// keep alive.
 			if (e.Request.Connection != null && e.Request.Connection.Type == ConnectionType.KeepAlive)
 			{
-				Response.Add(new StringHeader("Keep-Alive", "timeout=5, max=100"));
+				Response.Add(new StringHeader("Keep-Alive", "timeout=5, max=10000"));
 
 				// refresh timer
 				if (_keepAlive != null)

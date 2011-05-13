@@ -159,7 +159,12 @@ namespace FAP.Application.Controllers
 
         private void RemoveSelection()
         {
-            vm.DownloadQueue.Remove(vm.SelectedItems);
+            List<DownloadQueue> items = new List<DownloadQueue>();
+            foreach (DownloadQueue item in vm.SelectedItems)
+                items.Add(item);
+            foreach (DownloadQueue item in items)
+                vm.DownloadQueue.Remove(item);
+            items.Clear();
         }
 
         private void RemoveAll()

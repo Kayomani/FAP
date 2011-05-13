@@ -35,16 +35,18 @@ namespace FAP.Application.Controllers
         private SharesController shareController;
         private List<DownloadWorkerService> workers = new List<DownloadWorkerService>();
         private BufferService bufferService;
+        private OverlordManagerService overlordLauncherService;
         //Sync object for scanfordownloads - only single invocations allowed.
         private object sync = new object();
         private Logger logger;
 
-        public WatchdogController(Model m, SharesController s,BufferService b)
+        public WatchdogController(Model m, SharesController s,BufferService b,OverlordManagerService o)
         {
             model = m;
             shareController = s;
             bufferService = b;
             logger = LogManager.GetLogger("faplog");
+            overlordLauncherService = o;
         }
 
         public void Start()
@@ -56,6 +58,11 @@ namespace FAP.Application.Controllers
             }
         }
 
+        public void Stop()
+        {
+            run = false;
+        }
+
         private void processCheck(object o)
         {
             long runCount = 0;
@@ -64,6 +71,9 @@ namespace FAP.Application.Controllers
             while (run)
             {
                 lastRun = Environment.TickCount;
+
+                //Check to see if we need to launch an overlord
+                overlordLauncherService.StartAndStopIfNeeded();
 
                 //Update node transfer info - Every 4 seconds
                 try
@@ -123,7 +133,6 @@ namespace FAP.Application.Controllers
 
         private void ScanForDownloads()
         {
-            long start = Environment.TickCount;
             lock (sync)
             {
                 foreach (var item in model.DownloadQueue.List.ToList())
@@ -211,7 +220,6 @@ namespace FAP.Application.Controllers
                         model.TransferSessions.Remove(session);
                 }
             }
-            LogManager.GetLogger("faplog").Trace("DL Scan time {0}", Environment.TickCount-start);
         }
 
         private void worker_OnWorkerFinished(object sender, EventArgs e)

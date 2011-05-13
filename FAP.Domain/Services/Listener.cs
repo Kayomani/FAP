@@ -70,7 +70,12 @@ namespace FAP.Domain.Services
                     trybind = false;
                     if (isServer) 
                     {
-                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse(model.LocalNode.Host), port, model, container.Resolve<MulticastClientService>(), container.Resolve<LANPeerFinderService>());
+                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse(model.LocalNode.Host), 
+                                                                  port, 
+                                                                  model, 
+                                                                  container.Resolve<MulticastClientService>(), 
+                                                                  container.Resolve<LANPeerFinderService>(),
+                                                                  container.Resolve<MulticastServerService>());
                         fap = f;
                         f.Start("Local", "Local");
                     }
@@ -100,6 +105,19 @@ namespace FAP.Domain.Services
             listener.Stop();
             listener.OnRequest -= new NodeServer.Request(listener_OnRequest);
             listener = null;
+            FAPServerHandler server = fap as FAPServerHandler;
+            if (null != server)
+            {
+                server.Stop();
+            }
+            else
+            {
+                FAPClientHandler client = fap as FAPClientHandler;
+                if (null != client)
+                {
+                    
+                }
+            }
         }
 
         private bool listener_OnRequest(RequestType type, RequestEventArgs arg)

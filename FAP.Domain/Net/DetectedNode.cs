@@ -28,5 +28,8 @@ namespace FAP.Domain.Net
         public string NetworkID { set; get; }
         public string OverlordID { set; get; }
         public int Priority { set; get; }
+        public DateTime LastAnnounce { set; get; }
+        public int MaxUsers { set; get; }
+        public int CurrentUsers { set; get; }
     }
 }

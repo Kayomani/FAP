@@ -38,6 +38,7 @@ namespace FAP.Domain
             builder.RegisterType<BufferService>().SingleInstance();
             builder.RegisterType<ServerUploadLimiterService>().SingleInstance();
             builder.RegisterType<LogService>().SingleInstance();
+            builder.RegisterType<OverlordManagerService>().SingleInstance();
         }
     }
 }

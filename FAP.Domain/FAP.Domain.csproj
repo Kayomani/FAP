@@ -177,6 +177,7 @@
     <Compile Include="Services\DownloadWorkerService.cs" />
     <Compile Include="Services\Listener.cs" />
     <Compile Include="Services\LogService.cs" />
+    <Compile Include="Services\OverlordManagerService.cs" />
     <Compile Include="Services\ServerUploadLimiterService.cs" />
     <Compile Include="Services\ShareInfoService.cs" />
     <Compile Include="Services\TemplateEngine.cs" />
