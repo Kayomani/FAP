@@ -30,20 +30,49 @@ namespace FAP.Application.ViewModels
     public class DownloadQueueViewModel : ViewModel<IDownloadQueue>
     {
         private SafeObservingCollection<DownloadRequest> downloadQueue;
-        private IList selectedItems;
+        private SafeObservingCollection<TransferLog> completedDownloads;
+        private SafeObservingCollection<TransferLog> completedUploads;
 
+        private IList selectedItems;
         private ICommand removeAll;
         private ICommand removeSelection;
-
         private ICommand moveup;
         private ICommand movetotop;
         private ICommand movedown;
         private ICommand movetobottom;
-       
+        private ICommand clearDownloadLog;
+        private ICommand clearUploadLog;
+
+        private string downloadStats;
+        private string uploadStats;
 
         public DownloadQueueViewModel(IDownloadQueue view)
             : base(view)
         {
+        }
+
+        public string DownloadStats
+        {
+            get { return downloadStats; }
+            set { downloadStats = value; RaisePropertyChanged("DownloadStats"); }
+        }
+
+        public string UploadStats
+        {
+            get { return uploadStats; }
+            set { uploadStats = value; RaisePropertyChanged("UploadStats"); }
+        }
+
+        public ICommand ClearDownloadLog
+        {
+            get { return clearDownloadLog; }
+            set { clearDownloadLog = value; RaisePropertyChanged("ClearDownloadLog"); }
+        }
+
+        public ICommand ClearUploadLog
+        {
+            get { return clearUploadLog; }
+            set { clearUploadLog = value; RaisePropertyChanged("ClearUploadLog"); }
         }
 
         public ICommand Movetobottom
@@ -94,6 +123,18 @@ namespace FAP.Application.ViewModels
         {
             set { downloadQueue = value; RaisePropertyChanged("DownloadQueue"); }
             get { return downloadQueue; }
+        }
+
+        public SafeObservingCollection<TransferLog> CompletedDownloads
+        {
+            set { completedDownloads = value; RaisePropertyChanged("CompletedDownloads"); }
+            get { return completedDownloads; }
+        }
+
+        public SafeObservingCollection<TransferLog> CompletedUploads
+        {
+            set { completedUploads = value; RaisePropertyChanged("CompletedUploads"); }
+            get { return completedUploads; }
         }
 
         public IList SelectedItems

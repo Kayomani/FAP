@@ -80,6 +80,13 @@ namespace FAP.Domain.Services
             }
         }
 
+        private void DoRefreshPath(object o)
+        {
+            Share s = o as Share;
+            if (null != s)
+                RefreshPath(s);
+        }
+
         public void RenameShare(string name, string destination)
         {
             Directory info = shares[name];
@@ -89,13 +96,6 @@ namespace FAP.Domain.Services
             info.Name = destination;
             RemoveShare(name);
             info.Save();
-        }
-
-        private void DoRefreshPath(object o)
-        {
-            Share s = o as Share;
-            if (null != s)
-                RefreshPath(s);
         }
 
         public Directory RefreshPath(Share share)
@@ -115,9 +115,8 @@ namespace FAP.Domain.Services
                     }
                     info.Name = share.Name;
                     info.Size = 0;
-                    info.FileCount = 0;
-                    info.Clean();
-                    GetDirectorySizeRecursive(new DirectoryInfo(share.Path), info);
+                    info.ItemCount = 0;
+                    RefreshFileInfo(new DirectoryInfo(share.Path), info);
                     try
                     {
                         info.Save();
@@ -136,6 +135,141 @@ namespace FAP.Domain.Services
             }
         }
 
+        public void RemoveShare(string name)
+        {
+            if (shares.ContainsKey(name))
+                shares.Remove(name);
+            string path = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(name)) + ".dat";
+            if (System.IO.File.Exists(path))
+                System.IO.File.Delete(path);
+        }
+
+        public Directory GetPath(string path)
+        {
+            if (path.StartsWith("/"))
+                path = path.Substring(1);
+            string[] items = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (items.Length == 0 || !shares.ContainsKey(items[0]))
+                return null;
+            Directory dir = shares[items[0]];
+            for (int i = 1; i < items.Length; i++)
+            {
+                if (null == dir)
+                    break;
+                dir = dir.SubDirectories.Where(d => d.Name == items[i]).FirstOrDefault();
+            }
+            return dir;
+        }
+
+        public bool ToLocalPath(string input, out string output)
+        {
+            string[] split = input.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            if (split.Length > 0)
+            {
+                var share = model.Shares.Where(s => s.Name == split[0]).FirstOrDefault();
+                if (null != share)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append(share.Path);
+                    if (!share.Path.EndsWith("\\"))
+                        sb.Append("\\");
+                    for (int i = 1; i < split.Length; i++)
+                    {
+                        sb.Append(split[i]);
+                        if (i + 1 < split.Length)
+                            sb.Append("\\");
+                    }
+
+                    output = sb.ToString();
+                    return true;
+                }
+            }
+            output = string.Empty;
+            return false;
+        }
+
+        public long GetSize(string path)
+        {
+            var info = GetPath(path);
+            if (null == info)
+                return 0;
+            return info.Size;
+        }
+
+
+        /// <summary>
+        /// Refresh memory cache with information about the actual files
+        /// </summary>
+        /// <param name="directory"></param>
+        /// <param name="model"></param>
+        private void RefreshFileInfo(DirectoryInfo directory, Directory model)
+        {
+            try
+            {
+                long newSize = 0;
+                long objCount = 0;
+
+                //Check file list
+                List<File> newFileList = new List<File>();
+                FileInfo[] sysfiles = directory.GetFiles();
+                foreach (var finfo in sysfiles)
+                {
+                    newSize += finfo.Length;
+                    objCount++;
+
+                    File cf = new File();
+                    cf.Name = finfo.Name;
+                    cf.Size = finfo.Length;
+                    cf.LastModified = finfo.LastWriteTime.ToFileTime();
+                    newFileList.Add(cf);
+                }
+                //Update model with file info
+                var oldList = model.Files;
+                model.Files = newFileList;
+                oldList.Clear();
+                sysfiles = null;
+
+                //Check folder info.
+                List<Directory> newDirList = new List<Directory>();
+                Dictionary<string, Directory> oldDirs = new Dictionary<string, Directory>();
+
+                foreach (var d in model.SubDirectories)
+                    oldDirs.Add(d.Name, d);
+
+                DirectoryInfo[] dirs = directory.GetDirectories();
+                //Add,refresh
+                foreach (DirectoryInfo dir in dirs)
+                {
+                    Directory sub = null;
+                    if (oldDirs.ContainsKey(dir.Name))
+                        sub = oldDirs[dir.Name];
+                    else
+                    {
+                        sub = new Directory();
+                        sub.Name = dir.Name;
+                    }
+
+                    sub.LastModified = dir.LastWriteTime.ToFileTime();
+                    RefreshFileInfo(dir, sub);
+                    newDirList.Add(sub);
+                    //Add totals to the parent
+                    objCount += sub.ItemCount;
+                    newSize += sub.Size;
+                }
+                //Update model
+                var oldDirList = model.SubDirectories;
+                model.SubDirectories = newDirList;
+                oldDirList.Clear();
+                
+                //Sum totals
+                model.Size = newSize;
+                model.ItemCount = objCount;
+            }
+            catch { }
+        }
+
+        #region Search
         public List<SearchResult> Search(string expression, int limit, long modifiedBefore, long modifiedAfter, double smallerThan, double largerThan)
         {
             List<SearchResult> results = new List<SearchResult>();
@@ -150,36 +284,6 @@ namespace FAP.Domain.Services
             return results;
         }
 
-
-        public class StringMatcher
-        {
-            private string[] split;
-
-            public StringMatcher(string expression)
-            {
-                if (string.IsNullOrEmpty(expression))
-                    split = new string[0];
-                else
-                    split = expression.Split(new char[] { '*' }, StringSplitOptions.RemoveEmptyEntries);
-            }
-
-            public bool IsMatch(string name)
-            {
-                int index = 0;
-
-                for (int i = 0; i < split.Length; i++)
-                {
-                    //Performance comparision:
-                    //http://blogs.msdn.com/b/noahc/archive/2007/06/29/string-equals-performance-comparison.aspx
-                    index = name.IndexOf(split[i], index,StringComparison.OrdinalIgnoreCase);
-                    if (-1 == index)
-                        return false;
-                }
-                return index != -1;
-            }
-        }
-
-
         private bool SearchRecursive(Directory dir, StringMatcher matcher, string currentPath, List<SearchResult> results, int limit, long modifiedBefore, long modifiedAfter, double smallerThan, double largerThan)
         {
             foreach (var file in dir.Files)
@@ -193,13 +297,13 @@ namespace FAP.Domain.Services
                     {
 
                         results.Add(new SearchResult()
-                                          {
-                                              FileName = file.Name,
-                                              Modified = DateTime.FromFileTime(file.LastModified),
-                                              Path = string.IsNullOrEmpty(currentPath)?dir.Name:currentPath + "/" + dir.Name,
-                                              IsFolder = false,
-                                              Size = file.Size
-                                          });
+                        {
+                            FileName = file.Name,
+                            Modified = DateTime.FromFileTime(file.LastModified),
+                            Path = string.IsNullOrEmpty(currentPath) ? dir.Name : currentPath + "/" + dir.Name,
+                            IsFolder = false,
+                            Size = file.Size
+                        });
 
 
                         if (results.Count >= limit)
@@ -247,109 +351,33 @@ namespace FAP.Domain.Services
             return true;
         }
 
-        private void GetDirectorySizeRecursive(DirectoryInfo directory, Directory model)
+        public class StringMatcher
         {
-            try
+            private string[] split;
+
+            public StringMatcher(string expression)
             {
-                // Examine all contained files.
-                FileInfo[] files = directory.GetFiles();
-                foreach (FileInfo file in files)
-                {
-                    model.Size += file.Length;
-                    model.FileCount++;
-                }
-                //Get Directory info
-                DirectoryInfo[] dirs = directory.GetDirectories();
-                foreach (DirectoryInfo dir in dirs)
-                {
-                    Directory sub = new Directory();
-                    sub.Name = dir.Name;
-                    sub.LastModified = dir.LastWriteTime.ToFileTime();
-                    GetDirectorySizeRecursive(dir, sub);
-                    model.SubDirectories.Add(sub);
-                    //Add totals ot the parent
-                    model.FileCount += sub.FileCount;
-                    model.Size += sub.Size;
-                }
-                foreach (var file in directory.GetFiles())
-                {
-                    File sub = new File();
-                    sub.Name = file.Name;
-                    sub.Size = file.Length;
-                    sub.LastModified = file.LastWriteTime.ToFileTime();
-                    model.Files.Add(sub);
-                }
+                if (string.IsNullOrEmpty(expression))
+                    split = new string[0];
+                else
+                    split = expression.Split(new char[] { '*' }, StringSplitOptions.RemoveEmptyEntries);
             }
-            catch { }
-        }
 
-        public void RemoveShare(string name)
-        {
-            if (shares.ContainsKey(name))
-                shares.Remove(name);
-            string path = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(name)) + ".dat";
-            if (System.IO.File.Exists(path))
-                System.IO.File.Delete(path);
-        }
-
-        public Directory GetPath(string path)
-        {
-            if (path.StartsWith("/"))
-                path = path.Substring(1);
-            string[] items = path.Split(new char[]{'/'},StringSplitOptions.RemoveEmptyEntries);
-
-            if (items.Length == 0 || !shares.ContainsKey(items[0]))
-                return null;
-            Directory dir = shares[items[0]];
-            for (int i = 1; i < items.Length; i++)
+            public bool IsMatch(string name)
             {
-                if (null == dir)
-                    break;
-                dir = dir.SubDirectories.Where(d => d.Name == items[i]).FirstOrDefault();
-            }
-            return dir;
-        }
+                int index = 0;
 
-        public bool IsFile(string path)
-        {
-
-            return false;
-        }
-
-        public bool ToLocalPath(string input, out string output)
-        {
-            string[] split = input.Split(new char[]{'/'}, StringSplitOptions.RemoveEmptyEntries);
-            if (split.Length > 0)
-            {
-                var share = model.Shares.Where(s => s.Name == split[0]).FirstOrDefault();
-                if (null != share)
+                for (int i = 0; i < split.Length; i++)
                 {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append(share.Path);
-                    if (!share.Path.EndsWith("\\"))
-                        sb.Append("\\");
-                    for(int i=1;i<split.Length;i++)
-                    {
-                        sb.Append(split[i]);
-                        if (i + 1 < split.Length)
-                            sb.Append("\\");
-                    }
-
-                    output = sb.ToString();
-                    return true;
+                    //Performance comparision:
+                    //http://blogs.msdn.com/b/noahc/archive/2007/06/29/string-equals-performance-comparison.aspx
+                    index = name.IndexOf(split[i], index,StringComparison.OrdinalIgnoreCase);
+                    if (-1 == index)
+                        return false;
                 }
+                return index != -1;
             }
-            output = string.Empty;
-            return false;
         }
-
-        public long GetSize(string path)
-        {
-            var info = GetPath(path);
-            if (null == info)
-                return 0;
-            return info.Size;
-        }
-
+        #endregion
     }
 }

@@ -25,8 +25,8 @@ namespace FAP.Domain.Entities.FileSystem
     [Serializable]
     [ProtoContract]
     [ProtoInclude(20, typeof(Directory))]
-    
-    public class File
+
+    public class File : IComparable
     {
         [ProtoMember(1)]
         public string Name { set; get; }
@@ -34,5 +34,15 @@ namespace FAP.Domain.Entities.FileSystem
         public long Size { set; get; }
         [ProtoMember(3)]
         public long LastModified { set; get; }
+
+        public int CompareTo(object obj)
+        {
+            if (obj is File)
+            {
+                File f = obj as File;
+                return f.Name.CompareTo(Name);
+            }
+            return -1;
+        }
     }
 }

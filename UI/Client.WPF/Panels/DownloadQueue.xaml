@@ -9,51 +9,153 @@
         <local:BrowePanelFileImageConverter x:Key="fileImageConverter" />
             <local:IsNullConveter x:Key="IsNullConveter" />
     </UserControl.Resources>
-    <UserControl.Background>
-        <LinearGradientBrush EndPoint="0.92,0.791" MappingMode="RelativeToBoundingBox" StartPoint="0.009,1.19">
-            <GradientStop Color="Black" Offset="0.096"/>
-            <GradientStop Color="#FF3F4F56" Offset="0.869"/>
-        </LinearGradientBrush>
-    </UserControl.Background>
-    <Grid ClipToBounds="True">
-        <Grid.ColumnDefinitions >
-            <ColumnDefinition Width="*"  />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="32" />
-        </Grid.RowDefinitions>
-        <ListView  
+    
+    <TabControl>
+        <TabItem Header="Download Queue">
+            <Grid ClipToBounds="True">
+                <Grid.Background>
+                    <LinearGradientBrush EndPoint="0.92,0.791" MappingMode="RelativeToBoundingBox" StartPoint="0.009,1.19">
+                        <GradientStop Color="Black" Offset="0.096"/>
+                        <GradientStop Color="#FF3F4F56" Offset="0.869"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <Grid.ColumnDefinitions >
+                    <ColumnDefinition Width="*"  />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="32" />
+                </Grid.RowDefinitions>
+                <ListView  
      VirtualizingStackPanel.IsVirtualizing="True"
                                 VirtualizingStackPanel.VirtualizationMode="Recycling"
                                 VerticalAlignment="Stretch" ContextMenuOpening="listView2_ContextMenuOpening"
   x:Name="listView2" BorderBrush="Black" ItemsSource="{Binding DownloadQueue}" ClipToBounds="True" SelectionChanged="listView2_SelectionChanged"   >
-            <ListView.ContextMenu>
-            <ContextMenu>
-            </ContextMenu>
-            </ListView.ContextMenu>
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="" Width="30px" base:SortableListView.SortPropertyName="Extension">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Image  Name="img"  Width="15" Height="15"  Stretch="Fill" Source="{Binding .,Converter={StaticResource fileImageConverter}}"  Margin="0"   />
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Nickname" DisplayMemberBinding="{Binding Nickname}" Width="130px"/>
-                    <GridViewColumn Header="File" DisplayMemberBinding="{Binding FileName}" Width="350px"/>
-                    <GridViewColumn Header="Path" DisplayMemberBinding="{Binding FolderPath}"  Width="400px"/>
-                    <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size, Converter={StaticResource sizeConverter}}"  Width="80px"/>
-                    <GridViewColumn Header="State" DisplayMemberBinding="{Binding State}"  Width="130px"/>
-                    <GridViewColumn Header="Added" DisplayMemberBinding="{Binding Added}"  Width="130px"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
-        <WrapPanel Grid.Row="1" HorizontalAlignment="Center">
-            <Button  IsEnabled="{Binding SelectedItems,Converter={StaticResource IsNullConveter},Mode=OneWay}" Margin="1"  Height="30" Content="Clear selected downloads" Command="{Binding RemoveSelection}" />
-            <Button  Margin="1"  Height="30" Content="Clear all downloads" Command="{Binding RemoveAll}" />
-        </WrapPanel>
-    </Grid>
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="" Width="30px" base:SortableListView.SortPropertyName="Extension">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Image  Name="img"  Width="15" Height="15"  Stretch="Fill" Source="{Binding .,Converter={StaticResource fileImageConverter}}"  Margin="0"   />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Nickname" DisplayMemberBinding="{Binding Nickname}" Width="130px"/>
+                            <GridViewColumn Header="File" DisplayMemberBinding="{Binding FileName}" Width="350px"/>
+                            <GridViewColumn Header="Path" DisplayMemberBinding="{Binding FolderPath}"  Width="400px"/>
+                            <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size, Converter={StaticResource sizeConverter}}"  Width="80px"/>
+                            <GridViewColumn Header="State" DisplayMemberBinding="{Binding State}"  Width="130px"/>
+                            <GridViewColumn Header="Added" DisplayMemberBinding="{Binding Added}"  Width="130px"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Center">
+                    <Button  IsEnabled="{Binding SelectedItems,Converter={StaticResource IsNullConveter},Mode=OneWay}" Margin="1"  Height="30" Content="Clear selected downloads" Command="{Binding RemoveSelection}" />
+                    <Button  Margin="1"  Height="30" Content="Clear all downloads" Command="{Binding RemoveAll}" />
+                </WrapPanel>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Completed Downloads">
+            <Grid ClipToBounds="True">
+                <Grid.Background>
+                    <LinearGradientBrush EndPoint="0.92,0.791" MappingMode="RelativeToBoundingBox" StartPoint="0.009,1.19">
+                        <GradientStop Color="Black" Offset="0.096"/>
+                        <GradientStop Color="#FF3F4F56" Offset="0.869"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <Grid.ColumnDefinitions >
+                    <ColumnDefinition Width="*"  />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="32" />
+                </Grid.RowDefinitions>
+                <ListView  
+     VirtualizingStackPanel.IsVirtualizing="True"
+                                VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                VerticalAlignment="Stretch" ContextMenuOpening="listView2_ContextMenuOpening"
+  x:Name="listView3" BorderBrush="Black" ItemsSource="{Binding CompletedDownloads}" ClipToBounds="True" SelectionChanged="listView2_SelectionChanged"   >
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="" Width="30px" base:SortableListView.SortPropertyName="Extension">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Image  Name="img"  Width="15" Height="15"  Stretch="Fill" Source="{Binding .,Converter={StaticResource fileImageConverter}}"  Margin="0"   />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Nickname" DisplayMemberBinding="{Binding Nickname}" Width="130px"/>
+                            <GridViewColumn Header="File" DisplayMemberBinding="{Binding Filename}" Width="350px"/>
+                            <GridViewColumn Header="Path" DisplayMemberBinding="{Binding Path}"  Width="350px"/>
+                            <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size, Converter={StaticResource sizeConverter}}"  Width="80px"/>
+                            <GridViewColumn Header="Speed" DisplayMemberBinding="{Binding Speed, Converter={StaticResource speedConverter}}"  Width="80px"/>
+                            <GridViewColumn Header="Completed" DisplayMemberBinding="{Binding Completed}"  Width="130px"/>
+                            <GridViewColumn Header="Added" DisplayMemberBinding="{Binding Added}"  Width="130px"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <Grid Grid.Row="1" >
+                    <Label   Margin="5,0,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Content="{Binding DownloadStats}" />
+                    <Button HorizontalAlignment="Center"  Margin="1"  Height="30" Width="100px" Content="Clear list" Command="{Binding ClearDownloadLog}" />
+                </Grid>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Completed Uploads">
+            <Grid ClipToBounds="True">
+                <Grid.Background>
+                    <LinearGradientBrush EndPoint="0.92,0.791" MappingMode="RelativeToBoundingBox" StartPoint="0.009,1.19">
+                        <GradientStop Color="Black" Offset="0.096"/>
+                        <GradientStop Color="#FF3F4F56" Offset="0.869"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <Grid.ColumnDefinitions >
+                    <ColumnDefinition Width="*"  />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="32" />
+                </Grid.RowDefinitions>
+                <ListView  
+     VirtualizingStackPanel.IsVirtualizing="True"
+                                VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                VerticalAlignment="Stretch" ContextMenuOpening="listView2_ContextMenuOpening"
+  x:Name="listView4" BorderBrush="Black" ItemsSource="{Binding CompletedUploads}" ClipToBounds="True" SelectionChanged="listView2_SelectionChanged"   >
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="" Width="30px" base:SortableListView.SortPropertyName="Extension">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Image  Name="img"  Width="15" Height="15"  Stretch="Fill" Source="{Binding .,Converter={StaticResource fileImageConverter}}"  Margin="0"   />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Nickname" DisplayMemberBinding="{Binding Nickname}" Width="130px"/>
+                            <GridViewColumn Header="File" DisplayMemberBinding="{Binding Filename}" Width="350px"/>
+                            <GridViewColumn Header="Path" DisplayMemberBinding="{Binding Path}"  Width="350px"/>
+                            <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size, Converter={StaticResource sizeConverter}}"  Width="80px"/>
+                            <GridViewColumn Header="Speed" DisplayMemberBinding="{Binding Speed, Converter={StaticResource speedConverter}}"  Width="80px"/>
+                            <GridViewColumn Header="Completed" DisplayMemberBinding="{Binding Completed}"  Width="130px"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <Grid Grid.Row="1" >
+                    <Label   Margin="5,0,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Content="{Binding UploadStats}" />
+                    <Button HorizontalAlignment="Center"  Margin="1"  Height="30" Width="100px" Content="Clear list" Command="{Binding ClearUploadLog}" />
+                </Grid>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </UserControl>
 

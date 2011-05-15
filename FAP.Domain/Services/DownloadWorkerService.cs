@@ -221,6 +221,7 @@ namespace FAP.Domain.Services
                             {
                                 //File exists in the download directory.
                                 fileStream = File.Open(mainPath, FileMode.Open, FileAccess.Write, FileShare.None);
+                                incompletePath = mainPath;
                             }
                             else
                             {
@@ -238,6 +239,7 @@ namespace FAP.Domain.Services
                            // req.Timeout = 300000;
                            // req.ReadWriteTimeout = 3000000;
                             //If we are resuming then add range
+                            long resumePoint = 0;
                             if (fileStream.Length != 0)
                             {
                                 //Yes Micrsoft if you read this...  OH WHY IS ADDRANGE ONLY AN INT?? We live in an age where we might actually download more than 2gb
@@ -249,6 +251,9 @@ namespace FAP.Domain.Services
                                 string val = string.Format("bytes={0}", fileStream.Length);
                                 method.Invoke(req.Headers, new object[] { key, val });
                                 position = fileStream.Length;
+                                resumePoint = fileStream.Length;
+                                //Seek to the end of the file
+                                fileStream.Seek(fileStream.Length, SeekOrigin.Begin);
                             }
 
                             System.Net.HttpWebResponse resp = (System.Net.HttpWebResponse)req.GetResponse();
@@ -290,6 +295,9 @@ namespace FAP.Domain.Services
                                                     }
 
                                                     status = currentItem.Nickname + " - " + currentItem.FileName + " - " + Utility.FormatBytes(currentItem.Size);
+
+                                                    DateTime start = DateTime.Now;
+
                                                     while (true)
                                                     {
                                                         //Receive file
@@ -306,6 +314,19 @@ namespace FAP.Domain.Services
                                                             netSpeed.PutData(read);
                                                         }
                                                     }
+
+                                                    //Add log of transfer
+                                                    double seconds = (DateTime.Now - start).TotalSeconds;
+                                                    TransferLog rxlog = new TransferLog();
+                                                    rxlog.Added = currentItem.Added;
+                                                    rxlog.Completed = DateTime.Now;
+                                                    rxlog.Filename = currentItem.FileName;
+                                                    rxlog.Nickname = currentItem.Nickname;
+                                                    rxlog.Path = currentItem.FolderPath;
+                                                    rxlog.Size = currentItem.Size - resumePoint;
+                                                    if (0 != seconds)
+                                                        rxlog.Speed = (int)(rxlog.Size / seconds);
+                                                    model.CompletedDownloads.Add(rxlog);
                                                 }
                                                 else
                                                 {

@@ -138,7 +138,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\Legacy\Model.cs" />
     <Compile Include="Entities\ServerUploadToken.cs" />
+    <Compile Include="Entities\TransferLog.cs" />
     <Compile Include="Handlers\FAPFileUploader.cs" />
     <Compile Include="Handlers\HTTPFileUploader.cs" />
     <Compile Include="Net\Client.cs" />

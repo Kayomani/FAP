@@ -5,6 +5,7 @@
          xmlns:r="clr-namespace:Wpf.Controls"
         MinWidth="{Binding ElementName=CContent, Path=ActualWidth}"
         MinHeight="{Binding ElementName=CContent, Path=ActualHeight}"
+        Icon="/Fap.Presentation;component/Images/folder-yellow.ico" 
          WindowStartupLocation="Manual" WindowStyle="ToolWindow" >
     <Window.Resources>
         <Image x:Key="CloseSmallImage" x:Shared="False" Source="Images/Default_Avatar.png" Height="10" Width="11"/>

@@ -142,7 +142,7 @@ namespace FAP.Application.Controllers
                 s.Status = "Scanning..";
                 var info = scanner.RefreshPath(s);
                 s.Size = info.Size;
-                s.FileCount = info.FileCount;
+                s.FileCount = info.ItemCount;
                 s.Status = string.Empty;
                 s.LastRefresh = DateTime.Now;
                 RefreshClientStats();

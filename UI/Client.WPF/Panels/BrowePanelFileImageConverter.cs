@@ -46,6 +46,7 @@ namespace Fap.Presentation.Panels
                     return "/Fap.Presentation;component/Images/folder.png";
                 return (object)IconService.GetIcon(v.FileName);
             }
+             
             else if (value is BrowsingFile)
             {
                 //TODO:uncomment
@@ -61,6 +62,11 @@ namespace Fap.Presentation.Panels
                 filename = dl.FileName;
                 if (dl.IsFolder)
                     return "/Fap.Presentation;component/Images/folder.png";
+            }
+            else if (value is TransferLog)
+            {
+                TransferLog log = value as TransferLog;
+                filename = log.Filename;
             }
             if (string.IsNullOrEmpty(filename))
                 return string.Empty;

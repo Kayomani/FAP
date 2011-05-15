@@ -44,15 +44,31 @@ namespace Fap.Presentation
             notifyIcon.Icon = new System.Drawing.Icon(iconStream);
             contextMenu.Popup += new EventHandler(contextMenu_Popup);
             notifyIcon.DoubleClick += new EventHandler(notifyIcon_DoubleClick);
+            notifyIcon.Click += new EventHandler(notifyIcon_Click);
+            notifyIcon.Text = "FAP";
+            notifyIcon.Visible = true;
+        }
+
+        void notifyIcon_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (null != model)
+                    model.Open.Execute(null);
+            }
+            catch { }
         }
 
         private void notifyIcon_DoubleClick(object sender, EventArgs e)
         {
             try
             {
-                MethodInfo mi = typeof(NotifyIcon).GetMethod("ShowContextMenu",
+              /*  MethodInfo mi = typeof(NotifyIcon).GetMethod("ShowContextMenu",
                  BindingFlags.Instance | BindingFlags.NonPublic);
-                mi.Invoke(notifyIcon, null);
+                mi.Invoke(notifyIcon, null);*/
+
+                if (null != model)
+                    model.Open.Execute(null);
             }
             catch { }
         }

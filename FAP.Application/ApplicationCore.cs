@@ -239,7 +239,7 @@ namespace FAP.Application
                 f.Filter = s => s.NodeType != ClientType.Overlord;
                 mainWindowModel.Peers = f;
                 mainWindowModel.ChatMessages = new SafeObservingCollection<string>(model.Messages);
-                mainWindowModel.Show();
+                
             }
             else
             {
@@ -248,6 +248,8 @@ namespace FAP.Application
                 else
                     mainWindowModel.Show();
             }
+
+            mainWindowModel.Show();
         }
 
         #region Main window Commands
@@ -308,7 +310,7 @@ namespace FAP.Application
                 downloadQueueController = container.Resolve<DownloadQueueController>();
                 downloadQueueController.Initalise();
             }
-            popupController.AddWindow(downloadQueueController.ViewModel.View, "Download Queue");
+            popupController.AddWindow(downloadQueueController.ViewModel.View, "Transfer Info");
         }
 
         private void sendChatMessage()

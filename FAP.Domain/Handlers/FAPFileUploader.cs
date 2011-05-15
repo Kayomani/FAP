@@ -27,6 +27,9 @@ namespace FAP.Domain.Handlers
         private static readonly int CHUNK_SIZE_LIMIT = 2000000000;//1.86gb
         private long position = 0;
 
+        public DateTime TransferStart { set; get; }
+        public long ResumePoint { set; get; }
+
         public FAPFileUploader(BufferService b, ServerUploadLimiterService u)
         {
             bufferService = b;
@@ -36,6 +39,8 @@ namespace FAP.Domain.Handlers
 
         public void DoUpload(IHttpContext context, Stream stream, string user, string url)
         {
+            ResumePoint = 0;
+            length = stream.Length;
             var rangeHeader = context.Request.Headers.Where(n => n.Name.ToLowerInvariant() == "range").FirstOrDefault();
             ServerUploadToken token = null;
             try
@@ -75,6 +80,7 @@ namespace FAP.Domain.Handlers
                                 start = stream.Length;
                             stream.Seek(start, SeekOrigin.Begin);
                             position = start;
+                            ResumePoint = start;
                         }
                         //TODO: Implement this
                         if (end != 0)
@@ -85,9 +91,7 @@ namespace FAP.Domain.Handlers
                 //Send HTTP Headers
                 SendChunkedHeaders(context);
 
-                length = stream.Length - stream.Position;
-
-                if (length > Model.FREE_FILE_LIMIT)
+                if (stream.Length-stream.Position > Model.FREE_FILE_LIMIT)
                 {
                     //File isnt free leech, acquire a token before we send the file
                     token = uploadLimiter.RequestUploadToken(context.RemoteEndPoint.Address.ToString());
@@ -103,6 +107,7 @@ namespace FAP.Domain.Handlers
                     }
                 }
 
+                TransferStart = DateTime.Now;
                 //Zero queue flag, data follows
                 SendChunkedData(context, Encoding.ASCII.GetBytes("0|"));
                 status = string.Format("{0} - {1} - {2}", user, Path.GetFileName(url), Utility.FormatBytes(stream.Length));
@@ -114,13 +119,13 @@ namespace FAP.Domain.Handlers
                    //Unfortunatly the microsoft http client implementation uses an int32 for chunk sizes which limits them to 2047mb. 
                    //so sigh, send it smaller chunks.  Use a limit to 1.86gb for as it is more clean..
 
-                    for (long i = 0; i < length; i += CHUNK_SIZE_LIMIT)
+                    for (long i = 0; i < stream.Length; i += CHUNK_SIZE_LIMIT)
                     {
                         int chunkSize = 0;
-                        if (length - position > CHUNK_SIZE_LIMIT)
+                        if (stream.Length - position > CHUNK_SIZE_LIMIT)
                             chunkSize = CHUNK_SIZE_LIMIT;
                         else
-                            chunkSize = (int)(length - position);
+                            chunkSize = (int)(stream.Length - position);
 
                         //Send chunk length
                         byte[] hexbytes = Encoding.ASCII.GetBytes(chunkSize.ToString("X"));

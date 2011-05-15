@@ -40,6 +40,9 @@ namespace FAP.Domain.Handlers
         private string status = "HTTP - Connecting..";
         private long position = 0;
 
+        public DateTime TransferStart { set; get; }
+        public long ResumePoint { set; get; }
+
         public HTTPFileUploader(BufferService b, ServerUploadLimiterService u)
         {
             bufferService = b;
@@ -50,6 +53,7 @@ namespace FAP.Domain.Handlers
         public void DoUpload(IHttpContext context, Stream stream, string user, string url)
         {
             length = stream.Length;
+            ResumePoint =0;
             var rangeHeader = context.Request.Headers.Where(n => n.Name.ToLowerInvariant() == "range").FirstOrDefault();
             ServerUploadToken token = null;
             try
@@ -104,15 +108,18 @@ namespace FAP.Domain.Handlers
                                     start = stream.Length;
                                 stream.Seek(start, SeekOrigin.Begin);
                                 position = start;
-                                context.Response.Status = HttpStatusCode.PartialContent;
+                               
+                                ResumePoint = start;
                             }
+                            context.Response.Status = HttpStatusCode.PartialContent;
                         }
                     }
                 }
                 catch { }
 
+                TransferStart = DateTime.Now;
+                //Send headers
                 context.Response.ContentLength.Value = stream.Length - stream.Position;
-
                 ResponseWriter generator = new ResponseWriter();
                 generator.SendHeaders(context, context.Response);
                 //Send data
@@ -128,6 +135,8 @@ namespace FAP.Domain.Handlers
                         nsm.PutData(bytesRead);
                         bytesRead = stream.Read(buffer.Data, 0, buffer.Data.Length);
                     }
+
+                    
                 }
                 catch (Exception err)
                 {

@@ -116,6 +116,27 @@ namespace FAP.Domain.Handlers
                         {
                             ffu.DoUpload(e.Context, fs, userName, localPath);
                         }
+
+                        //Add log of upload
+                        double seconds = (DateTime.Now - ffu.TransferStart).TotalSeconds;
+                        TransferLog txlog = new TransferLog();
+                        txlog.Nickname = userName;
+                        txlog.Completed = DateTime.Now;
+                        txlog.Filename = Path.GetFileName(localPath);
+                        txlog.Path = Path.GetDirectoryName(req.Param);
+                        if (!string.IsNullOrEmpty(txlog.Path))
+                        {
+                            txlog.Path = txlog.Path.Replace('\\', '/');
+                            if (txlog.Path.StartsWith("/"))
+                                txlog.Path = txlog.Path.Substring(1);
+                        }
+
+                        txlog.Size = ffu.Length - ffu.ResumePoint;
+                        if (txlog.Size < 0)
+                            txlog.Size = 0;
+                        if (0 != seconds)
+                            txlog.Speed = (int)(txlog.Size / seconds);
+                        model.CompletedUploads.Add(txlog);
                     }
                     finally
                     {

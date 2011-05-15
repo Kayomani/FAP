@@ -4,7 +4,7 @@
 	Title="{Binding WindowTitle}"
     mc:Ignorable="d"
     Icon="/Fap.Presentation;component/Images/folder-yellow.ico" WindowStartupLocation="Manual"
-    MinWidth="260" MinHeight="400"
+    MinWidth="260" MinHeight="400" ShowInTaskbar="False"
 	Width="350" Height="900">
     <Window.Resources>
         <local:SessionTypeConverter x:Key="SessionTypeConverter" />
@@ -77,19 +77,19 @@
 
 
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom"  Grid.Row="2" Grid.Column="1" Grid.RowSpan="2">
-                        <Button  Width="30" Height="30" VerticalAlignment="Bottom" Command="{Binding Search}">
+                        <Button ToolTip="Search" Width="30" Height="30" VerticalAlignment="Bottom" Command="{Binding Search}">
                             <Image Source="/Fap.Presentation;component/Images/Search.png" />
                         </Button>
-                        <Button  Width="30" Height="30" VerticalAlignment="Bottom" Command="{Binding ViewQueue}">
+                        <Button ToolTip="Transfer info"  Width="30" Height="30" VerticalAlignment="Bottom" Command="{Binding ViewQueue}">
                                 <Image Source="/Fap.Presentation;component/Images/Drawer%20Closed.png" />
                             </Button>
-                            <Button Width="30" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding EditShares}">
+                            <Button ToolTip="Shares" Width="30" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding EditShares}">
                                 <Image Source="/Fap.Presentation;component/Images/Folder%20Sync.png" />
                             </Button>
-                            <Button  Width="30" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding Compare}">
+                            <Button ToolTip="Compare"  Width="30" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding Compare}">
                                 <Image Source="/Fap.Presentation;component/Images/Chart%20Bar.png" />
                             </Button>
-                            <Button  Width="30" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding Settings}">
+                            <Button ToolTip="Settings"  Width="30" Height="30" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding Settings}">
                                 <Image Source="/Fap.Presentation;component/Images/Cog.png" />
                             </Button>
                         </StackPanel>

@@ -337,7 +337,7 @@ namespace FAP.Domain.Handlers
                 {
                     e.Response.Add(new DateHeader("Last-Modified", modified));
                     // Send response and tell server to do nothing more with the request.
-                    SendFile(e.Context, fs,url);
+                    SendFile(e.Context, fs, url);
                     return true;
                 }
             }
@@ -371,8 +371,29 @@ namespace FAP.Domain.Handlers
                 var search = model.Network.Nodes.ToList().Where(n => n.NodeType != ClientType.Overlord && n.Host == userName).FirstOrDefault();
                 if (null != search && !string.IsNullOrEmpty(search.Nickname))
                     userName = search.Nickname;
-
+                
                 worker.DoUpload(context, stream, userName, url);
+
+                //Add log of the upload
+                double seconds = (DateTime.Now-worker.TransferStart).TotalSeconds;
+                TransferLog txlog = new TransferLog();
+                txlog.Nickname = userName;
+                txlog.Completed = DateTime.Now;
+                txlog.Filename = Path.GetFileName(url);
+                txlog.Path = Path.GetDirectoryName(url);
+                if (!string.IsNullOrEmpty(txlog.Path))
+                {
+                    txlog.Path = txlog.Path.Replace('\\', '/');
+                    if (txlog.Path.StartsWith("/"))
+                        txlog.Path = txlog.Path.Substring(1);
+                }
+
+                txlog.Size = worker.Length-worker.ResumePoint;
+                if (txlog.Size < 0)
+                    txlog.Size = 0;
+                if (0 != seconds)
+                    txlog.Speed = (int)(txlog.Size / seconds);
+                model.CompletedUploads.Add(txlog);
             }
             finally
             {

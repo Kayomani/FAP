@@ -29,6 +29,7 @@ using System.Net;
 using FAP.Domain.Verbs;
 using FAP.Domain.Net;
 using System.Threading;
+using System.Security.Principal;
 
 namespace FAP.Domain.Entities
 {
@@ -47,6 +48,10 @@ namespace FAP.Domain.Entities
         private SafeObservedCollection<TransferSession> transferSessions = new SafeObservedCollection<TransferSession>();
         private SafeObservingCollection<TransferSession> uiTransferSession;
         private SafeObservedCollection<string> messages = new SafeObservedCollection<string>();
+        private SafeObservedCollection<TransferLog> uploads = new SafeObservedCollection<TransferLog>();
+        private SafeObservedCollection<TransferLog> downloads = new SafeObservedCollection<TransferLog>();
+        private SafeObservingCollection<TransferLog> uiUploads;
+        private SafeObservingCollection<TransferLog> uiDownloads;
 
         private Network network = new Network();
         private int maxDownloads;
@@ -70,6 +75,8 @@ namespace FAP.Domain.Entities
             downloadQueue = new DownloadQueue();
             shutdownLock = new ReaderWriterLockSlim();
             uiTransferSession = new SafeObservingCollection<TransferSession>(transferSessions);
+            uiDownloads = new SafeObservingCollection<TransferLog>(downloads);
+            uiUploads = new SafeObservingCollection<TransferLog>(uploads);
         }
 
         /// <summary>
@@ -94,6 +101,30 @@ namespace FAP.Domain.Entities
         public void GetShutdownLock()
         {
             shutdownLock.TryEnterWriteLock(4000);
+        }
+
+        [JsonIgnore]
+        public SafeObservedCollection<TransferLog> CompletedDownloads
+        {
+            get { return downloads; }
+        }
+
+        [JsonIgnore]
+        public SafeObservingCollection<TransferLog> UICompletedDownloads
+        {
+            get { return uiDownloads; }
+        }
+
+        [JsonIgnore]
+        public SafeObservedCollection<TransferLog> CompletedUploads
+        {
+            get { return uploads; }
+        }
+
+        [JsonIgnore]
+        public SafeObservingCollection<TransferLog> UICompletedUploads
+        {
+            get { return uiUploads; }
         }
 
         [JsonIgnore]
@@ -326,6 +357,8 @@ namespace FAP.Domain.Entities
             {
                 try
                 {
+
+
                     if (File.Exists(DATA_FOLDER + saveLocation))
                     {
                         Model saved = SafeLoad<Model>(saveLocation);
@@ -344,6 +377,30 @@ namespace FAP.Domain.Entities
                         LocalNode = saved.LocalNode;
                         AlwaysNoCacheBrowsing = saved.AlwaysNoCacheBrowsing;
                         OverlordPriority = saved.OverlordPriority;
+                    }
+                    else if (File.Exists(FAP.Domain.Entities.Legacy.Model.saveLocation))
+                    {
+                        //New config doesnt exist but an older version does, try to import.
+                        FAP.Domain.Entities.Legacy.Model oldmodel = new Legacy.Model();
+                        oldmodel.Load();
+
+                        Shares.Clear();
+                        Shares.AddRange(oldmodel.Shares.OrderBy(s => s.Name).ToList());
+                        Avatar = oldmodel.Avatar;
+                        Description = oldmodel.Description;
+                        Nickname = oldmodel.Nickname;
+                        DownloadFolder = oldmodel.DownloadFolder;
+                        MaxDownloads = oldmodel.MaxDownloads;
+                        MaxDownloadsPerUser = oldmodel.MaxDownloadsPerUser;
+                        MaxUploads = oldmodel.MaxUploads;
+                        MaxUploadsPerUser = oldmodel.MaxUploadsPerUser;
+                        DisableComparision = oldmodel.DisableComparision;
+                        LocalNode = new Node();
+                        foreach (var data in oldmodel.Node.Data)
+                            LocalNode.SetData(data.Key, data.Value);
+                        AlwaysNoCacheBrowsing = oldmodel.AlwaysNoCacheBrowsing;
+                        OverlordPriority = Domain.OverlordPriority.Normal;
+                        Save();
                     }
                 }
                 catch (Exception e)
@@ -375,7 +432,18 @@ namespace FAP.Domain.Entities
             }
             //Set default nick
             if (string.IsNullOrEmpty(Nickname))
-                Nickname = Dns.GetHostName();
+            {
+                //Try to use the username
+                string user = WindowsIdentity.GetCurrent().Name;
+                if (!string.IsNullOrEmpty(user) && user.Contains('\\'))
+                {
+                    user = user.Substring(user.IndexOf('\\')+1);
+                }
+                //If the username is a default one then use the PC name
+                if (string.IsNullOrEmpty(user) || string.Equals(user, "Administrator", StringComparison.InvariantCultureIgnoreCase) || string.Equals(user, "Guest", StringComparison.InvariantCultureIgnoreCase))
+                    user = Dns.GetHostName();
+                Nickname = user;
+            }
 
             //Set default limits
             if (MaxDownloads == 0)

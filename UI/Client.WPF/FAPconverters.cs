@@ -84,11 +84,10 @@ namespace Fap.Presentation
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is int || value is long)
-            {
+            if (value is long)
                 return Utility.FormatBytes((long)value) + "/s";
-
-            }
+            if (value is int)
+                return Utility.FormatBytes((int)value) + "/s";
             return Utility.FormatBytes(0) + "/s";
         }
 

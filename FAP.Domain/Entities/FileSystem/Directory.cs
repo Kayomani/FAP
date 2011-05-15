@@ -31,7 +31,7 @@ namespace FAP.Domain.Entities.FileSystem
     public class Directory : File
     {
         [ProtoMember(1)]
-        public long FileCount { set; get; }
+        public long ItemCount { set; get; }
         [ProtoMember(2)]
         public List<Directory> SubDirectories { set; get; }
         [ProtoMember(3)]
@@ -102,7 +102,7 @@ namespace FAP.Domain.Entities.FileSystem
                     Directory m = ProtoBuf.Serializer.Deserialize<Directory>(stream);
                     Name = m.Name;
                     Size = m.Size;
-                    FileCount = m.FileCount;
+                    ItemCount = m.ItemCount;
                     SubDirectories = m.SubDirectories;
                     Files = m.Files;
                 }

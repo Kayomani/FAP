@@ -21,6 +21,7 @@ using System.Text;
 using FAP.Application.ViewModels;
 using FAP.Domain.Entities;
 using System.Waf.Applications;
+using Fap.Foundation;
 
 namespace FAP.Application.Controllers
 {
@@ -46,6 +47,49 @@ namespace FAP.Application.Controllers
             vm.Movedown = new DelegateCommand(Movedown);
             vm.Movetotop = new DelegateCommand(Movetotop);
             vm.Movetobottom = new DelegateCommand(Movetobottom);
+            vm.ClearDownloadLog = new DelegateCommand(ClearDownloadLog);
+            vm.ClearUploadLog = new DelegateCommand(ClearUploadLog);
+            vm.CompletedDownloads = model.UICompletedDownloads;
+            vm.CompletedUploads = model.UICompletedUploads;
+            model.CompletedDownloads.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(CompletedDownloads_CollectionChanged);
+            model.CompletedUploads.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(CompletedUploads_CollectionChanged);
+            CompletedUploads_CollectionChanged(null, null);
+            CompletedDownloads_CollectionChanged(null, null);
+        }
+
+        private void CompletedUploads_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            var list = model.CompletedUploads.ToList();
+            long totalSize = list.Sum(s => s.Size);
+
+
+            long speed = 0;
+            if (0 != list.Count)
+                speed = list.Sum(s => (long)s.Speed) / list.Count;
+            vm.UploadStats = string.Format("{0} transfered in {1} files at an average of {2}", Utility.FormatBytes(totalSize), list.Count, Utility.ConvertNumberToTextSpeed(speed));
+            list.Clear();
+        }
+
+        private void CompletedDownloads_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            var list =model.CompletedDownloads.ToList();
+            long totalSize = list.Sum(s=>s.Size);
+            long speed= 0;
+            if(list.Count!=0)
+               speed = list.Sum(s=>(long)s.Speed)/list.Count;
+
+            vm.DownloadStats = string.Format("{0} transfered in {1} files at an average of {2}", Utility.FormatBytes(totalSize), list.Count, Utility.ConvertNumberToTextSpeed(speed));
+            list.Clear();
+        }
+
+        private void ClearUploadLog()
+        {
+            model.CompletedUploads.Clear();
+        }
+
+        private void ClearDownloadLog()
+        {
+            model.CompletedDownloads.Clear();
         }
 
         private List<DownloadRequest> ConvertList(object o)

@@ -55,7 +55,7 @@ namespace FAP.Domain.Entities
                 try
                 {
                     queue.Clear();
-                    if (File.Exists(saveLocation))
+                    if (File.Exists(DATA_FOLDER + saveLocation))
                     {
                         DownloadQueue saved = SafeLoad<DownloadQueue>(saveLocation);
                         queue.AddRange(saved.List.ToList());

@@ -42,7 +42,6 @@ namespace Fap.Presentation
 		public MainWindow()
 		{
 			this.InitializeComponent();
-
             //Position window
             Left = SystemParameters.PrimaryScreenWidth - Width - 50;
             double space = SystemParameters.PrimaryScreenHeight - Height;
@@ -62,6 +61,14 @@ namespace Fap.Presentation
             this.Closing += new System.ComponentModel.CancelEventHandler(MainWindow2_Closing);
            
 		}
+
+        public new void Show()
+        {
+            Topmost = true;
+            base.Show();
+            Topmost = false;
+            WindowState = System.Windows.WindowState.Normal;
+        }
 
         void MainWindow2_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
