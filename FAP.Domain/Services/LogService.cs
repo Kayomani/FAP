@@ -27,7 +27,6 @@ namespace FAP.Domain.Services
 
         public LogService(Model m )
         {
-#if DEBUG
             LoggingConfiguration config = LogManager.Configuration;
             target = new LogServiceTarget(m.Messages);
             target.Layout = "${level}=> ${message} ${exception:format=Message} ${exception:format=Type} ${exception:format=StackTrace}";
@@ -40,7 +39,6 @@ namespace FAP.Domain.Services
             config.LoggingRules.Add(rule);
 
             LogManager.Configuration = config;
-#endif
             if (Debugger.IsAttached)
                 target.Filter = LogLevel.Debug;
         }
