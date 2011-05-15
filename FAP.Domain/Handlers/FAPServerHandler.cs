@@ -526,7 +526,7 @@ namespace FAP.Domain.Handlers
             //We dont do this on a server..
             SearchVerb verb = new SearchVerb(null);
             var result = verb.ProcessRequest(req);
-            byte[] data = Encoding.Unicode.GetBytes(result.Data);
+            byte[] data = Encoding.UTF8.GetBytes(result.Data);
             var generator = new ResponseWriter();
             e.Response.ContentLength.Value = data.Length;
             generator.SendHeaders(e.Context, e.Response);
@@ -541,7 +541,7 @@ namespace FAP.Domain.Handlers
             CompareVerb verb = new CompareVerb(model);
 
             var result = verb.ProcessRequest(req);
-            byte[] data = Encoding.Unicode.GetBytes(result.Data);
+            byte[] data = Encoding.UTF8.GetBytes(result.Data);
             var generator = new ResponseWriter();
             e.Response.ContentLength.Value = data.Length;
             generator.SendHeaders(e.Context, e.Response);
@@ -726,7 +726,7 @@ namespace FAP.Domain.Handlers
         {
             InfoVerb verb = new InfoVerb();
             verb.Node = serverNode;
-            SendResponse(e, Encoding.Unicode.GetBytes(verb.CreateRequest().Data));
+            SendResponse(e, Encoding.UTF8.GetBytes(verb.CreateRequest().Data));
             return true;
         }
 

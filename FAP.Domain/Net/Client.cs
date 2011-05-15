@@ -128,7 +128,7 @@ namespace FAP.Domain.Net
                 {
                     req.ContentType = "application/json";
                     req.Method = "POST";
-                    byte[] bytes = System.Text.Encoding.Unicode.GetBytes(input.Data);
+                    byte[] bytes = System.Text.Encoding.UTF8.GetBytes(input.Data);
                     req.ContentLength = bytes.Length;
                     System.IO.Stream os = req.GetRequestStream();
                     os.Write(bytes, 0, bytes.Length); //Push it out there
@@ -145,7 +145,7 @@ namespace FAP.Domain.Net
                 {
                     using (Stream s = resp.GetResponseStream())
                     {
-                        using (System.IO.StreamReader sr = new System.IO.StreamReader(s, Encoding.Unicode))
+                        using (System.IO.StreamReader sr = new System.IO.StreamReader(s, Encoding.UTF8))
                         {
                             result.Data = sr.ReadToEnd().Trim();
                         }

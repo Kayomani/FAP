@@ -31,13 +31,13 @@ namespace FAP.Domain.Verbs
             StringBuilder sb = new StringBuilder();
             sb.Append(Preamble);
             sb.Append("\n");
-            sb.Append(Convert.ToBase64String(Encoding.Unicode.GetBytes(address)));
+            sb.Append(Convert.ToBase64String(Encoding.UTF8.GetBytes(address)));
             sb.Append("\n");
-            sb.Append(Convert.ToBase64String(Encoding.Unicode.GetBytes(name)));
+            sb.Append(Convert.ToBase64String(Encoding.UTF8.GetBytes(name)));
             sb.Append("\n");
-            sb.Append(Convert.ToBase64String(Encoding.Unicode.GetBytes(overlordid)));
+            sb.Append(Convert.ToBase64String(Encoding.UTF8.GetBytes(overlordid)));
             sb.Append("\n");
-            sb.Append(Convert.ToBase64String(Encoding.Unicode.GetBytes(networkid)));
+            sb.Append(Convert.ToBase64String(Encoding.UTF8.GetBytes(networkid)));
             sb.Append("\n");
             sb.Append(priority);
             sb.Append("\n");
@@ -70,7 +70,7 @@ namespace FAP.Domain.Verbs
 
         private string DecodeString(string s)
         {
-            return Encoding.Unicode.GetString(Convert.FromBase64String(s));
+            return Encoding.UTF8.GetString(Convert.FromBase64String(s));
         }
     }
 }

@@ -43,14 +43,14 @@ namespace Fap.Foundation
 
         public string Encrypt(string input)
         {
-            Stream m = Encrypt(new MemoryStream(Encoding.Unicode.GetBytes(input)));
+            Stream m = Encrypt(new MemoryStream(Encoding.UTF8.GetBytes(input)));
             StreamReader sr = new StreamReader(m);
             return sr.ReadToEnd();
         }
 
         public string Decrypt(string input)
         {
-            Stream m = new MemoryStream(Encoding.Unicode.GetBytes(input));
+            Stream m = new MemoryStream(Encoding.UTF8.GetBytes(input));
             StreamReader sr = new StreamReader(Decrypt(new StreamReader(m)));
             return sr.ReadToEnd();
         }
@@ -65,18 +65,18 @@ namespace Fap.Foundation
             StreamReader sr = new StreamReader(inputStream);
             string input = sr.ReadToEnd();
             SHA256 prov = SHA256.Create();
-            byte[] bytes = prov.ComputeHash(Encoding.Unicode.GetBytes((key + key2)));
+            byte[] bytes = prov.ComputeHash(Encoding.UTF8.GetBytes((key + key2)));
             for (int z = 0; z < 10; z++)
                 bytes = prov.ComputeHash(bytes);
             engine.BlockSize = 256;
             ICryptoTransform encryptor = engine.CreateEncryptor(
                                                            bytes,
-                                                           Encoding.Unicode.GetBytes(initVector));
+                                                           Encoding.UTF8.GetBytes(initVector));
             MemoryStream memoryStream = new MemoryStream();
             CryptoStream cryptoStream = new CryptoStream(memoryStream,
                                                         encryptor,
                                                         CryptoStreamMode.Write);
-            byte[] inputBytes = Encoding.Unicode.GetBytes(input);
+            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
             cryptoStream.Write(inputBytes, 0, input.Length);
             cryptoStream.FlushFinalBlock();
             byte[] cipherTextBytes = memoryStream.ToArray();
@@ -87,7 +87,7 @@ namespace Fap.Foundation
             {
                 sb.Append(cipherTextBytes[z].ToString("x2"));
             }
-            return new MemoryStream(Encoding.Unicode.GetBytes(sb.ToString()));
+            return new MemoryStream(Encoding.UTF8.GetBytes(sb.ToString()));
         }
 
         public Stream Decrypt(TextReader sr)
@@ -98,12 +98,12 @@ namespace Fap.Foundation
             engine.BlockSize = 256;
             string input = sr.ReadToEnd();
             SHA256 prov = SHA256.Create();
-            byte[] bytes = prov.ComputeHash(Encoding.Unicode.GetBytes((key + key2)));
+            byte[] bytes = prov.ComputeHash(Encoding.UTF8.GetBytes((key + key2)));
             for (int z = 0; z < 10; z++)
                 bytes = prov.ComputeHash(bytes);
             ICryptoTransform decryptor = engine.CreateDecryptor(
                                                         bytes,
-                                                        Encoding.Unicode.GetBytes(initVector));
+                                                        Encoding.UTF8.GetBytes(initVector));
             byte[] inputBytes = ToByteArray(input);
             MemoryStream memoryStream = new MemoryStream(inputBytes);
             CryptoStream cryptoStream = new CryptoStream(memoryStream,
@@ -114,7 +114,7 @@ namespace Fap.Foundation
             cipherTextBytes = memoryStream.ToArray();
             memoryStream.Close();
             cryptoStream.Close();
-            string decyrpted = Encoding.Unicode.GetString(cipherTextBytes,
+            string decyrpted = Encoding.UTF8.GetString(cipherTextBytes,
                                                    0,
                                                    decryptedByteCount);
             StringBuilder sb = new StringBuilder();
@@ -123,7 +123,7 @@ namespace Fap.Foundation
                 if (!decyrpted[z].Equals('\0'))
                     sb.Append(decyrpted[z]);
             }
-            return new MemoryStream(Encoding.Unicode.GetBytes(sb.ToString()));
+            return new MemoryStream(Encoding.UTF8.GetBytes(sb.ToString()));
         }
     }
 }

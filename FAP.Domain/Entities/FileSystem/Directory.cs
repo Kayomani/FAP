@@ -53,21 +53,21 @@ namespace FAP.Domain.Entities.FileSystem
              * if (!System.IO.Directory.Exists(Path.GetDirectoryName(ShareInfoService.SaveLocation)))
                 System.IO.Directory.CreateDirectory(Path.GetDirectoryName(ShareInfoService.SaveLocation));
 
-            System.IO.File.WriteAllText(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".dat", JsonConvert.SerializeObject(this));*/
+            System.IO.File.WriteAllText(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(Name)) + ".dat", JsonConvert.SerializeObject(this));*/
 
             //XML save
             /*   if (!System.IO.Directory.Exists(Path.GetDirectoryName(ShareInfoService.SaveLocation)))
                  System.IO.Directory.CreateDirectory(Path.GetDirectoryName(ShareInfoService.SaveLocation));
 
              XmlSerializer serializer = new XmlSerializer(typeof(Directory));
-             using (TextWriter textWriter = new StreamWriter(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".dat"))
+             using (TextWriter textWriter = new StreamWriter(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(Name)) + ".dat"))
              {
                  serializer.Serialize(textWriter, this);
                  textWriter.Flush();
                  textWriter.Close();
              }*/
 
-            using (Stream file = System.IO.File.Open(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(Name)) + ".info", FileMode.Create))
+            using (Stream file = System.IO.File.Open(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(Name)) + ".info", FileMode.Create))
             {
                 ProtoBuf.Serializer.Serialize<Directory>(file, this);
             }

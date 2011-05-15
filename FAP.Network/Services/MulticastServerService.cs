@@ -51,7 +51,7 @@ namespace FAP.Network.Services
             {
                 if (null == broadcastSocket)
                     ConnectBroadcast();
-                broadcastSocket.SendTo(Encoding.Unicode.GetBytes(msg), broadcastSocket.RemoteEndPoint);
+                broadcastSocket.SendTo(Encoding.UTF8.GetBytes(msg), broadcastSocket.RemoteEndPoint);
             }
         }
 

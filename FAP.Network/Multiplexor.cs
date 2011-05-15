@@ -46,8 +46,7 @@ namespace FAP.Network
             if (!string.IsNullOrEmpty(param))
             {
                 sb.Append("?p=");
-                Base32Encoder e = new Base32Encoder('1');
-                sb.Append(e.Encode(Encoding.UTF8.GetBytes(param))); 
+                sb.Append(Convert.ToBase64String(Encoding.UTF8.GetBytes(param)).Replace('+', '_')); 
             }
             string result = sb.ToString();
             sb.Length = 0;
@@ -65,8 +64,7 @@ namespace FAP.Network
             var param = r.Parameters.Where(p => p.Name == "p").FirstOrDefault();
             if (null != param)
             {
-                Base32Encoder e = new Base32Encoder('1');
-                req.Param = Encoding.UTF8.GetString(e.Decode(param.Value));
+                req.Param = Encoding.UTF8.GetString(Convert.FromBase64String(param.Value.Replace('_', '+')));
             }
             if (r.Method == "POST")
             {
@@ -102,7 +100,7 @@ namespace FAP.Network
 
         public static string GetPostString(IRequest e)
         {
-            using (StreamReader reader = new StreamReader(e.Body,Encoding.Unicode))
+            using (StreamReader reader = new StreamReader(e.Body, Encoding.UTF8))
             {
                 return reader.ReadToEnd();
             }

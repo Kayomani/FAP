@@ -150,11 +150,12 @@ namespace FAP.Domain.Services
 
                             foreach (var item in verb.Results)
                             {
+
                                 newItems.Add(new DownloadRequest()
                                                {
                                                    Added = DateTime.Now,
                                                    ClientID = remoteNode.ID,
-                                                   FullPath = currentItem.FullPath + "//" + item.Name,
+                                                   FullPath = currentItem.FullPath + "/" + item.Name,
                                                    IsFolder = item.IsFolder,
                                                    LocalPath = currentItem.LocalPath + "\\" + currentItem.FileName,
                                                    NextTryTime = 0,

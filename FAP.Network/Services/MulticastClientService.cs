@@ -64,7 +64,7 @@ namespace FAP.Network.Services
             {
                 int length = listenSocket.Receive(buffer);
                 if (null != OnMultiCastRX)
-                    OnMultiCastRX(Encoding.Unicode.GetString(buffer, 0, length));
+                    OnMultiCastRX(Encoding.UTF8.GetString(buffer, 0, length));
             }
         }
 

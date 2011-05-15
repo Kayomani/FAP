@@ -287,7 +287,7 @@ namespace FAP.Domain.Services
         {
             if (shares.ContainsKey(name))
                 shares.Remove(name);
-            string path = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.Unicode.GetBytes(name)) + ".dat";
+            string path = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(name)) + ".dat";
             if (System.IO.File.Exists(path))
                 System.IO.File.Delete(path);
         }
