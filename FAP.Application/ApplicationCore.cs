@@ -38,6 +38,7 @@ using FAP.Application.Controllers;
 using NLog;
 using System.IO;
 using Fap.Foundation.RegistryServices;
+using FAP.Application.ViewModel;
 
 namespace FAP.Application
 {
@@ -128,7 +129,7 @@ namespace FAP.Application
             ));
         }
 
-        public void StartGUI()
+        public void StartGUI(bool showWindow)
         {
             trayIcon = container.Resolve<TrayIconViewModel>();
             //Tray icon
@@ -142,7 +143,8 @@ namespace FAP.Application
             trayIcon.Compare = new DelegateCommand(Compare);
             trayIcon.OpenExternal = new DelegateCommand(OpenExternal);
             trayIcon.ShowIcon = true;
-            ShowMainWindow();
+            if (showWindow)
+                ShowMainWindow();
             ThreadPool.QueueUserWorkItem(new WaitCallback(MainWindowUpdater));
         }
 
@@ -180,6 +182,19 @@ namespace FAP.Application
                 conversationController = (ConversationController)container.Resolve<IConversationController>();
                 watchdogController = container.Resolve<WatchdogController>();
                 watchdogController.Start();
+
+                if (!model.DisplayedHelp)
+                {
+                    model.DisplayedHelp = true;
+                    var helpWindow = container.Resolve<WebViewModel>();
+
+                    if (null != helpWindow)
+                    {
+                        string path = Path.GetDirectoryName(Assembly.GetCallingAssembly().CodeBase);
+                        helpWindow.Location = path + "\\Web.Help\\help.html";
+                        popupController.AddWindow(helpWindow.View, "Quick Start");
+                    }
+                }
             }
             return true;
         }

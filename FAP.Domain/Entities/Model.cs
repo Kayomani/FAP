@@ -36,7 +36,7 @@ namespace FAP.Domain.Entities
     [Serializable]
     public class Model : BaseEntity
     {
-        public static readonly string AppVersion = "FAP Alpha 5";
+        public static readonly string AppVersion = "FAP Beta 1";
         public static readonly string ProtocolVersion = "FAP/1.0";
         public static int UPLINK_TIMEOUT = 20000;//1 minute
         public static int DOWNLOAD_RETRY_TIME = 120000;//2minutes
@@ -62,6 +62,7 @@ namespace FAP.Domain.Entities
         private string incompleteFolder;
         private bool disableCompare;
         private bool alwaysNoCacheBrowsing;
+        private bool displayedHelp =false;
 
         private OverlordPriority overlordPriority;
         private Node node;
@@ -171,6 +172,18 @@ namespace FAP.Domain.Entities
             get
             {
                 return node.Description;
+            }
+        }
+
+        public bool DisplayedHelp
+        {
+            set
+            {
+                displayedHelp = value;
+            }
+            get
+            {
+                return displayedHelp;
             }
         }
 
@@ -377,6 +390,7 @@ namespace FAP.Domain.Entities
                         LocalNode = saved.LocalNode;
                         AlwaysNoCacheBrowsing = saved.AlwaysNoCacheBrowsing;
                         OverlordPriority = saved.OverlordPriority;
+                        DisplayedHelp = saved.DisplayedHelp;
                     }
                     else if (File.Exists(FAP.Domain.Entities.Legacy.Model.saveLocation))
                     {

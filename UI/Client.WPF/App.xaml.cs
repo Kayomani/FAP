@@ -72,6 +72,9 @@ namespace Fap.Presentation
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            if(e.Args.Contains("WAIT"))
+                Thread.Sleep(5000);
+
             SplashScreen appSplash = null;
             Fap.Foundation.SafeObservableStatic.Dispatcher = System.Windows.Application.Current.Dispatcher;
             SafeObservingCollectionManager.Start();
@@ -133,7 +136,7 @@ namespace Fap.Presentation
                 {
 
                     core.StartClient();
-                    core.StartGUI();
+                    core.StartGUI(!(e.Args.Contains("STARTUP")));
                     //Was a url passed on startup?
                     if (e.Args.Length == 2 && e.Args[0] == "-url")
                     {

@@ -157,8 +157,8 @@ namespace FAP.Domain.Services
                 return true;
             else
             {
-                //Rule 2: Atleast 1 server per 100 people
-                if (totalUsers > serversWithFreeSlots * 100)
+                //Rule 2: Atleast 1 server per 200 people
+                if (totalUsers > serversWithFreeSlots * 200)
                     return true;
                 else
                 {

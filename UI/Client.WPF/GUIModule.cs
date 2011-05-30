@@ -30,6 +30,7 @@ namespace Fap.Presentation
             builder.RegisterType<InterfaceSelection>().As<IInterfaceSelectionView>();
             builder.RegisterType<MessageService>().As<IMessageService>();
             builder.RegisterType<SearchPanel>().As<ISearchView>();
+            builder.RegisterType<WebPanel>().As<IWebPanel>();
         }
     }
 }

@@ -139,6 +139,7 @@
     <Compile Include="ViewModel\SharesViewModel.cs" />
     <Compile Include="ViewModel\TrayIconViewModel.cs" />
     <Compile Include="ViewModel\UserInfoViewModel.cs" />
+    <Compile Include="ViewModel\WebViewModel.cs" />
     <Compile Include="Views\IBrowserView.cs" />
     <Compile Include="Views\ICompareView.cs" />
     <Compile Include="Views\IConverstationView.cs" />
@@ -154,6 +155,7 @@
     <Compile Include="Views\ISharesView.cs" />
     <Compile Include="Views\ITrayIconView.cs" />
     <Compile Include="Views\IUserInfo.cs" />
+    <Compile Include="Views\IWebPanel.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FAP.Domain\FAP.Domain.csproj">

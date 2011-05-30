@@ -321,6 +321,27 @@ namespace Fap.Presentation.Panels
                 }
             }
         }
+
+        private void listView2_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+
+            if (listView2.SelectedItems != null && listView2.SelectedItems.Count > 0)
+            {
+                if (listView2.ContextMenu.Items.Count == 0)
+                {
+                    MenuItem m = new MenuItem();
+                    m.Foreground = Brushes.Black;
+                    m.Header = "Download";
+                    m.Command = Model.Download;
+                    listView2.ContextMenu.Items.Add(m);
+                }
+            }
+            else
+            {
+                listView2.ContextMenu.Items.Clear();
+                e.Handled = true;
+            }
+        }
     }
 
 

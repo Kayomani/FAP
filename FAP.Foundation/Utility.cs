@@ -33,7 +33,7 @@ namespace Fap.Foundation
         {
             if (string.IsNullOrEmpty(url))
                 return string.Empty;
-
+            url = url.Replace("%", "%25");
             url = url.Replace("!", "%21");
             url = url.Replace("*", "%2A");
             url = url.Replace("'", "%27");
@@ -49,7 +49,6 @@ namespace Fap.Foundation
             url = url.Replace(",", "%2C");
             url = url.Replace("/", "'%2F");
             url = url.Replace("?", "%3F");
-            url = url.Replace("%", "%25");
             url = url.Replace("#", "%23");
             url = url.Replace("[", "%5B");
             url = url.Replace("]", "%5D");
