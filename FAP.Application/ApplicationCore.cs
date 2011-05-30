@@ -184,19 +184,23 @@ namespace FAP.Application
                 watchdogController.Start();
 
                 if (!model.DisplayedHelp)
-                {
-                    model.DisplayedHelp = true;
-                    var helpWindow = container.Resolve<WebViewModel>();
-
-                    if (null != helpWindow)
-                    {
-                        string path = Path.GetDirectoryName(Assembly.GetCallingAssembly().CodeBase);
-                        helpWindow.Location = path + "\\Web.Help\\help.html";
-                        popupController.AddWindow(helpWindow.View, "Quick Start");
-                    }
-                }
+                    ShowQuickStart();
             }
             return true;
+        }
+
+
+        public void ShowQuickStart()
+        {
+            model.DisplayedHelp = true;
+            var helpWindow = container.Resolve<WebViewModel>();
+
+            if (null != helpWindow)
+            {
+                string path = Path.GetDirectoryName(Assembly.GetCallingAssembly().CodeBase);
+                helpWindow.Location = path + "\\Web.Help\\help.html";
+                popupController.AddWindow(helpWindow.View, "Quick Start");
+            }
         }
 
         public void AddDownloadUrlWhenConnected(string url)

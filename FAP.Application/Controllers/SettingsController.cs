@@ -58,7 +58,13 @@ namespace FAP.Application.Controllers
                 viewModel.EditDownloadDir = new DelegateCommand(SettingsEditDownloadDir);
                 viewModel.ChangeAvatar = new DelegateCommand(ChangeAvatar);
                 viewModel.ResetInterface = new DelegateCommand(ResetInterface);
+                viewModel.DisplayQuickStart = new DelegateCommand(DisplayQuickStart);
             }
+        }
+
+        private void DisplayQuickStart()
+        {
+            core.ShowQuickStart();
         }
 
         private void SettingsEditDownloadDir()

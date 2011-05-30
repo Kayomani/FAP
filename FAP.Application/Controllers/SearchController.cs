@@ -20,8 +20,7 @@ namespace FAP.Application.Controllers
         private SearchViewModel viewModel;
         private IContainer container;
         private Model model;
-        private SafeObservedCollection<SearchResult> results = new SafeObservedCollection<SearchResult>();
-
+        private SafeObservedCollection<SearchResult> currentResults = new SafeObservedCollection<SearchResult>();
         private int outstandingrequests = 0;
         private object sync = new object();
         private long startTime=0;
@@ -37,13 +36,14 @@ namespace FAP.Application.Controllers
             get { return viewModel; }
         }
 
+        
+
         public void Initalize()
         {
             if (null == viewModel)
             {
                 viewModel = container.Resolve<SearchViewModel>();
                 viewModel.Search = new DelegateCommand(Search);
-                viewModel.Results = new SafeObservingCollection<SearchResult>(results);
                 viewModel.Download = new DelegateCommand(Download);
                 viewModel.ViewShare = new DelegateCommand(ViewShare);
                 viewModel.Reset = new DelegateCommand(Reset);
@@ -52,7 +52,11 @@ namespace FAP.Application.Controllers
 
         private void Reset()
         {
-            results.Clear();
+            if (null != viewModel.Results)
+                viewModel.Results.Dispose();
+            currentResults.Clear();
+            currentResults = new SafeObservedCollection<SearchResult>();
+            viewModel.Results = new SafeObservingCollection<SearchResult>(currentResults);
             viewModel.LowerStatusMessage = string.Empty;
             viewModel.UpperStatusMessage = string.Empty;
             viewModel.SearchString = string.Empty;
@@ -103,7 +107,12 @@ namespace FAP.Application.Controllers
         {
             viewModel.AllowSearch = false;
             ThreadPool.QueueUserWorkItem(new WaitCallback(EnableSearch));
-            results.Clear();
+            currentResults.Clear();
+            currentResults = new SafeObservedCollection<SearchResult>();
+            if (null != viewModel.Results)
+                viewModel.Results.Dispose();
+            viewModel.Results = new SafeObservingCollection<SearchResult>(currentResults);
+
             var peerlist = model.Network.Nodes.ToList();
             
 
@@ -123,7 +132,7 @@ namespace FAP.Application.Controllers
                 outstandingrequests = peerlist.Count;
                 startTime = Environment.TickCount;
                 foreach (var peer in peerlist)
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(RunAsync), peer);
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(RunAsync), new AsyncSearchParam() { Node = peer, Results = currentResults });
             }
         }
 
@@ -151,8 +160,8 @@ namespace FAP.Application.Controllers
 
         private void RunAsync(object o)
         {
-            Node peer = o as Node;
-            if (null != peer)
+            AsyncSearchParam param = o as AsyncSearchParam;
+            if (null != param && null != param.Node)
             {
                 Client client = new Client(model.LocalNode);
                 SearchVerb verb = new SearchVerb(null);
@@ -182,33 +191,43 @@ namespace FAP.Application.Controllers
                         break;
                 }
 
-                if (client.Execute(verb, peer))
+                if (client.Execute(verb, param.Node))
                 {
                     if (null != verb.Results)
                     {
                         //Set name
                         foreach (var result in verb.Results)
                         {
-                            result.User = peer.Nickname;
-                            result.ClientID = peer.ID;
+                            result.User = param.Node.Nickname;
+                            result.ClientID = param.Node.ID;
                         }
-                        results.AddRange(verb.Results);
+                        param.Results.AddRange(verb.Results);
                     }
                 }
             }
             lock (sync)
             {
-                outstandingrequests--;
-                if (outstandingrequests < 1)
+                //If we still on the same search then update the UI.
+                if (param.Results == currentResults)
                 {
-                    viewModel.UpperStatusMessage = "Search complete in " + (Environment.TickCount - startTime) + " ms";
-                    viewModel.LowerStatusMessage = results.Count + " results.";
-                }
-                else
-                {
-                    viewModel.LowerStatusMessage = outstandingrequests + " peers remaining..";
+                    outstandingrequests--;
+                    if (outstandingrequests < 1)
+                    {
+                        viewModel.UpperStatusMessage = "Search complete in " + (Environment.TickCount - startTime) + " ms";
+                        viewModel.LowerStatusMessage = currentResults.Count + " results.";
+                    }
+                    else
+                    {
+                        viewModel.LowerStatusMessage = outstandingrequests + " peers remaining..";
+                    }
                 }
             }
+        }
+
+        private class AsyncSearchParam
+        {
+            public SafeObservedCollection<SearchResult> Results { set; get; }
+            public Node Node { set; get; }
         }
     }
 }

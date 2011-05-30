@@ -118,6 +118,7 @@ namespace Fap.Foundation
         {
             viewedCollection.OnCollectionChanged -= new NotifyCollectionChangedEventHandler(collection_OnCollectionChanged);
             SafeObservingCollectionManager.Unregister(this);
+            Clear();
         }
 
         private void collection_OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

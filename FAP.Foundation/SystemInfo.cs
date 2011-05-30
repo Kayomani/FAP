@@ -22,6 +22,7 @@ using Microsoft.Win32;
 using LinqToWmi.Core.WMI;
 using System.Net.NetworkInformation;
 using Fap.Foundation.WMI_Prototypes;
+using Fap.Foundation;
 
 namespace Fap.Foundation
 {
@@ -64,7 +65,8 @@ namespace Fap.Foundation
 
         public int GetCPUSpeed()
         {
-            string item = GetRegistryData(Registry.LocalMachine, "HARDWARE/DESCRIPTION/System/CentralProcessor/0/~MHz");
+
+            string item = RegistryHelper.GetRegistryData(Registry.LocalMachine, "HARDWARE/DESCRIPTION/System/CentralProcessor/0/~MHz");
             int i = 0;
             int.TryParse(item, out i);
             return i;
@@ -72,7 +74,7 @@ namespace Fap.Foundation
 
         public string GetCPUType()
         {
-            return GetRegistryData(Registry.LocalMachine, "HARDWARE/DESCRIPTION/System/CentralProcessor/0/ProcessorNameString");
+            return RegistryHelper.GetRegistryData(Registry.LocalMachine, "HARDWARE/DESCRIPTION/System/CentralProcessor/0/ProcessorNameString");
         }
 
         public int GetCPUCores()
@@ -345,30 +347,5 @@ namespace Fap.Foundation
                 return string.Empty;
             }
         }*/
-
-        private string GetRegistryData(RegistryKey key, string path)
-        {
-            string[] keys = path.Split('/');
-            try
-            {
-                if (keys.Count() == 1)
-                {
-                    object value = key.GetValue(keys[0]);
-                    if (null != value)
-                        return value.ToString();
-                    return null;
-                }
-                else
-                {
-                    //Open subkey
-                    RegistryKey sub = key.OpenSubKey(keys[0]);
-                    return GetRegistryData(sub, path.Substring(keys[0].Length + 1));
-                }
-            }
-            catch
-            {
-                return string.Empty;
-            }
-        }
     }
 }

@@ -34,7 +34,7 @@
                 <Button Command="{Binding ChangeAvatar}" Content="Change" Height="23"   Grid.Row="2" Grid.Column="1" Width="65" HorizontalAlignment="Left" />
             </Grid>
         </GroupBox>
-        <GroupBox Header="Client config" Height="210">
+        <GroupBox Header="Client config" Height="260">
             <Grid Margin="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150px" />
@@ -42,6 +42,8 @@
                     <ColumnDefinition Width="100px" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="28px" />
+                    <RowDefinition Height="28px" />
                     <RowDefinition Height="28px" />
                     <RowDefinition Height="28px" />
                     <RowDefinition Height="28px" />
@@ -78,6 +80,12 @@
 
                 <Label Content="Never cache browsing" Grid.Row="5" VerticalAlignment="Center" />
                 <CheckBox  IsChecked="{Binding Model.AlwaysNoCacheBrowsing}" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Left" VerticalAlignment="Center" />
+
+                <Label Content="Run on startup" Grid.Row="6" VerticalAlignment="Center" />
+                <CheckBox  IsChecked="{Binding RunOnStartUp}" Grid.Column="1" Grid.Row="6" HorizontalAlignment="Left" VerticalAlignment="Center" />
+
+                <Label Content="Display quick start" Grid.Row="7" VerticalAlignment="Center" />
+                <Button  Grid.Column="1" Grid.Row="7" Content="Show" Width="65" Height="23" HorizontalAlignment="Left" Command="{Binding DisplayQuickStart}"  />
             </Grid>
         </GroupBox>
         <GroupBox Header="Transfer limits" Height="100">

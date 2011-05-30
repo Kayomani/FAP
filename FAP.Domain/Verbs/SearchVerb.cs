@@ -39,8 +39,9 @@ namespace FAP.Domain.Verbs
             if (DateTime.MinValue != verb.ModifiedAfter)
                 modifiedAfter = verb.ModifiedAfter.ToFileTime();
             if (null != shareInfoService)
-                results = shareInfoService.Search(verb.SearchString, 500, modifiedBefore, modifiedAfter, verb.SmallerThan, verb.LargerThan);
+                results = shareInfoService.Search(verb.SearchString, Model.MAX_SEARCH_RESULTS, modifiedBefore, modifiedAfter, verb.SmallerThan, verb.LargerThan);
             r.Data = Serialize<SearchVerb>(this);
+            results.Clear();
             return r;
         }
 

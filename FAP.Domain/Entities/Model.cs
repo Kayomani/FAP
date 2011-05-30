@@ -41,6 +41,7 @@ namespace FAP.Domain.Entities
         public static int UPLINK_TIMEOUT = 20000;//1 minute
         public static int DOWNLOAD_RETRY_TIME = 120000;//2minutes
         public static int FREE_FILE_LIMIT = 1048576;//1mb
+        public static int MAX_SEARCH_RESULTS = 10000;
 
         private readonly string saveLocation = "ClientConfig.cfg";
         private SafeObservedCollection<Share> shares = new SafeObservedCollection<Share>();

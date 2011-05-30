@@ -90,7 +90,7 @@ namespace Fap.Presentation
                     Thread.Sleep(3000);
                 }
 
-                ApplicationCore core = new ApplicationCore(container);
+                ApplicationCore core = container.Resolve<ApplicationCore>();
 
                 if (!core.CheckSingleInstance())
                 {
@@ -158,18 +158,38 @@ namespace Fap.Presentation
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            Console.WriteLine(e.Exception.Message);
-            if (null != container)
-                 LogManager.GetLogger("faplog").FatalException("Unhandled dispatcher exception",e.Exception);
-            e.Handled = true;
+            System.ComponentModel.Win32Exception w32e = e.Exception as System.ComponentModel.Win32Exception;
+            if ((w32e != null) && (w32e.NativeErrorCode == 0))
+            {
+                // ignore and continue: most likely cause is the splash screen loses focus during its showing period (for .NET 3.5 SP1)
+                // https://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=362735
+                e.Handled = true;
+            }
+            else
+            {
+                Console.WriteLine(e.Exception.Message);
+                if (null != container)
+                    LogManager.GetLogger("faplog").FatalException("Unhandled dispatcher exception", e.Exception);
+                e.Handled = true;
+            }
         }
 
         private void Application_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            Console.WriteLine(e.Exception.Message);
-            if (null != container)
-                LogManager.GetLogger("faplog").FatalException("Unhandled exception", e.Exception);
-            e.Handled = true;
+            System.ComponentModel.Win32Exception w32e = e.Exception as System.ComponentModel.Win32Exception;
+            if ((w32e != null) && (w32e.NativeErrorCode == 0))
+            {
+                // ignore and continue: most likely cause is the splash screen loses focus during its showing period (for .NET 3.5 SP1)
+                // https://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=362735
+                e.Handled = true;
+            }
+            else
+            {
+                Console.WriteLine(e.Exception.Message);
+                if (null != container)
+                    LogManager.GetLogger("faplog").FatalException("Unhandled exception", e.Exception);
+                e.Handled = true;
+            }
         }
 
          private bool Compose()

@@ -22,6 +22,9 @@ using System.Waf.Applications;
 using FAP.Application.Views;
 using System.Windows.Input;
 using FAP.Domain.Entities;
+using Fap.Foundation;
+using Microsoft.Win32;
+using System.Reflection;
 
 namespace FAP.Application.ViewModels
 {
@@ -31,6 +34,7 @@ namespace FAP.Application.ViewModels
         private ICommand editDownloadDir;
         private ICommand changeAvatar;
         private ICommand resetInterface;
+        private ICommand displayQuickStart;
 
         public SettingsViewModel(ISettingsView view)
             : base(view)
@@ -44,18 +48,31 @@ namespace FAP.Application.ViewModels
             set{ resetInterface = value; RaisePropertyChanged("ResetInterface");}
         }
 
-         public ICommand EditDownloadDir
-         {
-             get
-             {
-                 return editDownloadDir;
-             }
-             set
-             {
-                 editDownloadDir = value;
-                 RaisePropertyChanged("EditDownloadDir");
-             }
-         }
+        public ICommand EditDownloadDir
+        {
+            get
+            {
+                return editDownloadDir;
+            }
+            set
+            {
+                editDownloadDir = value;
+                RaisePropertyChanged("EditDownloadDir");
+            }
+        }
+
+        public ICommand DisplayQuickStart
+        {
+            get
+            {
+                return displayQuickStart;
+            }
+            set
+            {
+                displayQuickStart = value;
+                RaisePropertyChanged("DisplayQuickStart");
+            }
+        }
 
          public ICommand ChangeAvatar
          {
@@ -78,6 +95,30 @@ namespace FAP.Application.ViewModels
                 model = value;
                 RaisePropertyChanged("Model");
             }
+        }
+
+        private readonly string startupRegistryPath = "SOFTWARE/Microsoft/Windows/CurrentVersion/Run";
+
+        public bool RunOnStartUp
+        {
+            set
+            {
+                if (value)
+                    RegistryHelper.SetRegistryData(Registry.CurrentUser, startupRegistryPath, "FAP", GetStartupCommand());
+                else
+                    RegistryHelper.SetRegistryData(Registry.CurrentUser, startupRegistryPath, "FAP", string.Empty);
+                RaisePropertyChanged("RunOnStartUp");
+            }
+            get
+            {
+                return (RegistryHelper.GetRegistryData(Registry.CurrentUser, startupRegistryPath +"/FAP") == GetStartupCommand());
+            }
+        }
+
+        private string GetStartupCommand()
+        {
+            string location = Assembly.GetEntryAssembly().Location;
+            return string.Format("\"{0}\" STARTUP", location);
         }
     }
 }

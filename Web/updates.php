@@ -5,6 +5,9 @@ $version = '';
      switch($version)
      {
        case "FAP Alpha 5":
+       echo "Your client is out of date.\n Latest client: Beta 1";
+          break;
+       case "FAP Beta 1":
           echo "Your client is up to date.";
           break;
        default:
