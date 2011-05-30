@@ -70,13 +70,15 @@ namespace FAP.Application.Controllers
 
         private void Populate(string ent)
         {
+            ent = ent.Replace('/', '\\');
             bvm.IsBusy = true;
             if (string.IsNullOrEmpty(ent))
             {
+                bvm.Root.Clear();
                 ThreadPool.QueueUserWorkItem(new WaitCallback(PopulateAsync), null);
                 return;
             }
-            string[] items = ent.Split('/');
+            string[] items = ent.Split('\\');
             BrowsingFile parent = bvm.Root.Where(n => n.Name == items[0]).FirstOrDefault();
 
             if (string.IsNullOrEmpty(ent))

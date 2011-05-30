@@ -100,8 +100,11 @@ namespace Fap.Presentation.Panels
             if (null == Model.LastSelectedEntity)
                 Model.LastSelectedEntity = new List<BrowsingFile>();
             Model.LastSelectedEntity.Clear();
-            Model.LastSelectedEntity.Add(ent);
-            Model.CurrentPath = ent.FullPath;
+            if (null != ent)
+            {
+                Model.LastSelectedEntity.Add(ent);
+                Model.CurrentPath = ent.FullPath;
+            }
         }
 
         private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
@@ -169,7 +172,7 @@ namespace Fap.Presentation.Panels
                 {
                     bar.PathChanged -= new RoutedPropertyChangedEventHandler<string>(bar_PathChanged);
                     rootB.Items.Clear();
-                    bar.Path = Model.CurrentPath;
+                    bar.Path = Model.CurrentPath.Replace('/','\\');
                     bar.PathChanged += new RoutedPropertyChangedEventHandler<string>(bar_PathChanged);
 
                 }

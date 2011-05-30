@@ -38,7 +38,7 @@ namespace FAP.Domain.Entities
     {
         public static readonly string AppVersion = "FAP Beta 1";
         public static readonly string ProtocolVersion = "FAP/1.0";
-        public static int UPLINK_TIMEOUT = 20000;//1 minute
+        public static int UPLINK_TIMEOUT = 60000;//1 minute
         public static int DOWNLOAD_RETRY_TIME = 120000;//2minutes
         public static int FREE_FILE_LIMIT = 1048576;//1mb
         public static int MAX_SEARCH_RESULTS = 10000;
