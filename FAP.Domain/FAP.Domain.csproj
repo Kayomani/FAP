@@ -108,11 +108,6 @@
     <Reference Include="Autofac">
       <HintPath>..\libs\Autofac\Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="Interop.Bonjour, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>..\libs\Bonjour\Interop.Bonjour.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json.Net35">
       <HintPath>..\libs\Json.NET\Newtonsoft.Json.Net35.dll</HintPath>
     </Reference>

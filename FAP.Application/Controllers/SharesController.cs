@@ -98,25 +98,13 @@ namespace FAP.Application.Controllers
 
                     }
                     //Check name is valid and ok
-                    bool retry = true;
-                    do
-                    {
-                        MessageBoxViewModel messagebox = container.Resolve<MessageBoxViewModel>();
-                        messagebox.Response = name;
-                        messagebox.Message = "What do you want to name the share?";
-                        if (messagebox.ShowDialog())
-                        {
-                            name = messagebox.Response;
-                            retry = (model.Shares.Where(ss => ss.Name == name).Count() != 0 || name.Length == 0);
-                            if (retry)
-                                System.Windows.MessageBox.Show("This name is already taken, please choose a different one!");
-                        }
-                        else
-                        {
-                            return;
-                        }
-                    }
-                    while (retry);
+                    MessageBoxViewModel messagebox = container.Resolve<MessageBoxViewModel>();
+                    messagebox.Response = name;
+                    messagebox.Message = "What do you want to name the share?";
+                    if (messagebox.ShowDialog())
+                        name = messagebox.Response;
+                    else
+                        return;
 
                     if (name.Length > 0)
                     {
@@ -178,7 +166,7 @@ namespace FAP.Application.Controllers
         {
             if (null != viewModel.SelectedShare)
             {
-                scanner.RemoveShare(viewModel.SelectedShare.Name);
+                scanner.RemoveShareByID(viewModel.SelectedShare.ID);
                 model.Shares.Remove(viewModel.SelectedShare);
             }
         }
@@ -192,15 +180,8 @@ namespace FAP.Application.Controllers
                 messagebox.Message = "What do you want to rename it to?";
                 if (messagebox.ShowDialog(ViewModel.View))
                 {
-                    if (model.Shares.Where(s => s.Name == messagebox.Response && s != viewModel.SelectedShare).Count() == 0 && messagebox.Response.Length != 0)
-                    {
-                        scanner.RenameShare(viewModel.SelectedShare.Name, messagebox.Response);
-                        viewModel.SelectedShare.Name = messagebox.Response;
-                    }
-                    else
-                    {
-                        container.Resolve<IMessageService>().ShowError("This name is already taken, please choose a different one!");
-                    }
+                    scanner.RenameShareByID(viewModel.SelectedShare.ID, messagebox.Response);
+                    viewModel.SelectedShare.Name = messagebox.Response;
                 }
             }
         }

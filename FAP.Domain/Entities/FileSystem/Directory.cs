@@ -46,7 +46,7 @@ namespace FAP.Domain.Entities.FileSystem
             Files.Clear();
         }
 
-        public void Save()
+        public void Save(string id)
         {
             //Json save
             /* Json save is 100% slower but half the size
@@ -67,14 +67,15 @@ namespace FAP.Domain.Entities.FileSystem
                  textWriter.Close();
              }*/
 
-            using (Stream file = System.IO.File.Open(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(Name)) + ".info", FileMode.Create))
+            using (Stream file = System.IO.File.Open(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) + ".cache", FileMode.Create))
             {
                 ProtoBuf.Serializer.Serialize<Directory>(file, this);
             }
         }
 
-        public void Load(string name)
+        public void Load(string id)
         {
+            string fileName = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) + ".cache";
             try
             {
                 //Json load
@@ -86,18 +87,18 @@ namespace FAP.Domain.Entities.FileSystem
                 Files = m.Files;*/
 
                 //Xml load
-                  /* XmlSerializer deserializer = new XmlSerializer(typeof(Directory));
-                    using (TextReader textReader = new StreamReader(name))
-                    {
-                        Directory m = (Directory)deserializer.Deserialize(textReader);
-                        Name = m.Name;
-                        Size = m.Size;
-                        FileCount = m.FileCount;
-                        SubDirectories = m.SubDirectories;
-                        Files = m.Files;
-                    }*/
-                
-                using (Stream stream = System.IO.File.Open(name, FileMode.Open))
+                /* XmlSerializer deserializer = new XmlSerializer(typeof(Directory));
+                  using (TextReader textReader = new StreamReader(name))
+                  {
+                      Directory m = (Directory)deserializer.Deserialize(textReader);
+                      Name = m.Name;
+                      Size = m.Size;
+                      FileCount = m.FileCount;
+                      SubDirectories = m.SubDirectories;
+                      Files = m.Files;
+                  }*/
+
+                using (Stream stream = System.IO.File.Open(fileName, FileMode.Open))
                 {
                     Directory m = ProtoBuf.Serializer.Deserialize<Directory>(stream);
                     Name = m.Name;
@@ -112,10 +113,10 @@ namespace FAP.Domain.Entities.FileSystem
                 //Error loading the file - May be the old format so just delete the old file
                 try
                 {
-                    System.IO.File.Delete(name);
+                    System.IO.File.Delete(fileName);
                 }
                 catch { }
-                throw new Exception("Failed to read share info for " + name, e);
+                throw new Exception("Failed to read share info for " + Path.GetFileName(fileName), e);
             }
         }
     }

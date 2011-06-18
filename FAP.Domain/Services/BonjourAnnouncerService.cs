@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FAP.Domain.Services
+/*namespace FAP.Domain.Services
 {
     public class BonjourAnnouncerService
     {
@@ -30,4 +30,4 @@ namespace FAP.Domain.Services
             eventManager = new Bonjour.DNSSDEventManager();
         }
     }
-}
+}*/

@@ -10,6 +10,7 @@
         <DockPanel DockPanel.Dock="Bottom" Height="32" Background="Black" >
             <Label VerticalAlignment="Center"  Name="totalLabel" Content="Total share:"/>
             <Label VerticalAlignment="Center"  Margin="10,0,0,0" Content="{Binding TotalShareSizeString}" />
+            <Label VerticalAlignment="Center"  Margin="10,0,0,0" Content="Please note share names can be reused and will be treated a merge folder." />
             <DockPanel DockPanel.Dock="Right" LastChildFill="False">
                 <DockPanel.Background>
                     <LinearGradientBrush EndPoint="0.92,0.791" MappingMode="RelativeToBoundingBox" StartPoint="0.009,1.19">

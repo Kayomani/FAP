@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Fap.Foundation.Services;
 
 namespace FAP.Domain.Entities
 {
@@ -29,6 +30,12 @@ namespace FAP.Domain.Entities
         private long fileCount;
         private string status;
         private DateTime refresh;
+        private string id;
+
+        public Share()
+        {
+            id = IDService.CreateID();
+        }
 
         public DateTime LastRefresh
         {
@@ -45,6 +52,12 @@ namespace FAP.Domain.Entities
         {
             set { name = value; NotifyChange("Name"); }
             get { return name; }
+        }
+
+        public string ID
+        {
+            set { id = value; NotifyChange("ID"); }
+            get { return id; }
         }
 
         public long Size

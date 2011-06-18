@@ -29,9 +29,15 @@ using System.Threading;
 
 namespace FAP.Domain.Services
 {
+    public class RootShare
+    {
+        public string ID { set; get; }
+        public Directory Data { set; get; }
+    }
+
     public class ShareInfoService
     {
-        private Dictionary<string, Directory> shares = new Dictionary<string, Directory>();
+        private List<RootShare> shares = new List<RootShare>();
         public static readonly string SaveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\ShareInfo\";
         private Model model;
 
@@ -43,40 +49,20 @@ namespace FAP.Domain.Services
         public void Load()
         {
             shares.Clear();
-            try
+
+            foreach (var share in model.Shares.ToList())
             {
-                if (System.IO.Directory.Exists(SaveLocation))
+                try
                 {
-                    foreach (var file in System.IO.Directory.GetFiles(SaveLocation))
-                    {
-                        if (file.EndsWith(".info"))
-                        {
-                            try
-                            {
-                                Directory d = new Directory();
-                                d.Load(file);
-                                shares.Add(d.Name, d);
-                            }
-                            catch (Exception e)
-                            {
-                                LogManager.GetLogger("faplog").DebugException("Failed to load share info from " + file, e);
-                            }
-                        }
-                    }
+                    Directory d = new Directory();
+                    d.Load(share.ID);
+                    shares.Add(new RootShare() { ID = share.ID, Data = d });
                 }
-                //Check that each share has had info loaded for it
-                foreach (var share in model.Shares)
+                catch (Exception e)
                 {
-                    if (!shares.ContainsKey(share.Name))
-                    {
-                        //Share info has failed to load
-                        ThreadPool.QueueUserWorkItem(new WaitCallback(DoRefreshPath), share);
-                    }
+                    LogManager.GetLogger("faplog").DebugException("Failed to load share info for" + share.Name, e);
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(DoRefreshPath), share);
                 }
-            }
-            catch (Exception e)
-            {
-                LogManager.GetLogger("faplog").WarnException("Failed to load share info", e);
             }
         }
 
@@ -87,15 +73,14 @@ namespace FAP.Domain.Services
                 RefreshPath(s);
         }
 
-        public void RenameShare(string name, string destination)
+        public void RenameShareByID(string ID, string destinationName)
         {
-            Directory info = shares[name];
-            shares.Remove(name);
-            shares.Add(destination, info);
-
-            info.Name = destination;
-            RemoveShare(name);
-            info.Save();
+            var search = shares.Where(s => s.ID == ID).FirstOrDefault();
+            if (null != search)
+            {
+                search.Data.Name = destinationName;
+                search.Data.Save(ID);
+            }
         }
 
         public Directory RefreshPath(Share share)
@@ -105,28 +90,28 @@ namespace FAP.Domain.Services
                 model.GetAntiShutdownLock();
                 lock (share)
                 {
-                    Directory info = null;
-                    if (shares.ContainsKey(share.Name))
-                        info = shares[share.Name];
-                    else
+                    var rs = shares.Where(s => s.ID == share.ID).FirstOrDefault();
+                    if (null == rs)
                     {
-                        info = new Directory();
-                        shares.Add(share.Name, info);
+                        rs = new RootShare();
+                        rs.ID = share.ID;
+                        rs.Data = new Directory();
+                        shares.Add(rs);
                     }
-                    info.Name = share.Name;
-                    info.Size = 0;
-                    info.ItemCount = 0;
-                    RefreshFileInfo(new DirectoryInfo(share.Path), info);
+                    rs.Data.Name = share.Name;
+                    rs.Data.Size = 0;
+                    rs.Data.ItemCount = 0;
+
+                    RefreshFileInfo(new DirectoryInfo(share.Path), rs.Data);
                     try
                     {
-                        info.Save();
+                        rs.Data.Save(share.ID);
                     }
                     catch (Exception e)
                     {
                         LogManager.GetLogger("faplog").WarnException("Failed save share info for " + share.Name, e);
                     }
-                    System.GC.Collect();
-                    return info;
+                    return rs.Data;
                 }
             }
             finally
@@ -135,44 +120,105 @@ namespace FAP.Domain.Services
             }
         }
 
-        public void RemoveShare(string name)
+        public void RemoveShareByID(string id)
         {
-            if (shares.ContainsKey(name))
-                shares.Remove(name);
-            string path = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(name)) + ".dat";
+            var search = shares.Where(s => s.ID == id).FirstOrDefault();
+            if(null!=search)
+                shares.Remove(search);
+            string path = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) + ".cache";
             if (System.IO.File.Exists(path))
                 System.IO.File.Delete(path);
         }
 
-        public Directory GetPath(string path)
+
+        /// <summary>
+        /// Warning, ensure to clean any returned directory that is virtual to prevent a memory leak
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="isVirtual"></param>
+        /// <returns></returns>
+        public Directory GetPath(string path, out bool isVirtual)
         {
+            isVirtual = false;
+
             if (path.StartsWith("/"))
                 path = path.Substring(1);
             string[] items = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (items.Length == 0 || !shares.ContainsKey(items[0]))
+            if (items.Length == 0)
                 return null;
-            Directory dir = shares[items[0]];
-            for (int i = 1; i < items.Length; i++)
+
+
+            switch (shares.Where(n => n.Data!=null && n.Data.Name == items[0]).Count())
             {
-                if (null == dir)
-                    break;
-                dir = dir.SubDirectories.Where(d => d.Name == items[i]).FirstOrDefault();
+                case 0:
+                    //Dir not found
+                    return null;
+                case 1:
+                    {
+                        //Single directory
+                        Directory dir = shares.Where(n=>n.Data.Name==items[0]).FirstOrDefault().Data;
+                        for (int i = 1; i < items.Length; i++)
+                        {
+                            if (null == dir)
+                                break;
+                            dir = dir.SubDirectories.Where(d => d.Name == items[i]).FirstOrDefault();
+                        }
+                        return dir;
+                    }
+                default:
+                    //Multiple directories - Return a virtual directory
+                    //Only return data if we find the path atleast once
+                    bool foundPath = false;
+                    Directory virtualDir = new Directory();
+
+                    //Scan each share and add info
+                    foreach (var src in shares.Where(n => null!=n.Data && n.Data.Name == items[0]))
+                    {
+                        Directory dir = src.Data;
+                        for (int i = 1; i < items.Length; i++)
+                        {
+                            if (null == dir)
+                                break;
+                            dir = dir.SubDirectories.Where(d => d.Name == items[i]).FirstOrDefault();
+                        }
+                        if (null != dir)
+                        {
+                            virtualDir.Files.AddRange(dir.Files);
+                            virtualDir.SubDirectories.AddRange(dir.SubDirectories);
+                            virtualDir.Name = dir.Name;
+                            foundPath = true;
+                        }
+                    }
+
+                    if (!foundPath)
+                        return null;
+                    //Create stats
+                    virtualDir.ItemCount = virtualDir.Files.Count + virtualDir.SubDirectories.Count;
+                    virtualDir.LastModified = DateTime.Now.ToFileTime();
+                    virtualDir.Size = virtualDir.Files.Sum(f => f.Size) + virtualDir.SubDirectories.Sum(d => d.Size);
+                    //Sort output
+                    virtualDir.Files = virtualDir.Files.OrderBy(s => s.Name).ToList();
+                    virtualDir.SubDirectories = virtualDir.SubDirectories.OrderBy(s => s.Name).ToList();
+                    
+                    isVirtual = true;
+                    return virtualDir;
             }
-            return dir;
+            
+           
         }
 
-        public bool ToLocalPath(string input, out string output)
+        public bool ToLocalPath(string input, out string[] output)
         {
-            string[] split = input.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            var result = new List<string>();
+            string[] split = input.Split(new char[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
             if (split.Length > 0)
             {
-                var share = model.Shares.Where(s => s.Name == split[0]).FirstOrDefault();
-                if (null != share)
+                foreach (var root in model.Shares.Where(s => s.Name == split[0]))
                 {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append(share.Path);
-                    if (!share.Path.EndsWith("\\"))
+                    var sb = new StringBuilder();
+                    sb.Append(root.Path);
+                    if (!root.Path.EndsWith("\\"))
                         sb.Append("\\");
                     for (int i = 1; i < split.Length; i++)
                     {
@@ -180,20 +226,31 @@ namespace FAP.Domain.Services
                         if (i + 1 < split.Length)
                             sb.Append("\\");
                     }
+                    result.Add(sb.ToString());
+                }
 
-                    output = sb.ToString();
+
+                if (result.Count > 0)
+                {
+                    output = result.ToArray();
                     return true;
                 }
             }
-            output = string.Empty;
+            output = new string[0];
             return false;
         }
 
         public long GetSize(string path)
         {
-            var info = GetPath(path);
+            bool isVirtual = false;
+            var info = GetPath(path, out isVirtual);
             if (null == info)
                 return 0;
+            if (isVirtual)
+            {
+                info.SubDirectories.Clear();
+                info.Files.Clear();
+            }
             return info.Size;
         }
 
@@ -278,7 +335,7 @@ namespace FAP.Domain.Services
             
             foreach (var share in shares.ToList())
             {
-                if (!SearchRecursive(share.Value, matcher, string.Empty, results, limit,modifiedBefore,modifiedAfter,smallerThan,largerThan))
+                if (!SearchRecursive(share.Data, matcher, string.Empty, results, limit,modifiedBefore,modifiedAfter,smallerThan,largerThan))
                     break;
             }
             return results;

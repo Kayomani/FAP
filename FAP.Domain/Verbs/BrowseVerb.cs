@@ -46,15 +46,29 @@ namespace FAP.Domain.Verbs
                 //If we are given no path then provide a list of virtual directories
                 lock (model.Shares)
                 {
-                    foreach (var share in model.Shares.ToList().OrderBy(sh => sh.Name))
+                    List<string> sent = new List<string>();
+
+                    var shares = from s in model.Shares
+                                 orderby s.Name
+                                 group s by s.Name into g
+                                 select new {
+                                     Name = g.Key, 
+                                     Size = g.Sum(s=>s.Size),
+                                     LastModified = g.Count()>1?DateTime.Now:g.First().LastRefresh
+                                 };
+
+
+                    foreach (var share in shares)
                     {
-                        Results.Add(new BrowsingFile()
-                                   {
-                                       IsFolder = true,
-                                       Name = share.Name,
-                                       Size = share.Size,
-                                       LastModified = share.LastRefresh
-                                   });
+                       
+                            Results.Add(new BrowsingFile()
+                                       {
+                                           IsFolder = true,
+                                           Name = share.Name,
+                                           Size = share.Size,
+                                           LastModified = share.LastModified
+                                       });
+                            sent.Add(share.Name);
                     }
                 }
             }
@@ -62,10 +76,12 @@ namespace FAP.Domain.Verbs
             {
                 try
                 {
-                    string path = string.Empty;
-                    if (infoService.ToLocalPath(verb.Path, out path))
+                    string[] posiblePaths;
+
+                    if (infoService.ToLocalPath(verb.Path, out posiblePaths))
                     {
-                        var scanInfo = infoService.GetPath(verb.Path); ;
+                        bool isVirtual = false;
+                        var scanInfo = infoService.GetPath(verb.Path, out isVirtual);
 
                         if (null != scanInfo && !verb.NoCache)
                         {
@@ -90,35 +106,43 @@ namespace FAP.Domain.Verbs
                                                 LastModified = DateTime.FromFileTime(file.LastModified)
                                             });
                             }
+
+                            if (isVirtual)
+                            {
+                                scanInfo.SubDirectories.Clear();
+                                scanInfo.Files.Clear();
+                            }
                         }
                         else
                         {
-                            if (null != path)
-                                path = path.Replace('/', '\\');
-                            DirectoryInfo directory = new DirectoryInfo(path);
-                            DirectoryInfo[] directories = directory.GetDirectories();
-                            //Get directories
-                            foreach (var dir in directories)
+                            foreach (var posiblePath in posiblePaths)
                             {
-                                Results.Add(new BrowsingFile()
+                                var fsPath = posiblePath.Replace('/', '\\');
+                                var directory = new DirectoryInfo(fsPath);
+                                DirectoryInfo[] directories = directory.GetDirectories();
+                                //Get directories
+                                foreach (var dir in directories)
                                 {
-                                    IsFolder = true,
-                                    Size = 0,
-                                    Name = dir.Name,
-                                    LastModified = dir.LastWriteTime
-                                });
-                            }
-                            //Get files
-                            FileInfo[] files = directory.GetFiles();
-                            foreach (var file in files)
-                            {
-                                Results.Add(new BrowsingFile()
+                                    Results.Add(new BrowsingFile()
+                                                    {
+                                                        IsFolder = true,
+                                                        Size = 0,
+                                                        Name = dir.Name,
+                                                        LastModified = dir.LastWriteTime
+                                                    });
+                                }
+                                //Get files
+                                FileInfo[] files = directory.GetFiles();
+                                foreach (var file in files)
                                 {
-                                    IsFolder = false,
-                                    Size = file.Length,
-                                    Name = file.Name,
-                                    LastModified = file.LastWriteTime
-                                });
+                                    Results.Add(new BrowsingFile()
+                                                    {
+                                                        IsFolder = false,
+                                                        Size = file.Length,
+                                                        Name = file.Name,
+                                                        LastModified = file.LastWriteTime
+                                                    });
+                                }
                             }
                         }
                     }

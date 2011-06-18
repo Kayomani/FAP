@@ -218,7 +218,7 @@ namespace FAP.Application.Controllers
         /// <summary>
         /// Whilst connected to a network 
         /// </summary>
-        private void CheckModelChanges()
+        public void CheckModelChanges()
         {
             if (model.Network.State == ConnectionState.Connected)
             {

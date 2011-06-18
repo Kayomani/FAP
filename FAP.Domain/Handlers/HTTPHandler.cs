@@ -26,18 +26,14 @@ using HttpServer.Messages;
 using HttpServer.Headers;
 using System.IO;
 using System.Reflection;
-using System.Windows;
-using System.Windows.Resources;
-using System.Web;
 using Fap.Foundation;
-using NLog;
 
 namespace FAP.Domain.Handlers
 {
     public class HTTPHandler
     {
-        private readonly string WEB_PREFIX = "/Fap.app.web/";
-        private readonly string WEB_ICON_PREFIX = "/Fap.app.web/icon/";
+        private const string WEB_PREFIX = "/Fap.app.web/";
+        private const string WEB_ICON_PREFIX = "/Fap.app.web/icon/";
 
         private ShareInfoService infoService;
         private Model model;
@@ -192,7 +188,18 @@ namespace FAP.Domain.Handlers
 
                     FAP.Domain.Entities.FileSystem.Directory root = new FAP.Domain.Entities.FileSystem.Directory();
 
-                    foreach (var share in model.Shares.ToList())
+
+                    var shares = from s in model.Shares
+                                 orderby s.Name
+                                 group s by s.Name into g
+                                 select new
+                                 {
+                                     Name = g.Key,
+                                     Size = g.Sum(s => s.Size),
+                                     LastModified = g.Count() > 1 ? DateTime.Now : g.First().LastRefresh
+                                 };
+
+                    foreach (var share in shares)
                     {
                         Dictionary<string, object> d = new Dictionary<string, object>();
                         d.Add("Name", share.Name);
@@ -200,8 +207,8 @@ namespace FAP.Domain.Handlers
                         d.Add("Icon", "folder");
                         d.Add("Size", share.Size);
                         d.Add("Sizetxt", Utility.FormatBytes(share.Size));
-                        d.Add("LastModifiedtxt", share.LastRefresh.ToShortDateString());
-                        d.Add("LastModified", share.LastRefresh.ToFileTime());
+                        d.Add("LastModifiedtxt", share.LastModified.ToShortDateString());
+                        d.Add("LastModified", share.LastModified.ToFileTime());
                         files.Add(d);
                         totalSize += share.Size;
                     }
@@ -209,53 +216,63 @@ namespace FAP.Domain.Handlers
                 }
                 else
                 {
-                    string localPath = string.Empty;
+                    string[] possiblePaths;
 
-                    if (infoService.ToLocalPath(path, out localPath) && File.Exists(localPath))
-                    {
+                    if (infoService.ToLocalPath(path, out possiblePaths))
                         //User has requested a file
-                        return SendFile(e, localPath, path);
-                    }
-                    else
+                        foreach (var possiblePath in possiblePaths)
+                            if (File.Exists(possiblePath))
+                                return SendFile(e, possiblePath, path);
+
+
+                    bool isVirtual = false;
+                    var fileInfo = infoService.GetPath(path, out isVirtual);
+
+                    if (null != fileInfo)
                     {
-                        var fileInfo = infoService.GetPath(path);
-
-                        if (null != fileInfo)
+                        validPath = true;
+                        foreach (var dir in fileInfo.SubDirectories.ToList())
                         {
-                            validPath = true;
-                            foreach (var dir in fileInfo.SubDirectories.ToList())
-                            {
-                                Dictionary<string, object> d = new Dictionary<string, object>();
-                                d.Add("Name", dir.Name);
-                                d.Add("Path", Utility.EncodeURL(dir.Name));
-                                d.Add("Icon", "folder");
-                                d.Add("Sizetxt", Utility.FormatBytes(dir.Size));
-                                d.Add("Size", dir.Size);
-                                d.Add("LastModifiedtxt", DateTime.FromFileTime(dir.LastModified).ToShortDateString());
-                                d.Add("LastModified", dir.LastModified);
-                                files.Add(d);
-                                totalSize += dir.Size;
-                            }
+                            var d = new Dictionary<string, object>
+                                        {
+                                            {"Name", dir.Name},
+                                            {"Path", Utility.EncodeURL(dir.Name)},
+                                            {"Icon", "folder"},
+                                            {"Sizetxt", Utility.FormatBytes(dir.Size)},
+                                            {"Size", dir.Size},
+                                            {
+                                                "LastModifiedtxt",
+                                                DateTime.FromFileTime(dir.LastModified).ToShortDateString()
+                                                },
+                                            {"LastModified", dir.LastModified}
+                                        };
+                            files.Add(d);
+                            totalSize += dir.Size;
+                        }
 
-                            foreach (var file in fileInfo.Files.ToList())
-                            {
-                                Dictionary<string, object> d = new Dictionary<string, object>();
-                                d.Add("Name", file.Name);
-                                string ext = Path.GetExtension(file.Name);
-                                if (ext != null && ext.StartsWith("."))
-                                    ext = ext.Substring(1);
-                                string name =file.Name;
-                                if(!string.IsNullOrEmpty(name))
-                                    name = name.Replace("#","%23");
-                                d.Add("Path", name);
-                                d.Add("Icon", ext);
-                                d.Add("Size", file.Size);
-                                d.Add("Sizetxt", Utility.FormatBytes(file.Size));
-                                d.Add("LastModifiedtxt", DateTime.FromFileTime(file.LastModified).ToShortDateString());
-                                d.Add("LastModified", file.LastModified);
-                                files.Add(d);
-                                totalSize += file.Size;
-                            }
+                        foreach (var file in fileInfo.Files.ToList())
+                        {
+                            var d = new Dictionary<string, object> {{"Name", file.Name}};
+                            string ext = Path.GetExtension(file.Name);
+                            if (ext != null && ext.StartsWith("."))
+                                ext = ext.Substring(1);
+                            string name = file.Name;
+                            if (!string.IsNullOrEmpty(name))
+                                name = name.Replace("#", "%23");
+                            d.Add("Path", name);
+                            d.Add("Icon", ext);
+                            d.Add("Size", file.Size);
+                            d.Add("Sizetxt", Utility.FormatBytes(file.Size));
+                            d.Add("LastModifiedtxt", DateTime.FromFileTime(file.LastModified).ToShortDateString());
+                            d.Add("LastModified", file.LastModified);
+                            files.Add(d);
+                            totalSize += file.Size;
+                        }
+
+                        if (isVirtual)
+                        {
+                            fileInfo.Files.Clear();
+                            fileInfo.SubDirectories.Clear();
                         }
                     }
                 }

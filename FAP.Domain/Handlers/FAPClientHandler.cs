@@ -94,55 +94,59 @@ namespace FAP.Domain.Handlers
             if(string.IsNullOrEmpty(req.Param))
                 return false;
 
-            string localPath = string.Empty;
+            string[] possiblePaths;
 
 
-            if (shareInfoService.ToLocalPath(req.Param, out localPath))
+            if (shareInfoService.ToLocalPath(req.Param, out possiblePaths))
             {
-                if (System.IO.File.Exists(localPath))
+                foreach (var possiblePath in possiblePaths)
                 {
-                    FAPFileUploader ffu = new FAPFileUploader(bufferService, serverUploadLimiterService);
-                    TransferSession session = new TransferSession(ffu);
-                    model.TransferSessions.Add(session);
-                    try
+                    if (System.IO.File.Exists(possiblePath))
                     {
-                        //Try to find the username of the request
-                        string userName = e.Context.RemoteEndPoint.Address.ToString();
-                        var search = model.Network.Nodes.ToList().Where(n => n.ID == req.SourceID).FirstOrDefault();
-                        if (null != search && !string.IsNullOrEmpty(search.Nickname))
-                            userName = search.Nickname;
-
-                        using (FileStream fs = File.Open(localPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        FAPFileUploader ffu = new FAPFileUploader(bufferService, serverUploadLimiterService);
+                        TransferSession session = new TransferSession(ffu);
+                        model.TransferSessions.Add(session);
+                        try
                         {
-                            ffu.DoUpload(e.Context, fs, userName, localPath);
-                        }
+                            //Try to find the username of the request
+                            string userName = e.Context.RemoteEndPoint.Address.ToString();
+                            var search = model.Network.Nodes.ToList().Where(n => n.ID == req.SourceID).FirstOrDefault();
+                            if (null != search && !string.IsNullOrEmpty(search.Nickname))
+                                userName = search.Nickname;
 
-                        //Add log of upload
-                        double seconds = (DateTime.Now - ffu.TransferStart).TotalSeconds;
-                        TransferLog txlog = new TransferLog();
-                        txlog.Nickname = userName;
-                        txlog.Completed = DateTime.Now;
-                        txlog.Filename = Path.GetFileName(localPath);
-                        txlog.Path = Path.GetDirectoryName(req.Param);
-                        if (!string.IsNullOrEmpty(txlog.Path))
+                            using (
+                                FileStream fs = File.Open(possiblePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            {
+                                ffu.DoUpload(e.Context, fs, userName, possiblePath);
+                            }
+
+                            //Add log of upload
+                            double seconds = (DateTime.Now - ffu.TransferStart).TotalSeconds;
+                            TransferLog txlog = new TransferLog();
+                            txlog.Nickname = userName;
+                            txlog.Completed = DateTime.Now;
+                            txlog.Filename = Path.GetFileName(possiblePath);
+                            txlog.Path = Path.GetDirectoryName(req.Param);
+                            if (!string.IsNullOrEmpty(txlog.Path))
+                            {
+                                txlog.Path = txlog.Path.Replace('\\', '/');
+                                if (txlog.Path.StartsWith("/"))
+                                    txlog.Path = txlog.Path.Substring(1);
+                            }
+
+                            txlog.Size = ffu.Length - ffu.ResumePoint;
+                            if (txlog.Size < 0)
+                                txlog.Size = 0;
+                            if (0 != seconds)
+                                txlog.Speed = (int) (txlog.Size/seconds);
+                            model.CompletedUploads.Add(txlog);
+                        }
+                        finally
                         {
-                            txlog.Path = txlog.Path.Replace('\\', '/');
-                            if (txlog.Path.StartsWith("/"))
-                                txlog.Path = txlog.Path.Substring(1);
+                            model.TransferSessions.Remove(session);
                         }
-
-                        txlog.Size = ffu.Length - ffu.ResumePoint;
-                        if (txlog.Size < 0)
-                            txlog.Size = 0;
-                        if (0 != seconds)
-                            txlog.Speed = (int)(txlog.Size / seconds);
-                        model.CompletedUploads.Add(txlog);
+                        return true;
                     }
-                    finally
-                    {
-                        model.TransferSessions.Remove(session);
-                    }
-                    return true;
                 }
             }
 

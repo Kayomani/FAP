@@ -158,8 +158,10 @@ namespace FAP.Application
 
             model.CheckSetDefaults();
 
-            model.Save();
             updateChecker.Run();
+
+            //Immediatly send model upates
+            model.LocalNode.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(LocalNode_PropertyChanged);
 
             if (!server)
             {
@@ -189,6 +191,17 @@ namespace FAP.Application
             return true;
         }
 
+        private void LocalNode_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            //Update immeadiatly on user input to give the app a nicer feel
+            if (e.PropertyName == "Nickname" || e.PropertyName == "Description" || e.PropertyName == "Avatar")
+                ThreadPool.QueueUserWorkItem(new WaitCallback(updateModelAsync));
+        }
+
+        private void updateModelAsync(object o)
+        {
+            connectionController.CheckModelChanges();
+        }
 
         public void ShowQuickStart()
         {

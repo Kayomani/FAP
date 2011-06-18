@@ -36,7 +36,7 @@ namespace FAP.Domain.Entities
     [Serializable]
     public class Model : BaseEntity
     {
-        public static readonly string AppVersion = "FAP Beta 1";
+        public static readonly string AppVersion = "FAP Beta 2";
         public static readonly string ProtocolVersion = "FAP/1.0";
         public static int UPLINK_TIMEOUT = 60000;//1 minute
         public static int DOWNLOAD_RETRY_TIME = 120000;//2minutes
