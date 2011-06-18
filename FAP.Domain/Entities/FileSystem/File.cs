@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,36 +14,40 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ProtoBuf;
 
 namespace FAP.Domain.Entities.FileSystem
 {
     [Serializable]
     [ProtoContract]
-    [ProtoInclude(20, typeof(Directory))]
-
+    [ProtoInclude(20, typeof (Directory))]
     public class File : IComparable
     {
         [ProtoMember(1)]
         public string Name { set; get; }
+
         [ProtoMember(2)]
         public long Size { set; get; }
+
         [ProtoMember(3)]
         public long LastModified { set; get; }
+
+        #region IComparable Members
 
         public int CompareTo(object obj)
         {
             if (obj is File)
             {
-                File f = obj as File;
+                var f = obj as File;
                 return f.Name.CompareTo(Name);
             }
             return -1;
         }
+
+        #endregion
     }
 }

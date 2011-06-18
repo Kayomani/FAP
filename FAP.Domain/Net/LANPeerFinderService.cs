@@ -1,37 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using FAP.Network.Services;
 using Autofac;
 using FAP.Domain.Verbs;
 using Fap.Foundation;
+using FAP.Network.Services;
 
 namespace FAP.Domain.Net
 {
     public class LANPeerFinderService
     {
-        private BackgroundSafeObservable<DetectedNode> announcedAddresses = new BackgroundSafeObservable<DetectedNode>();
+        private readonly BackgroundSafeObservable<DetectedNode> announcedAddresses =
+            new BackgroundSafeObservable<DetectedNode>();
+
+        private readonly IContainer container;
         private MulticastClientService mclient;
-        private IContainer container;
 
         public LANPeerFinderService(IContainer c)
         {
             container = c;
-            announcedAddresses.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(announcedAddresses_CollectionChanged);
-        }
-
-        void announcedAddresses_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Add)
-            {
-
-            }
+            announcedAddresses.CollectionChanged += announcedAddresses_CollectionChanged;
         }
 
         public List<DetectedNode> Peers
         {
             get { return announcedAddresses.ToList(); }
+        }
+
+        private void announcedAddresses_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action != NotifyCollectionChangedAction.Add)
+            {
+            }
         }
 
         public void RemovePeer(DetectedNode d)
@@ -49,7 +50,7 @@ namespace FAP.Domain.Net
                 if (null == mclient)
                 {
                     mclient = container.Resolve<MulticastClientService>();
-                    mclient.OnMultiCastRX += new MulticastClientService.MultiCastRX(mclient_OnMultiCastRX);
+                    mclient.OnMultiCastRX += mclient_OnMultiCastRX;
                     mclient.StartListener();
                 }
             }
@@ -59,16 +60,15 @@ namespace FAP.Domain.Net
         {
             if (cmd.StartsWith(HelloVerb.Preamble))
             {
-                HelloVerb verb = new HelloVerb();
-                var node = verb.ParseRequest(cmd);
+                var verb = new HelloVerb();
+                DetectedNode node = verb.ParseRequest(cmd);
                 if (null != node)
                 {
-                    var search = announcedAddresses.Where(s => s.Address == node.Address).FirstOrDefault();
+                    DetectedNode search = announcedAddresses.Where(s => s.Address == node.Address).FirstOrDefault();
                     if (null == search)
                     {
                         node.LastAnnounce = DateTime.Now;
                         announcedAddresses.Add(node);
-                        
                     }
                     else
                     {

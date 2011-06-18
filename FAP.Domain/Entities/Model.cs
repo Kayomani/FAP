@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,23 +14,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel;
 using System.IO;
-using System.Xml.Serialization;
-using Fap.Foundation;
-using NLog;
-using Newtonsoft.Json;
-using Fap.Foundation.Services;
+using System.Linq;
 using System.Net;
-using FAP.Domain.Verbs;
-using FAP.Domain.Net;
-using System.Threading;
 using System.Security.Principal;
+using System.Threading;
+using System.Windows;
+using System.Xml.Serialization;
+using FAP.Domain.Entities.FileSystem;
+using FAP.Domain.Net;
+using FAP.Domain.Verbs;
+using Fap.Foundation;
+using Fap.Foundation.Services;
+using Newtonsoft.Json;
+using NLog;
+using Directory = System.IO.Directory;
+using File = System.IO.File;
 
 namespace FAP.Domain.Entities
 {
@@ -38,38 +42,38 @@ namespace FAP.Domain.Entities
     {
         public static readonly string AppVersion = "FAP Beta 2";
         public static readonly string ProtocolVersion = "FAP/1.0";
-        public static int UPLINK_TIMEOUT = 60000;//1 minute
-        public static int DOWNLOAD_RETRY_TIME = 120000;//2minutes
-        public static int FREE_FILE_LIMIT = 1048576;//1mb
+        public static int UPLINK_TIMEOUT = 60000; //1 minute
+        public static int DOWNLOAD_RETRY_TIME = 120000; //2minutes
+        public static int FREE_FILE_LIMIT = 1048576; //1mb
         public static int MAX_SEARCH_RESULTS = 10000;
+        private readonly SafeObservedCollection<TransferLog> downloads = new SafeObservedCollection<TransferLog>();
 
         private readonly string saveLocation = "ClientConfig.cfg";
-        private SafeObservedCollection<Share> shares = new SafeObservedCollection<Share>();
+        private readonly ReaderWriterLockSlim shutdownLock;
 
-        private SafeObservedCollection<TransferSession> transferSessions = new SafeObservedCollection<TransferSession>();
-        private SafeObservingCollection<TransferSession> uiTransferSession;
-        private SafeObservedCollection<string> messages = new SafeObservedCollection<string>();
-        private SafeObservedCollection<TransferLog> uploads = new SafeObservedCollection<TransferLog>();
-        private SafeObservedCollection<TransferLog> downloads = new SafeObservedCollection<TransferLog>();
-        private SafeObservingCollection<TransferLog> uiUploads;
-        private SafeObservingCollection<TransferLog> uiDownloads;
+        private readonly SafeObservedCollection<TransferSession> transferSessions =
+            new SafeObservedCollection<TransferSession>();
 
-        private Network network = new Network();
+        private readonly SafeObservingCollection<TransferLog> uiDownloads;
+
+        private readonly SafeObservingCollection<TransferSession> uiTransferSession;
+        private readonly SafeObservingCollection<TransferLog> uiUploads;
+        private readonly SafeObservedCollection<TransferLog> uploads = new SafeObservedCollection<TransferLog>();
+        private bool alwaysNoCacheBrowsing;
+        private bool disableCompare;
+        private bool displayedHelp;
+        private string downloadFolder;
+        private DownloadQueue downloadQueue;
+        private string incompleteFolder;
         private int maxDownloads;
         private int maxDownloadsPerUser;
         private int maxUploads;
         private int maxUploadsPerUser;
-        private string downloadFolder;
-        private string incompleteFolder;
-        private bool disableCompare;
-        private bool alwaysNoCacheBrowsing;
-        private bool displayedHelp =false;
-
-        private OverlordPriority overlordPriority;
+        private SafeObservedCollection<string> messages = new SafeObservedCollection<string>();
+        private Network network = new Network();
         private Node node;
-        private DownloadQueue downloadQueue;
-
-        private ReaderWriterLockSlim shutdownLock = null;
+        private OverlordPriority overlordPriority;
+        private SafeObservedCollection<Share> shares = new SafeObservedCollection<Share>();
 
         public Model()
         {
@@ -79,30 +83,6 @@ namespace FAP.Domain.Entities
             uiTransferSession = new SafeObservingCollection<TransferSession>(transferSessions);
             uiDownloads = new SafeObservingCollection<TransferLog>(downloads);
             uiUploads = new SafeObservingCollection<TransferLog>(uploads);
-        }
-
-        /// <summary>
-        /// Called by methods which should not be interupted such as saving the download list.
-        /// </summary>
-        public void GetAntiShutdownLock()
-        {
-            shutdownLock.EnterReadLock();
-        }
-
-        /// <summary>
-        /// Must be called after GetAntiShutdownLock to allow for shutdown to occur
-        /// </summary>
-        public void ReleaseAntiShutdownLock()
-        {
-            shutdownLock.ExitReadLock();
-        }
-
-        /// <summary>
-        /// Called by the core upon shutdown to stop further saves.
-        /// </summary>
-        public void GetShutdownLock()
-        {
-            shutdownLock.TryEnterWriteLock(4000);
         }
 
         [JsonIgnore]
@@ -142,50 +122,26 @@ namespace FAP.Domain.Entities
 
         public string LocalSecret
         {
-            set
-            {
-                node.Secret = value;
-            }
-            get
-            {
-                return node.Secret;
-            }
+            set { node.Secret = value; }
+            get { return node.Secret; }
         }
 
         public string Nickname
         {
-            set
-            {
-                node.Nickname = value;
-            }
-            get
-            {
-                return node.Nickname;
-            }
+            set { node.Nickname = value; }
+            get { return node.Nickname; }
         }
 
         public string Description
         {
-            set
-            {
-                node.Description = value;
-            }
-            get
-            {
-                return node.Description;
-            }
+            set { node.Description = value; }
+            get { return node.Description; }
         }
 
         public bool DisplayedHelp
         {
-            set
-            {
-                displayedHelp = value;
-            }
-            get
-            {
-                return displayedHelp;
-            }
+            set { displayedHelp = value; }
+            get { return displayedHelp; }
         }
 
         public string Avatar
@@ -195,10 +151,7 @@ namespace FAP.Domain.Entities
                 node.Avatar = value;
                 NotifyChange("Avatar");
             }
-            get
-            {
-                return node.Avatar;
-            }
+            get { return node.Avatar; }
         }
 
         [XmlIgnore]
@@ -211,7 +164,11 @@ namespace FAP.Domain.Entities
 
         public Node LocalNode
         {
-            set { node = value; NotifyChange("LocalNode"); }
+            set
+            {
+                node = value;
+                NotifyChange("LocalNode");
+            }
             get { return node; }
         }
 
@@ -222,29 +179,37 @@ namespace FAP.Domain.Entities
         }
 
         [JsonIgnore]
-        public bool IsDedicated
-        {
-            set;
-            get;
-        }
+        public bool IsDedicated { set; get; }
 
         [JsonIgnore]
         public Network Network
         {
-            set { network = value; NotifyChange("Network"); }
+            set
+            {
+                network = value;
+                NotifyChange("Network");
+            }
             get { return network; }
         }
 
         public SafeObservedCollection<Share> Shares
         {
-            set { shares = value; NotifyChange("Shares"); }
+            set
+            {
+                shares = value;
+                NotifyChange("Shares");
+            }
             get { return shares; }
         }
 
 
         public bool AlwaysNoCacheBrowsing
         {
-            set { alwaysNoCacheBrowsing = value; NotifyChange("AlwaysNoCacheBrowsing"); }
+            set
+            {
+                alwaysNoCacheBrowsing = value;
+                NotifyChange("AlwaysNoCacheBrowsing");
+            }
             get { return alwaysNoCacheBrowsing; }
         }
 
@@ -259,10 +224,7 @@ namespace FAP.Domain.Entities
                 downloadFolder = value;
                 NotifyChange("DownloadFolder");
             }
-            get
-            {
-                return downloadFolder;
-            }
+            get { return downloadFolder; }
         }
 
         public string IncompleteFolder
@@ -272,22 +234,13 @@ namespace FAP.Domain.Entities
                 incompleteFolder = value;
                 NotifyChange("IncompleteFolder");
             }
-            get
-            {
-                return incompleteFolder;
-            }
+            get { return incompleteFolder; }
         }
 
         public bool DisableComparision
         {
-            set
-            {
-                disableCompare = value;
-            }
-            get
-            {
-                return disableCompare;
-            }
+            set { disableCompare = value; }
+            get { return disableCompare; }
         }
 
         [XmlIgnore]
@@ -312,10 +265,7 @@ namespace FAP.Domain.Entities
                 maxDownloads = value;
                 NotifyChange("MaxDownloads");
             }
-            get
-            {
-                return maxDownloads;
-            }
+            get { return maxDownloads; }
         }
 
         public int MaxDownloadsPerUser
@@ -325,10 +275,7 @@ namespace FAP.Domain.Entities
                 maxDownloadsPerUser = value;
                 NotifyChange("MaxDownloadsPerUser");
             }
-            get
-            {
-                return maxDownloadsPerUser;
-            }
+            get { return maxDownloadsPerUser; }
         }
 
         public int MaxUploads
@@ -338,10 +285,7 @@ namespace FAP.Domain.Entities
                 maxUploads = value;
                 NotifyChange("MaxUploads");
             }
-            get
-            {
-                return maxUploads;
-            }
+            get { return maxUploads; }
         }
 
         public int MaxUploadsPerUser
@@ -351,10 +295,31 @@ namespace FAP.Domain.Entities
                 maxUploadsPerUser = value;
                 NotifyChange("maxUploadsPerUser");
             }
-            get
-            {
-                return maxUploadsPerUser;
-            }
+            get { return maxUploadsPerUser; }
+        }
+
+        /// <summary>
+        /// Called by methods which should not be interupted such as saving the download list.
+        /// </summary>
+        public void GetAntiShutdownLock()
+        {
+            shutdownLock.EnterReadLock();
+        }
+
+        /// <summary>
+        /// Must be called after GetAntiShutdownLock to allow for shutdown to occur
+        /// </summary>
+        public void ReleaseAntiShutdownLock()
+        {
+            shutdownLock.ExitReadLock();
+        }
+
+        /// <summary>
+        /// Called by the core upon shutdown to stop further saves.
+        /// </summary>
+        public void GetShutdownLock()
+        {
+            shutdownLock.TryEnterWriteLock(4000);
         }
 
         public void Save()
@@ -371,11 +336,9 @@ namespace FAP.Domain.Entities
             {
                 try
                 {
-
-
                     if (File.Exists(DATA_FOLDER + saveLocation))
                     {
-                        Model saved = SafeLoad<Model>(saveLocation);
+                        var saved = SafeLoad<Model>(saveLocation);
 
                         Shares.Clear();
                         Shares.AddRange(saved.Shares.OrderBy(s => s.Name).ToList());
@@ -393,10 +356,10 @@ namespace FAP.Domain.Entities
                         OverlordPriority = saved.OverlordPriority;
                         DisplayedHelp = saved.DisplayedHelp;
                     }
-                    else if (File.Exists(FAP.Domain.Entities.Legacy.Model.saveLocation))
+                    else if (File.Exists(Legacy.Model.saveLocation))
                     {
                         //New config doesnt exist but an older version does, try to import.
-                        FAP.Domain.Entities.Legacy.Model oldmodel = new Legacy.Model();
+                        var oldmodel = new Legacy.Model();
                         oldmodel.Load();
 
                         Shares.Clear();
@@ -414,7 +377,7 @@ namespace FAP.Domain.Entities
                         foreach (var data in oldmodel.Node.Data)
                             LocalNode.SetData(data.Key, data.Value);
                         AlwaysNoCacheBrowsing = oldmodel.AlwaysNoCacheBrowsing;
-                        OverlordPriority = Domain.OverlordPriority.Normal;
+                        OverlordPriority = OverlordPriority.Normal;
                         Save();
                     }
                 }
@@ -439,9 +402,10 @@ namespace FAP.Domain.Entities
             //If there is no avatar set then set the default
             if (string.IsNullOrEmpty(Avatar))
             {
-                var stream = System.Windows.Application.GetResourceStream(new Uri("Images/Default_Avatar.png", UriKind.Relative)).Stream;
-                byte[] img = new byte[stream.Length];
-                stream.Read(img, 0, (int)stream.Length);
+                Stream stream =
+                    Application.GetResourceStream(new Uri("Images/Default_Avatar.png", UriKind.Relative)).Stream;
+                var img = new byte[stream.Length];
+                stream.Read(img, 0, (int) stream.Length);
                 Avatar = Convert.ToBase64String(img);
                 Save();
             }
@@ -452,10 +416,12 @@ namespace FAP.Domain.Entities
                 string user = WindowsIdentity.GetCurrent().Name;
                 if (!string.IsNullOrEmpty(user) && user.Contains('\\'))
                 {
-                    user = user.Substring(user.IndexOf('\\')+1);
+                    user = user.Substring(user.IndexOf('\\') + 1);
                 }
                 //If the username is a default one then use the PC name
-                if (string.IsNullOrEmpty(user) || string.Equals(user, "Administrator", StringComparison.InvariantCultureIgnoreCase) || string.Equals(user, "Guest", StringComparison.InvariantCultureIgnoreCase))
+                if (string.IsNullOrEmpty(user) ||
+                    string.Equals(user, "Administrator", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(user, "Guest", StringComparison.InvariantCultureIgnoreCase))
                     user = Dns.GetHostName();
                 Nickname = user;
             }
@@ -472,7 +438,8 @@ namespace FAP.Domain.Entities
 
             //Set default download folder
             if (string.IsNullOrEmpty(DownloadFolder))
-                DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\FAP Downloads";
+                DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) +
+                                 "\\FAP Downloads";
 
             if (!Directory.Exists(DownloadFolder))
                 Directory.CreateDirectory(DownloadFolder);
@@ -507,53 +474,54 @@ namespace FAP.Domain.Entities
             }
             else
             {
-                string fileName = parentDir.Substring(index+1);
+                string fileName = parentDir.Substring(index + 1);
                 parentDir = parentDir.Substring(0, index);
 
                 string nodeId = parentDir.Substring(0, parentDir.IndexOf('/'));
-                parentDir = parentDir.Substring(nodeId.Length+1);
-                var node = network.Nodes.Where(n => n.ID == nodeId).FirstOrDefault();
+                parentDir = parentDir.Substring(nodeId.Length + 1);
+                Node node = network.Nodes.Where(n => n.ID == nodeId).FirstOrDefault();
 
                 if (null == node)
                 {
                     //Node not found
-                    LogManager.GetLogger("faplog").Error("Unable to add download as node {0} was not found!",nodeId);
+                    LogManager.GetLogger("faplog").Error("Unable to add download as node {0} was not found!", nodeId);
                 }
                 else
                 {
                     //Node found - browse to get info
-                    BrowseVerb verb = new BrowseVerb(null, null);
+                    var verb = new BrowseVerb(null, null);
                     verb.NoCache = false;
                     verb.Path = parentDir;
-                    
-                    Client client = new Client(LocalNode);
+
+                    var client = new Client(LocalNode);
 
                     if (client.Execute(verb, node))
                     {
-                        var remoteFile = verb.Results.Where(f => f.Name == fileName).FirstOrDefault();
+                        BrowsingFile remoteFile = verb.Results.Where(f => f.Name == fileName).FirstOrDefault();
                         if (null != remoteFile)
                         {
-
-                            downloadQueue.List.Add(new DownloadRequest()
-                            {
-                                Added = DateTime.Now,
-                                FullPath = parentDir + "/" + remoteFile.Name,
-                                IsFolder = remoteFile.IsFolder,
-                                Size = remoteFile.Size,
-                                LocalPath = null,
-                                State = DownloadRequestState.None,
-                                ClientID = node.ID,
-                                Nickname = node.Nickname
-                            });
+                            downloadQueue.List.Add(new DownloadRequest
+                                                       {
+                                                           Added = DateTime.Now,
+                                                           FullPath = parentDir + "/" + remoteFile.Name,
+                                                           IsFolder = remoteFile.IsFolder,
+                                                           Size = remoteFile.Size,
+                                                           LocalPath = null,
+                                                           State = DownloadRequestState.None,
+                                                           ClientID = node.ID,
+                                                           Nickname = node.Nickname
+                                                       });
                         }
                         else
                         {
-                            LogManager.GetLogger("faplog").Error("Unable to add download as {0} was not found on the remote server!", fileName);
+                            LogManager.GetLogger("faplog").Error(
+                                "Unable to add download as {0} was not found on the remote server!", fileName);
                         }
                     }
                     else
                     {
-                        LogManager.GetLogger("faplog").Error("Unable to add download as node {0} was not accessible!", nodeId);
+                        LogManager.GetLogger("faplog").Error("Unable to add download as node {0} was not accessible!",
+                                                             nodeId);
                     }
                 }
             }

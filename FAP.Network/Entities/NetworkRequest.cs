@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,11 +14,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace FAP.Network.Entities
 {
@@ -31,10 +29,12 @@ namespace FAP.Network.Entities
         /// ID node generating the message
         /// </summary>
         public string SourceID { set; get; }
+
         /// <summary>
         /// Overlord ID which the client is connected to
         /// </summary>
         public string OverlordID { set; get; }
+
         /// <summary>
         /// Secret auth key for client->server and server->server security.
         /// </summary>
@@ -42,7 +42,7 @@ namespace FAP.Network.Entities
 
         public NetworkRequest Clone()
         {
-            NetworkRequest r = new NetworkRequest();
+            var r = new NetworkRequest();
             r.Verb = Verb;
             r.Data = Data;
             r.Param = Param;

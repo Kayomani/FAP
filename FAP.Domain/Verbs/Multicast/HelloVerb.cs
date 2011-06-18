@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,10 +14,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using FAP.Domain.Net;
 
@@ -26,9 +27,10 @@ namespace FAP.Domain.Verbs
     {
         public static readonly string Preamble = "FAPHELLO";
 
-        public string CreateRequest(string address, string name, string overlordid, string networkid, int priority, int userCount, int maxUsers)
+        public string CreateRequest(string address, string name, string overlordid, string networkid, int priority,
+                                    int userCount, int maxUsers)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append(Preamble);
             sb.Append("\n");
             sb.Append(Convert.ToBase64String(Encoding.UTF8.GetBytes(address)));
@@ -53,18 +55,20 @@ namespace FAP.Domain.Verbs
             {
                 string[] split = input.Split('\n');
                 if (split.Length == 8)
-                    return new DetectedNode() 
-                    { 
-                        Address = DecodeString(split[1]), 
-                        NetworkName = DecodeString(split[2]), 
-                        OverlordID = DecodeString(split[3]), 
-                        NetworkID = DecodeString(split[4]), 
-                        Priority = int.Parse(split[5]),
-                        CurrentUsers = int.Parse(split[6]),
-                        MaxUsers = int.Parse(split[7])
-                    };
+                    return new DetectedNode
+                               {
+                                   Address = DecodeString(split[1]),
+                                   NetworkName = DecodeString(split[2]),
+                                   OverlordID = DecodeString(split[3]),
+                                   NetworkID = DecodeString(split[4]),
+                                   Priority = int.Parse(split[5]),
+                                   CurrentUsers = int.Parse(split[6]),
+                                   MaxUsers = int.Parse(split[7])
+                               };
             }
-            catch { }
+            catch
+            {
+            }
             return null;
         }
 

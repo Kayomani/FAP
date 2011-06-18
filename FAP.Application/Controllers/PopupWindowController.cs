@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,26 +14,32 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using FAP.Application.ViewModels;
 using System.Waf.Applications;
 using System.Windows;
 using Autofac;
+using FAP.Application.ViewModels;
+using IContainer = Autofac.IContainer;
 
 namespace FAP.Application.Controllers
 {
     public class PopupWindowController
     {
-        private PopupWindowViewModel viewModel;
-        private bool windowOpen = false;
-        private IContainer container;
+        #region Delegates
 
         public delegate void TabClosing(object o);
-        public event TabClosing OnTabClosing;
+
+        #endregion
+
+        private readonly IContainer container;
+
+        private PopupWindowViewModel viewModel;
+        private bool windowOpen;
 
         public PopupWindowController(IContainer container)
         {
@@ -43,16 +50,18 @@ namespace FAP.Application.Controllers
         {
             get
             {
-                PopUpWindowTab e = viewModel.ActiveDocumentView as PopUpWindowTab;
+                var e = viewModel.ActiveDocumentView as PopUpWindowTab;
                 if (null != e)
                 {
-                    FrameworkElement p = e.Content as FrameworkElement;
+                    var p = e.Content as FrameworkElement;
                     if (null != p)
                         return p.DataContext;
                 }
                 return null;
             }
         }
+
+        public event TabClosing OnTabClosing;
 
         public void FlashIfNotActive()
         {
@@ -65,16 +74,17 @@ namespace FAP.Application.Controllers
             {
                 viewModel = container.Resolve<PopupWindowViewModel>();
                 viewModel.Close = new DelegateCommand(windowClosing);
-                viewModel.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(viewModel_PropertyChanged);
+                viewModel.PropertyChanged += viewModel_PropertyChanged;
                 windowOpen = true;
             }
         }
 
-        void viewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void viewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "ActiveDocumentView")
             {
-                var search = viewModel.DocumentViews.Where(v => v == viewModel.ActiveDocumentView).FirstOrDefault();
+                PopUpWindowTab search =
+                    viewModel.DocumentViews.Where(v => v == viewModel.ActiveDocumentView).FirstOrDefault();
                 if (null != search)
                 {
                     if (search.Color != "Black")
@@ -91,7 +101,7 @@ namespace FAP.Application.Controllers
 
         private void windowClosing(object o)
         {
-            foreach (var view in viewModel.DocumentViews)
+            foreach (PopUpWindowTab view in viewModel.DocumentViews)
             {
                 TabClose(view.ContentViewModel);
             }
@@ -101,7 +111,7 @@ namespace FAP.Application.Controllers
 
         public void SwitchToTab(object o)
         {
-            var search = viewModel.DocumentViews.Where(dv => dv.ContentViewModel == o).FirstOrDefault();
+            PopUpWindowTab search = viewModel.DocumentViews.Where(dv => dv.ContentViewModel == o).FirstOrDefault();
             if (null != search)
             {
                 viewModel.ActiveDocumentView = search;
@@ -110,7 +120,7 @@ namespace FAP.Application.Controllers
 
         public void Highlight(object o)
         {
-            var search = viewModel.DocumentViews.Where(v => v.ContentViewModel == o).FirstOrDefault();
+            PopUpWindowTab search = viewModel.DocumentViews.Where(v => v.ContentViewModel == o).FirstOrDefault();
             if (null != search)
             {
                 search.Color = "red";

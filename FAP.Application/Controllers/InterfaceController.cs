@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,31 +14,32 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
+
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Waf.Applications;
-using FAP.Application.ViewModels;
-using System.Waf.Applications.Services;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Waf.Applications;
+using System.Waf.Applications.Services;
+using FAP.Application.ViewModels;
 using FAP.Domain.Entities;
 
 namespace FAP.Application.Controllers
 {
     public class InterfaceController
     {
-        private InterfaceSelectionViewModel vm;
-        private bool quit = false;
+        private readonly InterfaceSelectionViewModel vm;
         private IMessageService message;
+        private bool quit;
 
         public InterfaceController(InterfaceSelectionViewModel v, IMessageService m)
         {
             vm = v;
             message = m;
-            vm.Interfaces = new System.ComponentModel.BindingList<NetInterface>();
+            vm.Interfaces = new BindingList<NetInterface>();
 
             IPAddress[] localIPs = Dns.GetHostAddresses(Dns.GetHostName());
 
@@ -45,15 +47,12 @@ namespace FAP.Application.Controllers
             {
                 if (nic.OperationalStatus == OperationalStatus.Up && nic.Supports(NetworkInterfaceComponent.IPv4))
                 {
-                    NetInterface i = new NetInterface();
-                    i.Description = nic.Description;
-                    i.Name = nic.Name;
-                    i.Speed = nic.Speed;
+                    var i = new NetInterface {Description = nic.Description, Name = nic.Name, Speed = nic.Speed};
                     IPInterfaceProperties ipProps = nic.GetIPProperties();
 
-                    foreach (var address in ipProps.UnicastAddresses)
+                    foreach (UnicastIPAddressInformation address in ipProps.UnicastAddresses)
                     {
-                        if (address.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                        if (address.Address.AddressFamily == AddressFamily.InterNetwork &&
                             localIPs.Contains(address.Address) &&
                             !IPAddress.IsLoopback(address.Address))
                         {
@@ -66,9 +65,9 @@ namespace FAP.Application.Controllers
             }
 
             //Select primary interface.  Just go with the lowest
-            for (int i = 0; i < localIPs.Length; i++)
+            foreach (IPAddress t in localIPs)
             {
-                vm.SelectedInterface = vm.Interfaces.Where(s => IPAddress.Equals(s.Address, localIPs[i])).FirstOrDefault();
+                vm.SelectedInterface = vm.Interfaces.Where(s => Equals(s.Address, t)).FirstOrDefault();
                 if (null != vm.SelectedInterface)
                     break;
             }
@@ -92,18 +91,17 @@ namespace FAP.Application.Controllers
         public string CheckAddress(string a)
         {
             //Check to see if the passed address is still valid, if so just use it
-            for (int i = 0; i < vm.Interfaces.Count; i++)
+            if (!vm.Interfaces.Any(t => string.Equals(t.Address.ToString(), a)))
             {
-                if (string.Equals(vm.Interfaces[i].Address.ToString(), a))
-                    return a;
+                if (vm.Interfaces.Count == 1)
+                    return vm.Interfaces[0].Address.ToString();
+                vm.ShowDialog();
+                if (quit)
+                    return null;
+                return vm.SelectedInterface.Address.ToString();
             }
 
-            if (vm.Interfaces.Count == 1)
-                return vm.Interfaces[0].Address.ToString();
-            vm.ShowDialog();
-            if (quit)
-                return null;
-            return vm.SelectedInterface.Address.ToString();
+            return a;
         }
     }
 }

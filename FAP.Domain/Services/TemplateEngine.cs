@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.ComponentModel;
-
-
+﻿using System.Collections.Generic;
+using Antlr3.ST;
 
 namespace FAP.Domain.Services
 {
@@ -15,17 +9,17 @@ namespace FAP.Domain.Services
 
         public static string Generate(string input, Dictionary<string, object> data)
         {
-            Antlr3.ST.StringTemplate template = new Antlr3.ST.StringTemplate(input);
-           
+            var template = new StringTemplate(input);
+
             foreach (var d in data)
                 template.SetAttribute(d.Key, d.Value);
 
-            string result =template.ToString();;
+            string result = template.ToString();
+            ;
             template.Reset();
             data.Clear();
             template = null;
             return result;
-            
         }
     }
 }

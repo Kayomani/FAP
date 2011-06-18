@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,45 +14,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Fap.Foundation;
 using System.Runtime.Serialization;
+using Fap.Foundation;
 using Newtonsoft.Json;
 
 namespace FAP.Domain.Entities
 {
     public class Node : BaseEntity
     {
+        private readonly object sync;
         protected SafeDictionary<string, string> data = new SafeDictionary<string, string>();
         private long lastUpdate = Environment.TickCount;
 
-        
-        private object sync;
+
         private string secret;
 
-
-        public override bool Equals(object obj)
-        {
-            Node other = obj as Node;
-            if (null != other)
-            {
-                if (string.IsNullOrEmpty(other.ID))
-                    return Location == other.Location;
-                return other.ID == ID;
-            }
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            if (null == ID)
-                return 0;
-            return ID.GetHashCode();
-        }
 
         public Node()
         {
@@ -59,7 +40,7 @@ namespace FAP.Domain.Entities
             LastUpdate = Environment.TickCount;
         }
 
-        [JsonIgnoreAttribute]
+        [JsonIgnore]
         public string Secret
         {
             get { return secret; }
@@ -147,11 +128,11 @@ namespace FAP.Domain.Entities
             {
                 int i = 0;
                 int.TryParse(data.SafeGet("NodeType"), out i);
-                return (ClientType)i;
+                return (ClientType) i;
             }
             set
             {
-                data.Set("NodeType", ((int)value).ToString());
+                data.Set("NodeType", ((int) value).ToString());
                 LastUpdate = Environment.TickCount;
                 NotifyChange("NodeType");
             }
@@ -168,7 +149,7 @@ namespace FAP.Domain.Entities
             }
             set
             {
-                data.Set("DSpeed", ((int)value).ToString());
+                data.Set("DSpeed", ((int) value).ToString());
                 LastUpdate = Environment.TickCount;
                 NotifyChange("DownloadSpeed");
             }
@@ -185,7 +166,7 @@ namespace FAP.Domain.Entities
             }
             set
             {
-                data.Set("USpeed", ((int)value).ToString());
+                data.Set("USpeed", ((int) value).ToString());
                 LastUpdate = Environment.TickCount;
                 NotifyChange("UploadSpeed");
             }
@@ -306,20 +287,35 @@ namespace FAP.Domain.Entities
             }
         }
 
+        [DataMember(Name = "Node")]
+        public SafeDictionary<string, string> Data
+        {
+            get { return data; }
+            set { data = value; }
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as Node;
+            if (null != other)
+            {
+                if (string.IsNullOrEmpty(other.ID))
+                    return Location == other.Location;
+                return other.ID == ID;
+            }
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            if (null == ID)
+                return 0;
+            return ID.GetHashCode();
+        }
+
         public bool IsKeySet(string key)
         {
             return data.ContainsKey(key);
-        }
-
-        [DataMember(Name="Node")]
-        public SafeDictionary<string, string> Data
-        {
-            get
-            {
-                return data;
-
-            }
-            set { data = value; }
         }
 
 

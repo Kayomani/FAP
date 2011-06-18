@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,19 +14,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using FAP.Domain.Entities.FileSystem;
-using System.IO;
-using File = FAP.Domain.Entities.FileSystem.File;
-using Directory = FAP.Domain.Entities.FileSystem.Directory;
-using NLog;
-using FAP.Domain.Entities;
-using System.Text.RegularExpressions;
 using System.Threading;
+using FAP.Domain.Entities;
+using NLog;
+using Directory = FAP.Domain.Entities.FileSystem.Directory;
 
 namespace FAP.Domain.Services
 {
@@ -37,9 +37,11 @@ namespace FAP.Domain.Services
 
     public class ShareInfoService
     {
-        private List<RootShare> shares = new List<RootShare>();
-        public static readonly string SaveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\ShareInfo\";
-        private Model model;
+        public static readonly string SaveLocation =
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\ShareInfo\";
+
+        private readonly Model model;
+        private readonly List<RootShare> shares = new List<RootShare>();
 
         public ShareInfoService(Model m)
         {
@@ -50,32 +52,32 @@ namespace FAP.Domain.Services
         {
             shares.Clear();
 
-            foreach (var share in model.Shares.ToList())
+            foreach (Share share in model.Shares.ToList())
             {
                 try
                 {
-                    Directory d = new Directory();
+                    var d = new Directory();
                     d.Load(share.ID);
-                    shares.Add(new RootShare() { ID = share.ID, Data = d });
+                    shares.Add(new RootShare {ID = share.ID, Data = d});
                 }
                 catch (Exception e)
                 {
                     LogManager.GetLogger("faplog").DebugException("Failed to load share info for" + share.Name, e);
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(DoRefreshPath), share);
+                    ThreadPool.QueueUserWorkItem(DoRefreshPath, share);
                 }
             }
         }
 
         private void DoRefreshPath(object o)
         {
-            Share s = o as Share;
+            var s = o as Share;
             if (null != s)
                 RefreshPath(s);
         }
 
         public void RenameShareByID(string ID, string destinationName)
         {
-            var search = shares.Where(s => s.ID == ID).FirstOrDefault();
+            RootShare search = shares.Where(s => s.ID == ID).FirstOrDefault();
             if (null != search)
             {
                 search.Data.Name = destinationName;
@@ -90,7 +92,7 @@ namespace FAP.Domain.Services
                 model.GetAntiShutdownLock();
                 lock (share)
                 {
-                    var rs = shares.Where(s => s.ID == share.ID).FirstOrDefault();
+                    RootShare rs = shares.Where(s => s.ID == share.ID).FirstOrDefault();
                     if (null == rs)
                     {
                         rs = new RootShare();
@@ -122,12 +124,12 @@ namespace FAP.Domain.Services
 
         public void RemoveShareByID(string id)
         {
-            var search = shares.Where(s => s.ID == id).FirstOrDefault();
-            if(null!=search)
+            RootShare search = shares.Where(s => s.ID == id).FirstOrDefault();
+            if (null != search)
                 shares.Remove(search);
-            string path = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) + ".cache";
-            if (System.IO.File.Exists(path))
-                System.IO.File.Delete(path);
+            string path = SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) + ".cache";
+            if (File.Exists(path))
+                File.Delete(path);
         }
 
 
@@ -143,13 +145,13 @@ namespace FAP.Domain.Services
 
             if (path.StartsWith("/"))
                 path = path.Substring(1);
-            string[] items = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] items = path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
 
             if (items.Length == 0)
                 return null;
 
 
-            switch (shares.Where(n => n.Data!=null && n.Data.Name == items[0]).Count())
+            switch (shares.Where(n => n.Data != null && n.Data.Name == items[0]).Count())
             {
                 case 0:
                     //Dir not found
@@ -157,7 +159,7 @@ namespace FAP.Domain.Services
                 case 1:
                     {
                         //Single directory
-                        Directory dir = shares.Where(n=>n.Data.Name==items[0]).FirstOrDefault().Data;
+                        Directory dir = shares.Where(n => n.Data.Name == items[0]).FirstOrDefault().Data;
                         for (int i = 1; i < items.Length; i++)
                         {
                             if (null == dir)
@@ -170,10 +172,10 @@ namespace FAP.Domain.Services
                     //Multiple directories - Return a virtual directory
                     //Only return data if we find the path atleast once
                     bool foundPath = false;
-                    Directory virtualDir = new Directory();
+                    var virtualDir = new Directory();
 
                     //Scan each share and add info
-                    foreach (var src in shares.Where(n => null!=n.Data && n.Data.Name == items[0]))
+                    foreach (RootShare src in shares.Where(n => null != n.Data && n.Data.Name == items[0]))
                     {
                         Directory dir = src.Data;
                         for (int i = 1; i < items.Length; i++)
@@ -200,21 +202,19 @@ namespace FAP.Domain.Services
                     //Sort output
                     virtualDir.Files = virtualDir.Files.OrderBy(s => s.Name).ToList();
                     virtualDir.SubDirectories = virtualDir.SubDirectories.OrderBy(s => s.Name).ToList();
-                    
+
                     isVirtual = true;
                     return virtualDir;
             }
-            
-           
         }
 
         public bool ToLocalPath(string input, out string[] output)
         {
             var result = new List<string>();
-            string[] split = input.Split(new char[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+            string[] split = input.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
             if (split.Length > 0)
             {
-                foreach (var root in model.Shares.Where(s => s.Name == split[0]))
+                foreach (Share root in model.Shares.Where(s => s.Name == split[0]))
                 {
                     var sb = new StringBuilder();
                     sb.Append(root.Path);
@@ -243,7 +243,7 @@ namespace FAP.Domain.Services
         public long GetSize(string path)
         {
             bool isVirtual = false;
-            var info = GetPath(path, out isVirtual);
+            Directory info = GetPath(path, out isVirtual);
             if (null == info)
                 return 0;
             if (isVirtual)
@@ -268,30 +268,30 @@ namespace FAP.Domain.Services
                 long objCount = 0;
 
                 //Check file list
-                List<File> newFileList = new List<File>();
+                var newFileList = new List<Entities.FileSystem.File>();
                 FileInfo[] sysfiles = directory.GetFiles();
-                foreach (var finfo in sysfiles)
+                foreach (FileInfo finfo in sysfiles)
                 {
                     newSize += finfo.Length;
                     objCount++;
 
-                    File cf = new File();
+                    var cf = new Entities.FileSystem.File();
                     cf.Name = finfo.Name;
                     cf.Size = finfo.Length;
                     cf.LastModified = finfo.LastWriteTime.ToFileTime();
                     newFileList.Add(cf);
                 }
                 //Update model with file info
-                var oldList = model.Files;
+                List<Entities.FileSystem.File> oldList = model.Files;
                 model.Files = newFileList;
                 oldList.Clear();
                 sysfiles = null;
 
                 //Check folder info.
-                List<Directory> newDirList = new List<Directory>();
-                Dictionary<string, Directory> oldDirs = new Dictionary<string, Directory>();
+                var newDirList = new List<Directory>();
+                var oldDirs = new Dictionary<string, Directory>();
 
-                foreach (var d in model.SubDirectories)
+                foreach (Directory d in model.SubDirectories)
                     oldDirs.Add(d.Name, d);
 
                 DirectoryInfo[] dirs = directory.GetDirectories();
@@ -315,52 +315,62 @@ namespace FAP.Domain.Services
                     newSize += sub.Size;
                 }
                 //Update model
-                var oldDirList = model.SubDirectories;
+                List<Directory> oldDirList = model.SubDirectories;
                 model.SubDirectories = newDirList;
                 oldDirList.Clear();
-                
+
                 //Sum totals
                 model.Size = newSize;
                 model.ItemCount = objCount;
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         #region Search
-        public List<SearchResult> Search(string expression, int limit, long modifiedBefore, long modifiedAfter, double smallerThan, double largerThan)
-        {
-            List<SearchResult> results = new List<SearchResult>();
 
-            StringMatcher matcher = new StringMatcher(expression);
-            
-            foreach (var share in shares.ToList())
+        public List<SearchResult> Search(string expression, int limit, long modifiedBefore, long modifiedAfter,
+                                         double smallerThan, double largerThan)
+        {
+            var results = new List<SearchResult>();
+
+            var matcher = new StringMatcher(expression);
+
+            foreach (RootShare share in shares.ToList())
             {
-                if (!SearchRecursive(share.Data, matcher, string.Empty, results, limit,modifiedBefore,modifiedAfter,smallerThan,largerThan))
+                if (
+                    !SearchRecursive(share.Data, matcher, string.Empty, results, limit, modifiedBefore, modifiedAfter,
+                                     smallerThan, largerThan))
                     break;
             }
             return results;
         }
 
-        private bool SearchRecursive(Directory dir, StringMatcher matcher, string currentPath, List<SearchResult> results, int limit, long modifiedBefore, long modifiedAfter, double smallerThan, double largerThan)
+        private bool SearchRecursive(Directory dir, StringMatcher matcher, string currentPath,
+                                     List<SearchResult> results, int limit, long modifiedBefore, long modifiedAfter,
+                                     double smallerThan, double largerThan)
         {
-            foreach (var file in dir.Files)
+            foreach (Entities.FileSystem.File file in dir.Files)
             {
                 if (matcher.IsMatch(file.Name))
                 {
                     if ((modifiedBefore == 0 || file.LastModified < modifiedBefore) &&
-                     (modifiedAfter == 0 || file.LastModified > modifiedAfter) &&
-                     (smallerThan == 0 || file.Size < smallerThan) &&
-                     (largerThan == 0 || file.Size > largerThan))
+                        (modifiedAfter == 0 || file.LastModified > modifiedAfter) &&
+                        (smallerThan == 0 || file.Size < smallerThan) &&
+                        (largerThan == 0 || file.Size > largerThan))
                     {
-
-                        results.Add(new SearchResult()
-                        {
-                            FileName = file.Name,
-                            Modified = DateTime.FromFileTime(file.LastModified),
-                            Path = string.IsNullOrEmpty(currentPath) ? dir.Name : currentPath + "/" + dir.Name,
-                            IsFolder = false,
-                            Size = file.Size
-                        });
+                        results.Add(new SearchResult
+                                        {
+                                            FileName = file.Name,
+                                            Modified = DateTime.FromFileTime(file.LastModified),
+                                            Path =
+                                                string.IsNullOrEmpty(currentPath)
+                                                    ? dir.Name
+                                                    : currentPath + "/" + dir.Name,
+                                            IsFolder = false,
+                                            Size = file.Size
+                                        });
 
 
                         if (results.Count >= limit)
@@ -369,39 +379,46 @@ namespace FAP.Domain.Services
                 }
             }
 
-            foreach (var d in dir.SubDirectories)
+            foreach (Directory d in dir.SubDirectories)
             {
                 if (matcher.IsMatch(d.Name))
                 {
                     if ((modifiedBefore == 0 || d.LastModified < modifiedBefore) &&
-                     (modifiedAfter == 0 || d.LastModified > modifiedAfter) &&
-                     (smallerThan == 0 || d.Size < smallerThan) &&
-                     (largerThan == 0 || d.Size > largerThan))
+                        (modifiedAfter == 0 || d.LastModified > modifiedAfter) &&
+                        (smallerThan == 0 || d.Size < smallerThan) &&
+                        (largerThan == 0 || d.Size > largerThan))
                     {
-                        results.Add(new SearchResult()
-                        {
-                            FileName = d.Name,
-                            Modified = DateTime.FromFileTime(d.LastModified),
-                            Path = string.IsNullOrEmpty(currentPath) ? dir.Name : currentPath + "/" + dir.Name,
-                            IsFolder = true,
-                            Size = d.Size
-                        });
+                        results.Add(new SearchResult
+                                        {
+                                            FileName = d.Name,
+                                            Modified = DateTime.FromFileTime(d.LastModified),
+                                            Path =
+                                                string.IsNullOrEmpty(currentPath)
+                                                    ? dir.Name
+                                                    : currentPath + "/" + dir.Name,
+                                            IsFolder = true,
+                                            Size = d.Size
+                                        });
                         if (results.Count >= limit)
                             return false;
                     }
                 }
             }
 
-            foreach (var subdir in dir.SubDirectories)
+            foreach (Directory subdir in dir.SubDirectories)
             {
                 if (string.IsNullOrEmpty(currentPath))
                 {
-                    if (!SearchRecursive(subdir, matcher, dir.Name, results, limit, modifiedBefore, modifiedAfter, smallerThan, largerThan))
+                    if (
+                        !SearchRecursive(subdir, matcher, dir.Name, results, limit, modifiedBefore, modifiedAfter,
+                                         smallerThan, largerThan))
                         return false;
                 }
                 else
                 {
-                    if (!SearchRecursive(subdir, matcher, currentPath + "/" + dir.Name, results, limit, modifiedBefore, modifiedAfter, smallerThan, largerThan))
+                    if (
+                        !SearchRecursive(subdir, matcher, currentPath + "/" + dir.Name, results, limit, modifiedBefore,
+                                         modifiedAfter, smallerThan, largerThan))
                         return false;
                 }
             }
@@ -410,14 +427,14 @@ namespace FAP.Domain.Services
 
         public class StringMatcher
         {
-            private string[] split;
+            private readonly string[] split;
 
             public StringMatcher(string expression)
             {
                 if (string.IsNullOrEmpty(expression))
                     split = new string[0];
                 else
-                    split = expression.Split(new char[] { '*' }, StringSplitOptions.RemoveEmptyEntries);
+                    split = expression.Split(new[] {'*'}, StringSplitOptions.RemoveEmptyEntries);
             }
 
             public bool IsMatch(string name)
@@ -428,13 +445,14 @@ namespace FAP.Domain.Services
                 {
                     //Performance comparision:
                     //http://blogs.msdn.com/b/noahc/archive/2007/06/29/string-equals-performance-comparison.aspx
-                    index = name.IndexOf(split[i], index,StringComparison.OrdinalIgnoreCase);
+                    index = name.IndexOf(split[i], index, StringComparison.OrdinalIgnoreCase);
                     if (-1 == index)
                         return false;
                 }
                 return index != -1;
             }
         }
+
         #endregion
     }
 }

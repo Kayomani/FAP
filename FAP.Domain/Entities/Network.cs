@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,23 +14,20 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using Fap.Foundation;
-using System.Collections.ObjectModel;
 
 namespace FAP.Domain.Entities
 {
-    public class Network: BaseEntity
+    public class Network : BaseEntity
     {
-        private SafeObservedCollection<Node> nodes = new SafeObservedCollection<Node>();
-        private string networkName;
+        private readonly SafeObservedCollection<Node> nodes = new SafeObservedCollection<Node>();
         private string networkID;
-        private ConnectionState state = ConnectionState.Disconnected;
+        private string networkName;
         private Node overlord;
+        private ConnectionState state = ConnectionState.Disconnected;
 
         public ConnectionState State
         {
@@ -48,19 +46,31 @@ namespace FAP.Domain.Entities
 
         public string NetworkName
         {
-            set { networkName = value; NotifyChange("NetworkName"); }
+            set
+            {
+                networkName = value;
+                NotifyChange("NetworkName");
+            }
             get { return networkName; }
         }
 
         public string NetworkID
         {
-            set { networkID = value; NotifyChange("NetworkID"); }
+            set
+            {
+                networkID = value;
+                NotifyChange("NetworkID");
+            }
             get { return networkID; }
         }
 
         public Node Overlord
         {
-            set { overlord = value; NotifyChange("Overlord"); }
+            set
+            {
+                overlord = value;
+                NotifyChange("Overlord");
+            }
             get { return overlord; }
         }
     }

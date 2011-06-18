@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,11 +14,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using System.ComponentModel;
 using System.Windows;
 
@@ -25,12 +24,12 @@ namespace FAP.Application.ViewModels
 {
     public class PopUpWindowTab : INotifyPropertyChanged
     {
-
-        private string name = string.Empty;
         private string color = "Black";
         private object content;
+        private string name = string.Empty;
 
         #region INotifyPropertyChanged Implementation
+
         /// <summary>
         /// event for INotifyPropertyChanged.PropertyChanged
         /// </summary>
@@ -42,11 +41,12 @@ namespace FAP.Application.ViewModels
         /// <param name="propName"></param>
         protected void RaisePropertyChanged(string propName)
         {
-            if (this.PropertyChanged != null)
+            if (PropertyChanged != null)
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(propName));
             }
         }
+
         #endregion
 
         public string Color
@@ -83,7 +83,7 @@ namespace FAP.Application.ViewModels
         {
             get
             {
-                FrameworkElement e = content as FrameworkElement;
+                var e = content as FrameworkElement;
                 if (null != e)
                 {
                     return e.DataContext;

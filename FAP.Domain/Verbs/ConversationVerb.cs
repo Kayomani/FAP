@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FAP.Network.Entities;
-using FAP.Domain.Entities;
+﻿using FAP.Network.Entities;
 using Newtonsoft.Json;
 
 namespace FAP.Domain.Verbs
@@ -12,19 +7,28 @@ namespace FAP.Domain.Verbs
     {
         bool HandleMessage(string id, string nickname, string message);
     }
+
     public class ConversationVerb : BaseVerb, IVerb
     {
+        public string Nickname { set; get; }
+        public string Message { set; get; }
+
+        [JsonIgnore]
+        public string SourceID { set; get; }
+
+        #region IVerb Members
+
         public NetworkRequest CreateRequest()
         {
-            NetworkRequest req = new NetworkRequest();
+            var req = new NetworkRequest();
             req.Verb = "CONVERSTATION";
-            req.Data = Serialize<ConversationVerb>(this);
+            req.Data = Serialize(this);
             return req;
         }
 
-        public Network.Entities.NetworkRequest ProcessRequest(Network.Entities.NetworkRequest r)
+        public NetworkRequest ProcessRequest(NetworkRequest r)
         {
-            ConversationVerb verb = Deserialise<ConversationVerb>(r.Data);
+            var verb = Deserialise<ConversationVerb>(r.Data);
             Nickname = verb.Nickname;
             Message = verb.Message;
             SourceID = r.SourceID;
@@ -32,14 +36,11 @@ namespace FAP.Domain.Verbs
             return r;
         }
 
-        public bool ReceiveResponse(Network.Entities.NetworkRequest r)
+        public bool ReceiveResponse(NetworkRequest r)
         {
             return true;
         }
 
-        public string Nickname { set; get; }
-        public string Message { set; get; }
-        [JsonIgnore]
-        public string SourceID { set; get; }
+        #endregion
     }
 }

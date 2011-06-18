@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,31 +14,29 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Fap.Foundation;
+using System.Threading;
+using System.Waf.Applications;
+using Autofac;
 using FAP.Application.ViewModels;
 using FAP.Domain.Entities;
-using Autofac;
-using System.Waf.Applications;
-using FAP.Domain;
-using System.Threading;
-using FAP.Domain.Verbs;
 using FAP.Domain.Net;
+using FAP.Domain.Verbs;
+using Fap.Foundation;
 
 namespace FAP.Application.Controllers
 {
     public class CompareController
     {
-        private SafeObservable<CompareNode> data = new SafeObservable<CompareNode>();
-        private CompareViewModel viewModel;
-        private Model model;
+        private readonly SafeObservable<CompareNode> data = new SafeObservable<CompareNode>();
+        private readonly Model model;
 
-        private object sync = new object();
-        private int requests = 0;
+        private readonly object sync = new object();
+        private readonly CompareViewModel viewModel;
+        private int requests;
 
         public CompareController(IContainer c)
         {
@@ -62,7 +61,7 @@ namespace FAP.Application.Controllers
         {
             data.Clear();
             viewModel.EnableRun = false;
-            var peerlist = model.Network.Nodes.ToList();
+            List<Node> peerlist = model.Network.Nodes.ToList();
 
             if (peerlist.Count == 0)
             {
@@ -71,8 +70,8 @@ namespace FAP.Application.Controllers
             else
             {
                 viewModel.Status = "Status: Waiting for a response from " + model.Network.Nodes.Count + " peers..";
-                foreach (var peer in peerlist)
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(RunAsync), peer);
+                foreach (Node peer in peerlist)
+                    ThreadPool.QueueUserWorkItem(RunAsync, peer);
             }
         }
 
@@ -83,11 +82,11 @@ namespace FAP.Application.Controllers
                 requests++;
             }
 
-            Node node = o as Node;
+            var node = o as Node;
             if (null != node)
             {
-                Client client = new Client(model.LocalNode);
-                CompareVerb verb = new CompareVerb(model);
+                var client = new Client(model.LocalNode);
+                var verb = new CompareVerb(model);
 
                 if (client.Execute(verb, node))
                 {
@@ -123,7 +122,8 @@ namespace FAP.Application.Controllers
                 if (requests == 0)
                 {
                     viewModel.EnableRun = true;
-                    viewModel.Status = "Status: All Information recieved, click start to refresh info (Note clients will cache information for 5 minutes).";
+                    viewModel.Status =
+                        "Status: All Information recieved, click start to refresh info (Note clients will cache information for 5 minutes).";
                 }
             }
         }

@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,29 +14,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FAP.Application.Views;
+
 using System.Waf.Applications;
-using Fap.Foundation;
 using System.Windows.Input;
+using FAP.Application.Views;
 using FAP.Domain.Entities;
 
 namespace FAP.Application.ViewModels
 {
     public class TrayIconViewModel : ViewModel<ITrayIconView>
     {
+        private ICommand compare;
         private ICommand exit;
         private ICommand open;
-        private ICommand shares;
-        private ICommand settings;
-        private ICommand queue;
-        private ICommand viewshare;
-        private ICommand compare;
         private ICommand openExternal;
+        private ICommand queue;
+        private ICommand settings;
+        private ICommand shares;
+        private ICommand viewshare;
 
 
         public TrayIconViewModel(ITrayIconView view)
@@ -44,17 +42,11 @@ namespace FAP.Application.ViewModels
         }
 
         public Model Model { set; get; }
-       
+
         public bool ShowIcon
         {
-            get
-            {
-                return ViewCore.ShowIcon;
-            }
-            set
-            {
-                ViewCore.ShowIcon = value;
-            }
+            get { return ViewCore.ShowIcon; }
+            set { ViewCore.ShowIcon = value; }
         }
 
         public ICommand OpenExternal
@@ -64,10 +56,7 @@ namespace FAP.Application.ViewModels
                 openExternal = value;
                 RaisePropertyChanged("OpenExternal");
             }
-            get
-            {
-                return openExternal;
-            }
+            get { return openExternal; }
         }
 
         public ICommand Compare
@@ -77,10 +66,7 @@ namespace FAP.Application.ViewModels
                 compare = value;
                 RaisePropertyChanged("Compare");
             }
-            get
-            {
-                return compare;
-            }
+            get { return compare; }
         }
 
         public ICommand ViewShare
@@ -90,10 +76,7 @@ namespace FAP.Application.ViewModels
                 viewshare = value;
                 RaisePropertyChanged("ViewShare");
             }
-            get
-            {
-                return viewshare;
-            }
+            get { return viewshare; }
         }
 
         public ICommand Queue
@@ -103,10 +86,7 @@ namespace FAP.Application.ViewModels
                 queue = value;
                 RaisePropertyChanged("Queue");
             }
-            get
-            {
-                return queue;
-            }
+            get { return queue; }
         }
 
         public ICommand Settings
@@ -116,10 +96,7 @@ namespace FAP.Application.ViewModels
                 settings = value;
                 RaisePropertyChanged("Settings");
             }
-            get
-            {
-                return settings;
-            }
+            get { return settings; }
         }
 
         public ICommand Shares
@@ -129,10 +106,7 @@ namespace FAP.Application.ViewModels
                 shares = value;
                 RaisePropertyChanged("Shares");
             }
-            get
-            {
-                return shares;
-            }
+            get { return shares; }
         }
 
 
@@ -143,10 +117,7 @@ namespace FAP.Application.ViewModels
                 open = value;
                 RaisePropertyChanged("Open");
             }
-            get
-            {
-                return open;
-            }
+            get { return open; }
         }
 
         public ICommand Exit
@@ -156,16 +127,12 @@ namespace FAP.Application.ViewModels
                 exit = value;
                 RaisePropertyChanged("Exit");
             }
-            get
-            {
-                return exit;
-            }
+            get { return exit; }
         }
 
         public void Dispose()
         {
             ViewCore.Dispose();
-
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,14 +14,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using System.Waf.Applications;
 using FAP.Application.Views;
-using System.Windows;
 
 namespace FAP.Application.ViewModels
 {
@@ -32,7 +30,6 @@ namespace FAP.Application.ViewModels
         public MessageBoxViewModel(IMessageBoxView view)
             : base(view)
         {
-
         }
 
         public string Message
@@ -53,13 +50,12 @@ namespace FAP.Application.ViewModels
                 RaisePropertyChanged("Response");
             }
             get { return response; }
-
         }
 
 
         public bool ShowDialog(object parent)
         {
-            var response = ViewCore.ShowDialog(parent);
+            bool? response = ViewCore.ShowDialog(parent);
             if (response.HasValue)
                 return response.Value;
             return false;
@@ -67,7 +63,7 @@ namespace FAP.Application.ViewModels
 
         public bool ShowDialog()
         {
-            var response = ViewCore.ShowDialog();
+            bool? response = ViewCore.ShowDialog();
             if (response.HasValue)
                 return response.Value;
             return false;

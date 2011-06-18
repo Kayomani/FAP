@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,28 +14,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
+using System.Collections.Specialized;
 using System.Waf.Applications;
-using FAP.Application.Views;
 using System.Windows.Input;
-using Fap.Foundation;
-using FAP.Domain.Entities;
 using FAP.Application.Controllers;
+using FAP.Application.Views;
+using FAP.Domain.Entities;
 
 namespace FAP.Application.ViewModels
 {
-    public class ConversationViewModel: ViewModel<IConverstationView>
+    public class ConversationViewModel : ViewModel<IConverstationView>
     {
+        private readonly PopupWindowController popupWindowController;
+        private ICommand close;
+        private Conversation conversation;
         private string currentChatMessage;
         private ICommand sendChatMessage;
-        private Conversation conversation;
-        private ICommand close;
-
-        private PopupWindowController popupWindowController;
 
         public ConversationViewModel(IConverstationView view, PopupWindowController p)
             : base(view)
@@ -50,15 +48,8 @@ namespace FAP.Application.ViewModels
             {
                 conversation = value;
                 RaisePropertyChanged("Conversation");
-                value.UIMessages.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(UIMessages_CollectionChanged);
+                value.UIMessages.CollectionChanged += UIMessages_CollectionChanged;
             }
-        }
-
-        private void UIMessages_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            if (popupWindowController.ActiveTab != this)
-                popupWindowController.Highlight(this);
-            popupWindowController.FlashIfNotActive();
         }
 
 
@@ -90,6 +81,13 @@ namespace FAP.Application.ViewModels
                 close = value;
                 RaisePropertyChanged("Close");
             }
+        }
+
+        private void UIMessages_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (popupWindowController.ActiveTab != this)
+                popupWindowController.Highlight(this);
+            popupWindowController.FlashIfNotActive();
         }
     }
 }

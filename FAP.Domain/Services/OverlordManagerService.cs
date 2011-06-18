@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,15 +14,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Autofac;
-using FAP.Domain.Net;
-using FAP.Domain.Entities;
 using System.Threading;
+using Autofac;
+using FAP.Domain.Entities;
+using FAP.Domain.Net;
 using NLog;
 
 namespace FAP.Domain.Services
@@ -32,18 +34,23 @@ namespace FAP.Domain.Services
     /// </summary>
     public class OverlordManagerService
     {
+        private readonly IContainer container;
+        private readonly Model model;
+        private readonly object sync = new object();
         private ListenerService overlord;
-        private IContainer container;
         private LANPeerFinderService peerFinder;
-        private Model model;
-        private object sync = new object();
 
-        private bool serverLaunching = false;
+        private bool serverLaunching;
 
         public OverlordManagerService(IContainer c)
         {
             container = c;
             model = c.Resolve<Model>();
+        }
+
+        public bool IsOverlordActive
+        {
+            get { return overlord != null; }
         }
 
         public void Start()
@@ -57,11 +64,6 @@ namespace FAP.Domain.Services
                     overlord.Start(40);
                 }
             }
-        }
-
-        public bool IsOverlordActive
-        {
-            get { return overlord != null; }
         }
 
         public void Stop()
@@ -93,7 +95,7 @@ namespace FAP.Domain.Services
                 {
                     //Launch a local overlord
                     serverLaunching = true;
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(LaunchOverlordWithDelay));
+                    ThreadPool.QueueUserWorkItem(LaunchOverlordWithDelay);
                 }
             }
         }
@@ -102,12 +104,12 @@ namespace FAP.Domain.Services
         {
             try
             {
-                Random r = new Random();
+                var r = new Random();
                 int delay = 0;
                 switch (model.OverlordPriority)
                 {
-                    //case dedicated
-                    // 0-1.5 seconds
+                        //case dedicated
+                        // 0-1.5 seconds
                     case OverlordPriority.High:
                         delay = r.Next(2000, 3000);
                         break;
@@ -118,7 +120,7 @@ namespace FAP.Domain.Services
                         delay = r.Next(5000, 8000);
                         break;
                 }
-                LogManager.GetLogger("faplog").Debug("Overlord start delay: {0}",delay);
+                LogManager.GetLogger("faplog").Debug("Overlord start delay: {0}", delay);
                 Thread.Sleep(delay);
                 //If a server is still needed - launch
                 if (IsNewServerNeeded())
@@ -136,7 +138,8 @@ namespace FAP.Domain.Services
             if (null == peerFinder)
                 peerFinder = container.Resolve<LANPeerFinderService>();
 
-            var localOverlords = peerFinder.Peers.ToList().Where(p => (DateTime.Now - p.LastAnnounce).TotalSeconds < 60).ToList();
+            List<DetectedNode> localOverlords =
+                peerFinder.Peers.ToList().Where(p => (DateTime.Now - p.LastAnnounce).TotalSeconds < 60).ToList();
 
 
             int overlords = localOverlords.Count;
@@ -144,7 +147,7 @@ namespace FAP.Domain.Services
             int totalUsers = 0;
             int totalSlots = 0;
 
-            foreach (var overlord in localOverlords)
+            foreach (DetectedNode overlord in localOverlords)
             {
                 totalUsers += overlord.CurrentUsers;
                 totalSlots += overlord.MaxUsers;
@@ -158,14 +161,14 @@ namespace FAP.Domain.Services
             else
             {
                 //Rule 2: Atleast 1 server per 200 people
-                if (totalUsers > serversWithFreeSlots * 200)
+                if (totalUsers > serversWithFreeSlots*200)
                     return true;
                 else
                 {
                     if (0 != totalUsers && 0 != totalSlots)
                     {
                         //Rule 3: Atleast 5% free slots
-                        if (((double)totalUsers / totalSlots) > 0.95)
+                        if (((double) totalUsers/totalSlots) > 0.95)
                             return true;
                     }
                 }

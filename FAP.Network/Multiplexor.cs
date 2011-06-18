@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,28 +14,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using FAP.Network.Entities;
 using HttpServer;
-using System.IO;
-using System.Net;
 using HttpServer.Headers;
-using Fap.Foundation;
-using System.Web;
 
 namespace FAP.Network
 {
     public class Multiplexor
     {
-        private readonly static string preample = "/Fap.app/";
+        private static readonly string preample = "/Fap.app/";
 
         public static string Encode(string url, string verb, string param)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             if (!url.StartsWith("http://"))
                 sb.Append("http://");
             sb.Append(url);
@@ -46,7 +45,7 @@ namespace FAP.Network
             if (!string.IsNullOrEmpty(param))
             {
                 sb.Append("?p=");
-                sb.Append(Convert.ToBase64String(Encoding.UTF8.GetBytes(param)).Replace('+', '_')); 
+                sb.Append(Convert.ToBase64String(Encoding.UTF8.GetBytes(param)).Replace('+', '_'));
             }
             string result = sb.ToString();
             sb.Length = 0;
@@ -56,12 +55,12 @@ namespace FAP.Network
 
         public static NetworkRequest Decode(IRequest r)
         {
-            NetworkRequest req = new NetworkRequest();
+            var req = new NetworkRequest();
             if (!r.Uri.AbsolutePath.StartsWith(preample))
                 throw new Exception("Malformed url");
             req.Verb = r.Uri.AbsolutePath.Substring(preample.Length);
 
-            var param = r.Parameters.Where(p => p.Name == "p").FirstOrDefault();
+            IParameter param = r.Parameters.Where(p => p.Name == "p").FirstOrDefault();
             if (null != param)
             {
                 req.Param = Encoding.UTF8.GetString(Convert.FromBase64String(param.Value.Replace('_', '+')));
@@ -71,12 +70,12 @@ namespace FAP.Network
                 req.Data = GetPostString(r);
             }
 
-            HeaderCollection headers = r.Headers as HeaderCollection;
-            if(null!=headers)
+            var headers = r.Headers as HeaderCollection;
+            if (null != headers)
             {
-                foreach (var  h in headers)
+                foreach (IHeader  h in headers)
                 {
-                    StringHeader header = h as StringHeader;
+                    var header = h as StringHeader;
                     if (null != header)
                     {
                         switch (header.Name.ToUpper())
@@ -100,7 +99,7 @@ namespace FAP.Network
 
         public static string GetPostString(IRequest e)
         {
-            using (StreamReader reader = new StreamReader(e.Body, Encoding.UTF8))
+            using (var reader = new StreamReader(e.Body, Encoding.UTF8))
             {
                 return reader.ReadToEnd();
             }

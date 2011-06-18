@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,74 +14,72 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Autofac;
-using FAP.Domain.Services;
-using FAP.Domain.Entities;
-using FAP.Domain;
-using FAP.Domain.Verbs;
-using FAP.Application.ViewModels;
-using System.Waf.Applications;
-using System.Waf.Applications.Services;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Reflection;
-using System.Windows.Controls;
-using System.Drawing;
-using Fap.Foundation;
-using Fap.Foundation.Services;
-using System.Threading;
-using System.Net;
-using FAP.Application.Controllers;
-using NLog;
 using System.IO;
-using Fap.Foundation.RegistryServices;
+using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Text;
+using System.Threading;
+using System.Waf.Applications;
+using System.Windows.Threading;
+using Autofac;
+using FAP.Application.Controllers;
 using FAP.Application.ViewModel;
+using FAP.Application.ViewModels;
+using FAP.Domain;
+using FAP.Domain.Entities;
+using FAP.Domain.Services;
+using FAP.Domain.Verbs;
+using Fap.Foundation;
+using Fap.Foundation.RegistryServices;
+using Fap.Foundation.Services;
+using NLog;
+using IContainer = Autofac.IContainer;
 
 namespace FAP.Application
 {
     public class ApplicationCore
     {
-        private IContainer container;
+        private readonly ConnectionController connectionController;
+        private readonly IContainer container;
+        private readonly InterfaceController interfaceController;
+        private readonly LogService logService;
 
-        private SharesController shareController;
-        private PopupWindowController popupController;
-        private ConnectionController connectionController;
-        private CompareController compareController;
-        private SettingsController settingsController;
-        private DownloadQueueController downloadQueueController;
-        private SearchController searchController;
-        private ConversationController conversationController;
-        private InterfaceController interfaceController;
-        private WatchdogController watchdogController;
-
+        private readonly Model model;
+        private readonly OverlordManagerService overlordManagerService;
+        private readonly RegisterProtocolService registerProtocolService;
+        private readonly SingleInstanceService singleInstanceService;
+        private readonly UpdateCheckerService updateChecker;
         private ListenerService client;
-        private ShareInfoService shareInfo;
-        private UpdateCheckerService updateChecker;
-        private LogService logService;
-       
-        private Model model;
+        private CompareController compareController;
+        private ConversationController conversationController;
+        private DownloadQueueController downloadQueueController;
         private MainWindowViewModel mainWindowModel;
+        private PopupWindowController popupController;
+        private SearchController searchController;
+        private SettingsController settingsController;
+        private SharesController shareController;
+        private ShareInfoService shareInfo;
         private TrayIconViewModel trayIcon;
-
-        private SingleInstanceService singleInstanceService;
-        private RegisterProtocolService registerProtocolService;
-        private OverlordManagerService overlordManagerService;
+        private WatchdogController watchdogController;
 
         public ApplicationCore(IContainer c)
         {
             container = c;
             model = container.Resolve<Model>();
-            logService = container.Resolve<LogService>(); 
+            logService = container.Resolve<LogService>();
 
             connectionController = c.Resolve<ConnectionController>();
             //Don't send two request went doing a post..
-            System.Net.ServicePointManager.Expect100Continue = false;
+            ServicePointManager.Expect100Continue = false;
             //Don't limit connections to a single node - 100 I think is the upper limit.
-            System.Net.ServicePointManager.DefaultConnectionLimit = 100;
+            ServicePointManager.DefaultConnectionLimit = 100;
             //System.Net.ServicePointManager.MaxServicePointIdleTime = 20000000;
             updateChecker = container.Resolve<UpdateCheckerService>();
             interfaceController = container.Resolve<InterfaceController>();
@@ -96,7 +95,7 @@ namespace FAP.Application
 
         public void Exit()
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(ShutDownAsync));
+            ThreadPool.QueueUserWorkItem(ShutDownAsync);
         }
 
         public void ShutDownAsync(object param)
@@ -111,22 +110,22 @@ namespace FAP.Application
                 client.Stop();
 
             //Kill UI
-            SafeObservableStatic.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
-            new Action(
-             delegate()
-             {
-                 if (null != mainWindowModel)
-                 {
-                     popupController.Close();
-                     mainWindowModel.Close();
-                     trayIcon.Dispose();
+            SafeObservableStatic.Dispatcher.Invoke(DispatcherPriority.Normal,
+                                                   new Action(
+                                                       delegate
+                                                           {
+                                                               if (null != mainWindowModel)
+                                                               {
+                                                                   popupController.Close();
+                                                                   mainWindowModel.Close();
+                                                                   trayIcon.Dispose();
 
-                     model.GetShutdownLock();
-                     singleInstanceService.Dispose();
-                     System.Windows.Application.Current.Shutdown(0);
-                 }
-             }
-            ));
+                                                                   model.GetShutdownLock();
+                                                                   singleInstanceService.Dispose();
+                                                                   System.Windows.Application.Current.Shutdown(0);
+                                                               }
+                                                           }
+                                                       ));
         }
 
         public void StartGUI(bool showWindow)
@@ -145,7 +144,7 @@ namespace FAP.Application
             trayIcon.ShowIcon = true;
             if (showWindow)
                 ShowMainWindow();
-            ThreadPool.QueueUserWorkItem(new WaitCallback(MainWindowUpdater));
+            ThreadPool.QueueUserWorkItem(MainWindowUpdater);
         }
 
         public bool Load(bool server)
@@ -161,7 +160,7 @@ namespace FAP.Application
             updateChecker.Run();
 
             //Immediatly send model upates
-            model.LocalNode.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(LocalNode_PropertyChanged);
+            model.LocalNode.PropertyChanged += LocalNode_PropertyChanged;
 
             if (!server)
             {
@@ -181,7 +180,7 @@ namespace FAP.Application
                 shareController = new SharesController(container, model);
                 shareController.Initalise();
                 popupController = container.Resolve<PopupWindowController>();
-                conversationController = (ConversationController)container.Resolve<IConversationController>();
+                conversationController = (ConversationController) container.Resolve<IConversationController>();
                 watchdogController = container.Resolve<WatchdogController>();
                 watchdogController.Start();
 
@@ -191,11 +190,11 @@ namespace FAP.Application
             return true;
         }
 
-        private void LocalNode_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void LocalNode_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             //Update immeadiatly on user input to give the app a nicer feel
             if (e.PropertyName == "Nickname" || e.PropertyName == "Description" || e.PropertyName == "Avatar")
-                ThreadPool.QueueUserWorkItem(new WaitCallback(updateModelAsync));
+                ThreadPool.QueueUserWorkItem(updateModelAsync);
         }
 
         private void updateModelAsync(object o)
@@ -218,7 +217,7 @@ namespace FAP.Application
 
         public void AddDownloadUrlWhenConnected(string url)
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(AddDownloadAsync), url);
+            ThreadPool.QueueUserWorkItem(AddDownloadAsync, url);
         }
 
         private void AddDownloadAsync(object url)
@@ -247,7 +246,7 @@ namespace FAP.Application
             if (null == mainWindowModel)
             {
                 mainWindowModel = container.Resolve<MainWindowViewModel>();
-              
+
                 mainWindowModel.WindowTitle = Model.AppVersion;
                 mainWindowModel.SendChatMessage = new DelegateCommand(sendChatMessage);
                 mainWindowModel.ViewShare = new DelegateCommand(viewShare);
@@ -267,11 +266,10 @@ namespace FAP.Application
                 mainWindowModel.Model = model;
                 mainWindowModel.Search = new DelegateCommand(Search);
 
-                SafeFilteredObservingCollection<Node> f = new SafeFilteredObservingCollection<Node>(new SafeObservingCollection<Node>(model.Network.Nodes));
+                var f = new SafeFilteredObservingCollection<Node>(new SafeObservingCollection<Node>(model.Network.Nodes));
                 f.Filter = s => s.NodeType != ClientType.Overlord;
                 mainWindowModel.Peers = f;
                 mainWindowModel.ChatMessages = new SafeObservingCollection<string>(model.Messages);
-                
             }
             else
             {
@@ -284,7 +282,37 @@ namespace FAP.Application
             mainWindowModel.Show();
         }
 
+        private void RemoveEmptyFolders(string path)
+        {
+            string[] folders = Directory.GetDirectories(path);
+            foreach (string folder in folders)
+                iRemoveEmptyFolders(folder);
+        }
+
+        private void iRemoveEmptyFolders(string path)
+        {
+            string[] folders = Directory.GetDirectories(path);
+            foreach (string folder in folders)
+                iRemoveEmptyFolders(folder);
+            folders = Directory.GetDirectories(path);
+
+            if (folders.Length == 0)
+            {
+                if (Directory.GetFiles(path).Length == 0)
+                {
+                    try
+                    {
+                        Directory.Delete(path);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+
         #region Main window Commands
+
         private void Search()
         {
             if (null == searchController)
@@ -297,18 +325,18 @@ namespace FAP.Application
 
         private void showUserInfo(object obj)
         {
-            Node n = obj as Node;
+            var n = obj as Node;
             if (null != n)
             {
                 var o = container.Resolve<UserInfoViewModel>();
                 o.Node = n;
-               // popupController.AddWindow(o.View, "User info (" + n.Nickname + ")");
+                // popupController.AddWindow(o.View, "User info (" + n.Nickname + ")");
             }
         }
 
         private void Chat(object o)
         {
-            Node peer = o as Node;
+            var peer = o as Node;
             if (null != peer)
                 conversationController.CreateConversation(peer);
         }
@@ -318,14 +346,14 @@ namespace FAP.Application
             if (null == compareController)
             {
                 compareController = container.Resolve<CompareController>();
-                var vm = compareController.Initalise();
+                CompareViewModel vm = compareController.Initalise();
             }
             popupController.AddWindow(compareController.ViewModel.View, "Compare");
         }
 
         private void OpenExternal(object o)
         {
-            string url = o as string;
+            var url = o as string;
             if (!string.IsNullOrEmpty(url))
                 Process.Start(url);
         }
@@ -391,12 +419,12 @@ namespace FAP.Application
 
         private void viewShare(object o)
         {
-            Node rc = o as Node;
+            var rc = o as Node;
             if (null != rc)
             {
-               BrowserController bc = container.Resolve<BrowserController>(new NamedParameter("client", rc));
+                var bc = container.Resolve<BrowserController>(new NamedParameter("client", rc));
                 bc.Initalise();
-               popupController.AddWindow(bc.ViewModel.View, "View share of " + rc.Nickname);
+                popupController.AddWindow(bc.ViewModel.View, "View share of " + rc.Nickname);
             }
         }
 
@@ -414,8 +442,11 @@ namespace FAP.Application
             }
             popupController.AddWindow(settingsController.ViewModel.View, "Settings");
         }
+
         #endregion
+
         #region Main window UI updater
+
         /// <summary>
         /// Bulk update the main UI if updated
         /// </summary>
@@ -423,167 +454,166 @@ namespace FAP.Application
         {
             while (true)
             {
-                var window = mainWindowModel;
+                MainWindowViewModel window = mainWindowModel;
                 if (null != window)
                 {
-                    window.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background,
-                       new Action(
-                        delegate()
-                        {
-                            if (null != mainWindowModel)
-                            {
-                                //Update status line
-                                {
-                                    StringBuilder sbs = new StringBuilder();
-                                    sbs.Append("Status: ");
-                                    sbs.Append(model.Network.State);
-                                    sbs.Append(" as ");
-                                    sbs.Append(model.Nickname);
+                    window.Dispatcher.Invoke(DispatcherPriority.Background,
+                                             new Action(
+                                                 delegate
+                                                     {
+                                                         if (null != mainWindowModel)
+                                                         {
+                                                             //Update status line
+                                                             {
+                                                                 var sbs = new StringBuilder();
+                                                                 sbs.Append("Status: ");
+                                                                 sbs.Append(model.Network.State);
+                                                                 sbs.Append(" as ");
+                                                                 sbs.Append(model.Nickname);
 
-                                    if (overlordManagerService.IsOverlordActive)
-                                        sbs.Append(" (Overlord host)");
+                                                                 if (overlordManagerService.IsOverlordActive)
+                                                                     sbs.Append(" (Overlord host)");
 
-                                    if (model.Network.State == ConnectionState.Connected)
-                                    {
-                                        if (model.Network.Overlord.Host == model.LocalNode.Host)
-                                        {
-                                            sbs.Append(" on yourself.");
-                                        }
-                                        else
-                                        {
-                                            sbs.Append(" on ");
-                                            var search = model.Network.Nodes.ToList().Where(n => n.Host == model.Network.Overlord.Host && n.NodeType == ClientType.Client).FirstOrDefault();
-                                            if (null == search)
-                                                sbs.Append(model.Network.Overlord.Host);
-                                            else
-                                                sbs.Append(search.Nickname);
-                                        }
-                                    }
+                                                                 if (model.Network.State == ConnectionState.Connected)
+                                                                 {
+                                                                     if (model.Network.Overlord.Host ==
+                                                                         model.LocalNode.Host)
+                                                                     {
+                                                                         sbs.Append(" on yourself.");
+                                                                     }
+                                                                     else
+                                                                     {
+                                                                         sbs.Append(" on ");
+                                                                         Node search =
+                                                                             model.Network.Nodes.ToList().Where(
+                                                                                 n =>
+                                                                                 n.Host == model.Network.Overlord.Host &&
+                                                                                 n.NodeType == ClientType.Client).
+                                                                                 FirstOrDefault();
+                                                                         if (null == search)
+                                                                             sbs.Append(model.Network.Overlord.Host);
+                                                                         else
+                                                                             sbs.Append(search.Nickname);
+                                                                     }
+                                                                 }
 
-                                    window.NodeStatus = sbs.ToString();
-                                    sbs.Length = 0;
-                                    sbs = null;
-                                }
+                                                                 window.NodeStatus = sbs.ToString();
+                                                                 sbs.Length = 0;
+                                                                 sbs = null;
+                                                             }
 
-                                //Update stats line
-                                {
-                                    StringBuilder sb = new StringBuilder();
-                                    sb.Append("Stats: ");
+                                                             //Update stats line
+                                                             {
+                                                                 var sb = new StringBuilder();
+                                                                 sb.Append("Stats: ");
 
-                                    int count = model.Network.Nodes.Where(n => n.NodeType != ClientType.Overlord).Count();
-                                    sb.Append(count);
-                                    if (count == 1)
-                                        sb.Append(" client sharing ");
-                                    else
-                                        sb.Append(" clients sharing ");
-                                    sb.Append(Utility.FormatBytes(model.Network.Nodes.Select(p => p.ShareSize).Sum()));
-                                    sb.Append(" in ");
-                                    sb.Append(Utility.ConverNumberToText(model.Network.Nodes.Select(p => p.FileCount).Sum()));
-                                    sb.Append(" files.");
+                                                                 int count =
+                                                                     model.Network.Nodes.Where(
+                                                                         n => n.NodeType != ClientType.Overlord).Count();
+                                                                 sb.Append(count);
+                                                                 if (count == 1)
+                                                                     sb.Append(" client sharing ");
+                                                                 else
+                                                                     sb.Append(" clients sharing ");
+                                                                 sb.Append(
+                                                                     Utility.FormatBytes(
+                                                                         model.Network.Nodes.Select(p => p.ShareSize).
+                                                                             Sum()));
+                                                                 sb.Append(" in ");
+                                                                 sb.Append(
+                                                                     Utility.ConverNumberToText(
+                                                                         model.Network.Nodes.Select(p => p.FileCount).
+                                                                             Sum()));
+                                                                 sb.Append(" files.");
 
-                                    window.CurrentNetworkStatus = sb.ToString();
+                                                                 window.CurrentNetworkStatus = sb.ToString();
 
-                                    sb.Length = 0;
-                                    sb = null;
-                                }
+                                                                 sb.Length = 0;
+                                                                 sb = null;
+                                                             }
 
-                                // Update transfers
-                                foreach (var xfer in mainWindowModel.Sessions)
-                                {
-                                    if (xfer.Worker.Length == 0)
-                                        xfer.Percent = 0;
-                                    else
-                                        xfer.Percent = (int)(((double)xfer.Worker.Position / xfer.Worker.Length) * 100);
-                                    xfer.Size = xfer.Worker.Length;
-                                    if (!xfer.Worker.IsComplete)
-                                        xfer.Speed = xfer.Worker.Speed;
-                                    xfer.Status = xfer.Worker.Status;
-                                }
+                                                             // Update transfers
+                                                             foreach (TransferSession xfer in mainWindowModel.Sessions)
+                                                             {
+                                                                 if (xfer.Worker.Length == 0)
+                                                                     xfer.Percent = 0;
+                                                                 else
+                                                                     xfer.Percent =
+                                                                         (int)
+                                                                         (((double) xfer.Worker.Position/
+                                                                           xfer.Worker.Length)*100);
+                                                                 xfer.Size = xfer.Worker.Length;
+                                                                 if (!xfer.Worker.IsComplete)
+                                                                     xfer.Speed = xfer.Worker.Speed;
+                                                                 xfer.Status = xfer.Worker.Status;
+                                                             }
 
-                                //Local stats
-                                {
-                                    if (model.LocalNode.DownloadSpeed == 0 && model.LocalNode.UploadSpeed == 0)
-                                    {
-                                        string t = "Local: No transfers";
-                                        if (mainWindowModel.LocalStats != t)
-                                            mainWindowModel.LocalStats = t;
-                                    }
-                                    else
-                                    {
-                                        StringBuilder ls = new StringBuilder();
-                                        ls.Append("Local RX/TX: ");
-                                        ls.Append(Utility.ConvertNumberToTextSpeed(model.LocalNode.DownloadSpeed));
-                                        ls.Append(" / ");
-                                        ls.Append(Utility.ConvertNumberToTextSpeed(model.LocalNode.UploadSpeed));
+                                                             //Local stats
+                                                             {
+                                                                 if (model.LocalNode.DownloadSpeed == 0 &&
+                                                                     model.LocalNode.UploadSpeed == 0)
+                                                                 {
+                                                                     string t = "Local: No transfers";
+                                                                     if (mainWindowModel.LocalStats != t)
+                                                                         mainWindowModel.LocalStats = t;
+                                                                 }
+                                                                 else
+                                                                 {
+                                                                     var ls = new StringBuilder();
+                                                                     ls.Append("Local RX/TX: ");
+                                                                     ls.Append(
+                                                                         Utility.ConvertNumberToTextSpeed(
+                                                                             model.LocalNode.DownloadSpeed));
+                                                                     ls.Append(" / ");
+                                                                     ls.Append(
+                                                                         Utility.ConvertNumberToTextSpeed(
+                                                                             model.LocalNode.UploadSpeed));
 
-                                        window.LocalStats = ls.ToString();
+                                                                     window.LocalStats = ls.ToString();
 
-                                        ls.Length = 0;
-                                        ls = null;
-                                    }
-                                }
+                                                                     ls.Length = 0;
+                                                                     ls = null;
+                                                                 }
+                                                             }
 
-                                //Global stats
-                                {
+                                                             //Global stats
+                                                             {
+                                                                 long upload =
+                                                                     model.Network.Nodes.ToList().Select(
+                                                                         s => s.DownloadSpeed).Sum();
+                                                                 long download =
+                                                                     model.Network.Nodes.ToList().Select(
+                                                                         s => s.UploadSpeed).Sum();
 
-                                    long upload = model.Network.Nodes.ToList().Select(s => s.DownloadSpeed).Sum();
-                                    long download = model.Network.Nodes.ToList().Select(s => s.UploadSpeed).Sum();
 
+                                                                 if (upload == 0 && download == 0)
+                                                                 {
+                                                                     string t = "Network: No transfers";
+                                                                     if (mainWindowModel.GlobalStats != t)
+                                                                         mainWindowModel.GlobalStats = t;
+                                                                 }
+                                                                 else
+                                                                 {
+                                                                     var gs = new StringBuilder();
+                                                                     gs.Append("Global RX/TX: ");
+                                                                     gs.Append(Utility.ConvertNumberToTextSpeed(download));
+                                                                     gs.Append(" / ");
+                                                                     gs.Append(Utility.ConvertNumberToTextSpeed(upload));
 
-                                    if (upload == 0 && download == 0)
-                                    {
-                                        string t = "Network: No transfers";
-                                        if (mainWindowModel.GlobalStats != t)
-                                            mainWindowModel.GlobalStats = t;
-                                    }
-                                    else
-                                    {
-                                        StringBuilder gs = new StringBuilder();
-                                        gs.Append("Global RX/TX: ");
-                                        gs.Append(Utility.ConvertNumberToTextSpeed(download));
-                                        gs.Append(" / ");
-                                        gs.Append(Utility.ConvertNumberToTextSpeed(upload));
-
-                                        window.GlobalStats = gs.ToString();
-                                        gs.Length = 0;
-                                        gs = null;
-                                    }
-                                }
-                            }
-                        }
-                       ));
+                                                                     window.GlobalStats = gs.ToString();
+                                                                     gs.Length = 0;
+                                                                     gs = null;
+                                                                 }
+                                                             }
+                                                         }
+                                                     }
+                                                 ));
                 }
                 window = null;
                 Thread.Sleep(333);
             }
         }
+
         #endregion
-
-        private void RemoveEmptyFolders(string path)
-        {
-            string[] folders = Directory.GetDirectories(path);
-            foreach (var folder in folders)
-                iRemoveEmptyFolders(folder);
-
-        }
-        private void iRemoveEmptyFolders(string path)
-        {
-            string[] folders = Directory.GetDirectories(path);
-            foreach (var folder in folders)
-                iRemoveEmptyFolders(folder);
-            folders = Directory.GetDirectories(path);
-
-            if (folders.Length == 0)
-            {
-                if (Directory.GetFiles(path).Length == 0)
-                {
-                    try
-                    {
-                        Directory.Delete(path);
-                    }
-                    catch { }
-                }
-            }
-        }
     }
 }

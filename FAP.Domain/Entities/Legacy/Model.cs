@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,16 +14,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel;
-using System.Xml.Serialization;
-using System.IO;
-using Fap.Foundation;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Xml.Serialization;
+using Fap.Foundation;
 
 namespace FAP.Domain.Entities.Legacy
 {
@@ -32,37 +32,35 @@ namespace FAP.Domain.Entities.Legacy
     [Serializable]
     public class Model : INotifyPropertyChanged
     {
-        public static readonly string saveLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
+        #region Delegates
+
+        public delegate bool NewConversation(string id, string message);
+
+        #endregion
+
+        public static readonly string saveLocation =
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\FAP\Config.xml";
+
+        private readonly Node node;
+        private readonly Overlord overlord;
+        private bool alwaysNoCacheBrowsing;
+        private SafeObservable<Conversation> converstations;
+        private bool disableCompare;
+        private string downloadFolder;
+
         private DownloadQueue downloadQueue;
+        private string incompleteFolder;
+        private string ipAddress;
         private int maxDownloads;
         private int maxDownloadsPerUser;
         private int maxUploads;
         private int maxUploadsPerUser;
-        private string downloadFolder;
-        private string incompleteFolder;
-        private bool disableCompare;
-        private string ipAddress;
-        private bool alwaysNoCacheBrowsing;
-
-        private SafeObservable<TransferSession> transferSessions;
-        private Node node;
+        private SafeObservable<string> messages;
+        private SafeObservable<Network> networks;
+        private PeerSortType peerSortType;
         private ObservableCollection<Node> peers;
         private SafeObservable<Share> shares;
-        private SafeObservable<Network> networks;
-        private SafeObservable<string> messages;
-        private SafeObservable<Conversation> converstations;
-        private Overlord overlord;
-        private PeerSortType peerSortType;
-
-        public delegate bool NewConversation(string id, string message);
-        public event NewConversation OnNewConverstation;
-
-        public bool ReceiveConverstation(string id, string message)
-        {
-            if (null != OnNewConverstation)
-                return OnNewConverstation(id, message);
-            return false;
-        }
+        private SafeObservable<TransferSession> transferSessions;
 
         public Model()
         {
@@ -75,29 +73,44 @@ namespace FAP.Domain.Entities.Legacy
             overlord = new Overlord();
         }
 
-      
 
         public PeerSortType PeerSortType
         {
-            set { peerSortType = value; NotifyChange("PeerSortType"); }
+            set
+            {
+                peerSortType = value;
+                NotifyChange("PeerSortType");
+            }
             get { return peerSortType; }
         }
 
         public bool AlwaysNoCacheBrowsing
         {
-            set { alwaysNoCacheBrowsing = value; NotifyChange("AlwaysNoCacheBrowsing"); }
+            set
+            {
+                alwaysNoCacheBrowsing = value;
+                NotifyChange("AlwaysNoCacheBrowsing");
+            }
             get { return alwaysNoCacheBrowsing; }
         }
 
         public SafeObservable<Share> Shares
         {
-            set { shares = value; NotifyChange("Shares"); }
+            set
+            {
+                shares = value;
+                NotifyChange("Shares");
+            }
             get { return shares; }
         }
 
         public string IPAddress
         {
-            set { ipAddress = value; NotifyChange("IPAddress"); }
+            set
+            {
+                ipAddress = value;
+                NotifyChange("IPAddress");
+            }
             get { return ipAddress; }
         }
 
@@ -108,10 +121,7 @@ namespace FAP.Domain.Entities.Legacy
                 downloadFolder = value;
                 NotifyChange("DownloadFolder");
             }
-            get
-            {
-                return downloadFolder;
-            }
+            get { return downloadFolder; }
         }
 
         public string IncompleteFolder
@@ -121,46 +131,25 @@ namespace FAP.Domain.Entities.Legacy
                 incompleteFolder = value;
                 NotifyChange("IncompleteFolder");
             }
-            get
-            {
-                return incompleteFolder;
-            }
+            get { return incompleteFolder; }
         }
 
         public string Nickname
         {
-            set
-            {
-                node.Nickname = value;
-            }
-            get
-            {
-                return node.Nickname;
-            }
+            set { node.Nickname = value; }
+            get { return node.Nickname; }
         }
 
         public string Description
         {
-            set
-            {
-                node.Description = value;
-            }
-            get
-            {
-                return node.Description;
-            }
+            set { node.Description = value; }
+            get { return node.Description; }
         }
 
         public bool DisableComparision
         {
-            set
-            {
-                disableCompare = value;
-            }
-            get
-            {
-                return disableCompare;
-            }
+            set { disableCompare = value; }
+            get { return disableCompare; }
         }
 
         public int MaxDownloads
@@ -170,10 +159,7 @@ namespace FAP.Domain.Entities.Legacy
                 maxDownloads = value;
                 NotifyChange("MaxDownloads");
             }
-            get
-            {
-                return maxDownloads;
-            }
+            get { return maxDownloads; }
         }
 
 
@@ -184,10 +170,7 @@ namespace FAP.Domain.Entities.Legacy
                 overlord.MaxPeers = value;
                 NotifyChange("MaxOverlordPeers");
             }
-            get
-            {
-                return overlord.MaxPeers;
-            }
+            get { return overlord.MaxPeers; }
         }
 
         public int MaxDownloadsPerUser
@@ -197,10 +180,7 @@ namespace FAP.Domain.Entities.Legacy
                 maxDownloadsPerUser = value;
                 NotifyChange("MaxDownloadsPerUser");
             }
-            get
-            {
-                return maxDownloadsPerUser;
-            }
+            get { return maxDownloadsPerUser; }
         }
 
         public int MaxUploads
@@ -210,10 +190,7 @@ namespace FAP.Domain.Entities.Legacy
                 maxUploads = value;
                 NotifyChange("MaxUploads");
             }
-            get
-            {
-                return maxUploads;
-            }
+            get { return maxUploads; }
         }
 
         /// <summary>
@@ -226,10 +203,7 @@ namespace FAP.Domain.Entities.Legacy
                 node.ID = value;
                 NotifyChange("LocalNodeID");
             }
-            get
-            {
-                return node.ID;
-            }
+            get { return node.ID; }
         }
 
         public int MaxUploadsPerUser
@@ -239,10 +213,7 @@ namespace FAP.Domain.Entities.Legacy
                 maxUploadsPerUser = value;
                 NotifyChange("maxUploadsPerUser");
             }
-            get
-            {
-                return maxUploadsPerUser;
-            }
+            get { return maxUploadsPerUser; }
         }
 
         public string Avatar
@@ -252,18 +223,12 @@ namespace FAP.Domain.Entities.Legacy
                 node.Avatar = value;
                 NotifyChange("Avatar");
             }
-            get
-            {
-                return node.Avatar;
-            }
+            get { return node.Avatar; }
         }
 
         public long TotalShareSize
         {
-            get
-            {
-                return node.ShareSize;
-            }
+            get { return node.ShareSize; }
             set
             {
                 node.ShareSize = value;
@@ -277,12 +242,27 @@ namespace FAP.Domain.Entities.Legacy
             get { return node; }
         }
 
+        #region INotifyPropertyChanged Members
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        #endregion
+
+        public event NewConversation OnNewConverstation;
+
+        public bool ReceiveConverstation(string id, string message)
+        {
+            if (null != OnNewConverstation)
+                return OnNewConverstation(id, message);
+            return false;
+        }
+
         public void Save()
         {
             if (!Directory.Exists(Path.GetDirectoryName(saveLocation)))
                 Directory.CreateDirectory(Path.GetDirectoryName(saveLocation));
 
-            XmlSerializer serializer = new XmlSerializer(typeof(Model));
+            var serializer = new XmlSerializer(typeof (Model));
             using (TextWriter textWriter = new StreamWriter(saveLocation))
             {
                 serializer.Serialize(textWriter, this);
@@ -295,10 +275,10 @@ namespace FAP.Domain.Entities.Legacy
         {
             try
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof(Model));
+                var deserializer = new XmlSerializer(typeof (Model));
                 using (TextReader textReader = new StreamReader(saveLocation))
                 {
-                    Model m = (Model)deserializer.Deserialize(textReader);
+                    var m = (Model) deserializer.Deserialize(textReader);
                     textReader.Close();
                     Shares = m.Shares;
                     Avatar = m.Avatar;
@@ -327,7 +307,5 @@ namespace FAP.Domain.Entities.Legacy
             if (null != PropertyChanged)
                 PropertyChanged(this, new PropertyChangedEventArgs(path));
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

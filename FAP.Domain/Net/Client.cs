@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,25 +14,24 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using System.Net;
 using System.Text;
 using FAP.Domain.Entities;
-using System.Net;
 using FAP.Domain.Verbs;
 using FAP.Network;
 using FAP.Network.Entities;
-using System.IO;
 
 namespace FAP.Domain.Net
 {
     public class Client
     {
-        private Node callingNode;
-
-        private readonly int DEFAULT_TIMEOUT = 30000;//30 seconds
+        private readonly int DEFAULT_TIMEOUT = 30000; //30 seconds
+        private readonly Node callingNode;
 
         public Client(Node _callingNode)
         {
@@ -61,7 +61,7 @@ namespace FAP.Domain.Net
         public bool Execute(NetworkRequest req, Node destination, int timeout)
         {
             destination.LastUpdate = Environment.TickCount;
-            NetworkRequest output = new NetworkRequest();
+            var output = new NetworkRequest();
             if (!string.IsNullOrEmpty(destination.Secret) && string.IsNullOrEmpty(req.AuthKey))
                 req.AuthKey = destination.Secret;
             return DoRequest(destination.Location, req, out output, timeout);
@@ -69,7 +69,7 @@ namespace FAP.Domain.Net
 
         public bool Execute(IVerb verb, string destination, string authKey, int timeout)
         {
-            return Execute(verb, new Node() { Location = destination, Secret = authKey }, timeout);
+            return Execute(verb, new Node {Location = destination, Secret = authKey}, timeout);
         }
 
         public bool Execute(IVerb verb, Node destination, int timeout)
@@ -77,7 +77,7 @@ namespace FAP.Domain.Net
             try
             {
                 NetworkRequest request = verb.CreateRequest();
-                NetworkRequest output = new NetworkRequest();
+                var output = new NetworkRequest();
                 destination.LastUpdate = Environment.TickCount;
 
                 if (!string.IsNullOrEmpty(destination.Secret) && string.IsNullOrEmpty(request.AuthKey))
@@ -105,7 +105,7 @@ namespace FAP.Domain.Net
 
             try
             {
-                HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(Multiplexor.Encode(url, input.Verb, input.Param));
+                var req = (HttpWebRequest) WebRequest.Create(Multiplexor.Encode(url, input.Verb, input.Param));
                 req.Timeout = timeout;
 
                 //Add headers
@@ -128,15 +128,15 @@ namespace FAP.Domain.Net
                 {
                     req.ContentType = "application/json";
                     req.Method = "POST";
-                    byte[] bytes = System.Text.Encoding.UTF8.GetBytes(input.Data);
+                    byte[] bytes = Encoding.UTF8.GetBytes(input.Data);
                     req.ContentLength = bytes.Length;
-                    System.IO.Stream os = req.GetRequestStream();
+                    Stream os = req.GetRequestStream();
                     os.Write(bytes, 0, bytes.Length); //Push it out there
                     os.Flush();
                 }
 
                 //Get the response
-                System.Net.HttpWebResponse resp = (System.Net.HttpWebResponse)req.GetResponse();
+                var resp = (HttpWebResponse) req.GetResponse();
                 req.Timeout = 100000;
                 if (resp == null)
                     return false;
@@ -145,7 +145,7 @@ namespace FAP.Domain.Net
                 {
                     using (Stream s = resp.GetResponseStream())
                     {
-                        using (System.IO.StreamReader sr = new System.IO.StreamReader(s, Encoding.UTF8))
+                        using (var sr = new StreamReader(s, Encoding.UTF8))
                         {
                             result.Data = sr.ReadToEnd().Trim();
                         }
@@ -153,7 +153,7 @@ namespace FAP.Domain.Net
                 }
 
                 //Get the headers
-                foreach (var header in resp.Headers.AllKeys)
+                foreach (string header in resp.Headers.AllKeys)
                 {
                     switch (header)
                     {

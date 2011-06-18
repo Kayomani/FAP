@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,35 +14,37 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using HttpServer;
-using System.Net;
-using HttpServer.Messages;
-using FAP.Domain.Entities;
-using FAP.Domain.Verbs;
-using FAP.Network.Entities;
-using FAP.Network;
-using NLog;
-using Fap.Foundation;
-using FAP.Domain.Services;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using FAP.Domain.Entities;
+using FAP.Domain.Services;
+using FAP.Domain.Verbs;
+using Fap.Foundation;
+using FAP.Network;
+using FAP.Network.Entities;
+using HttpServer;
+using HttpServer.Messages;
+using NLog;
 
 namespace FAP.Domain.Handlers
 {
     public class FAPClientHandler : IFAPHandler
     {
-        private Model model;
-        private ShareInfoService shareInfoService;
-        private IConversationController chatController;
-        private BufferService bufferService;
-        private ServerUploadLimiterService serverUploadLimiterService;
-        private Logger logger;
+        private readonly BufferService bufferService;
+        private readonly IConversationController chatController;
+        private readonly Logger logger;
+        private readonly Model model;
+        private readonly ServerUploadLimiterService serverUploadLimiterService;
+        private readonly ShareInfoService shareInfoService;
 
-        public FAPClientHandler(Model m, ShareInfoService s, IConversationController c,BufferService b,ServerUploadLimiterService sl)
+        public FAPClientHandler(Model m, ShareInfoService s, IConversationController c, BufferService b,
+                                ServerUploadLimiterService sl)
         {
             model = m;
             shareInfoService = s;
@@ -51,10 +54,13 @@ namespace FAP.Domain.Handlers
             logger = LogManager.GetLogger("faplog");
         }
 
+        #region IFAPHandler Members
+
         public bool Handle(RequestEventArgs e)
         {
             NetworkRequest req = Multiplexor.Decode(e.Request);
-            logger.Trace("Client rx: {0} p: {1} source: {2} overlord: {3}", req.Verb, req.Param,req.SourceID,req.OverlordID);
+            logger.Trace("Client rx: {0} p: {1} source: {2} overlord: {3}", req.Verb, req.Param, req.SourceID,
+                         req.OverlordID);
             switch (req.Verb)
             {
                 case "BROWSE":
@@ -76,22 +82,23 @@ namespace FAP.Domain.Handlers
                 case "SEARCH":
                     return HandleSearch(e, req);
                 case "CONVERSTATION":
-                    return HandleConversation(e,req);
+                    return HandleConversation(e, req);
                 case "ADDDOWNLOAD":
                     return HandleAddDownload(e, req);
             }
             return false;
         }
 
+        #endregion
+
         public void Start()
         {
-
         }
 
         private bool HandleGet(RequestEventArgs e, NetworkRequest req)
         {
             //No url?
-            if(string.IsNullOrEmpty(req.Param))
+            if (string.IsNullOrEmpty(req.Param))
                 return false;
 
             string[] possiblePaths;
@@ -99,18 +106,18 @@ namespace FAP.Domain.Handlers
 
             if (shareInfoService.ToLocalPath(req.Param, out possiblePaths))
             {
-                foreach (var possiblePath in possiblePaths)
+                foreach (string possiblePath in possiblePaths)
                 {
-                    if (System.IO.File.Exists(possiblePath))
+                    if (File.Exists(possiblePath))
                     {
-                        FAPFileUploader ffu = new FAPFileUploader(bufferService, serverUploadLimiterService);
-                        TransferSession session = new TransferSession(ffu);
+                        var ffu = new FAPFileUploader(bufferService, serverUploadLimiterService);
+                        var session = new TransferSession(ffu);
                         model.TransferSessions.Add(session);
                         try
                         {
                             //Try to find the username of the request
                             string userName = e.Context.RemoteEndPoint.Address.ToString();
-                            var search = model.Network.Nodes.ToList().Where(n => n.ID == req.SourceID).FirstOrDefault();
+                            Node search = model.Network.Nodes.ToList().Where(n => n.ID == req.SourceID).FirstOrDefault();
                             if (null != search && !string.IsNullOrEmpty(search.Nickname))
                                 userName = search.Nickname;
 
@@ -122,7 +129,7 @@ namespace FAP.Domain.Handlers
 
                             //Add log of upload
                             double seconds = (DateTime.Now - ffu.TransferStart).TotalSeconds;
-                            TransferLog txlog = new TransferLog();
+                            var txlog = new TransferLog();
                             txlog.Nickname = userName;
                             txlog.Completed = DateTime.Now;
                             txlog.Filename = Path.GetFileName(possiblePath);
@@ -169,8 +176,8 @@ namespace FAP.Domain.Handlers
 
         private bool HandleBrowse(RequestEventArgs e, NetworkRequest req)
         {
-            BrowseVerb verb = new BrowseVerb(model, shareInfoService);
-            var result = verb.ProcessRequest(req);
+            var verb = new BrowseVerb(model, shareInfoService);
+            NetworkRequest result = verb.ProcessRequest(req);
             byte[] data = Encoding.UTF8.GetBytes(result.Data);
             var generator = new ResponseWriter();
             e.Response.ContentLength.Value = data.Length;
@@ -185,7 +192,7 @@ namespace FAP.Domain.Handlers
         {
             try
             {
-                ConversationVerb verb = new ConversationVerb();
+                var verb = new ConversationVerb();
                 verb.ProcessRequest(req);
                 if (chatController.HandleMessage(verb.SourceID, verb.Nickname, verb.Message))
                 {
@@ -193,15 +200,17 @@ namespace FAP.Domain.Handlers
                     return true;
                 }
             }
-            catch { }
+            catch
+            {
+            }
             return false;
         }
-        
+
         private bool HandleSearch(RequestEventArgs e, NetworkRequest req)
         {
             //We dont do this on a server..
-            SearchVerb verb = new SearchVerb(shareInfoService);
-            var result = verb.ProcessRequest(req);
+            var verb = new SearchVerb(shareInfoService);
+            NetworkRequest result = verb.ProcessRequest(req);
             byte[] data = Encoding.UTF8.GetBytes(result.Data);
             var generator = new ResponseWriter();
             e.Response.ContentLength.Value = data.Length;
@@ -214,9 +223,9 @@ namespace FAP.Domain.Handlers
 
         private bool HandleCompare(RequestEventArgs e, NetworkRequest req)
         {
-            CompareVerb verb = new CompareVerb(model);
+            var verb = new CompareVerb(model);
 
-            var result = verb.ProcessRequest(req);
+            NetworkRequest result = verb.ProcessRequest(req);
             byte[] data = Encoding.UTF8.GetBytes(result.Data);
             var generator = new ResponseWriter();
             e.Response.ContentLength.Value = data.Length;
@@ -230,9 +239,9 @@ namespace FAP.Domain.Handlers
 
         private bool HandleChat(RequestEventArgs e, NetworkRequest req)
         {
-            ChatVerb verb = new ChatVerb();
+            var verb = new ChatVerb();
             verb.ReceiveResponse(req);
-            model.Messages.AddRotate(verb.Nickname + ":" + verb.Message,50);
+            model.Messages.AddRotate(verb.Nickname + ":" + verb.Message, 50);
             SendOk(e);
             SafeObservingCollectionManager.UpdateNowAsync();
             return true;
@@ -243,11 +252,11 @@ namespace FAP.Domain.Handlers
             if (req.AuthKey == model.Network.Overlord.Secret)
             {
                 model.Network.Overlord.LastUpdate = Environment.TickCount;
-                UpdateVerb verb = new UpdateVerb();
+                var verb = new UpdateVerb();
                 verb.ProcessRequest(req);
-                foreach (var node in verb.Nodes)
+                foreach (Node node in verb.Nodes)
                 {
-                    var search = model.Network.Nodes.Where(i => i.ID == node.ID).FirstOrDefault();
+                    Node search = model.Network.Nodes.Where(i => i.ID == node.ID).FirstOrDefault();
                     if (search == null)
                     {
                         //Dont allow partial updates to create clients.  Only full updates should contain the online flag.
@@ -275,9 +284,9 @@ namespace FAP.Domain.Handlers
         private bool HandleInfo(RequestEventArgs e)
         {
             e.Response.Status = HttpStatusCode.OK;
-            InfoVerb verb = new InfoVerb();
+            var verb = new InfoVerb();
             verb.Node = model.LocalNode;
-            var result = verb.CreateRequest();
+            NetworkRequest result = verb.CreateRequest();
             byte[] data = Encoding.UTF8.GetBytes(result.Data);
             var generator = new ResponseWriter();
             e.Response.ContentLength.Value = data.Length;
@@ -308,6 +317,5 @@ namespace FAP.Domain.Handlers
             var generator = new ResponseWriter();
             generator.SendHeaders(e.Context, e.Response);
         }
-
     }
 }

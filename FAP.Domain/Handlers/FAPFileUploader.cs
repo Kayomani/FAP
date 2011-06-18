@@ -1,34 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using FAP.Domain.Entities;
-using FAP.Domain.Services;
 using FAP.Domain.Net;
-using HttpServer;
-using System.IO;
-using System.Net;
-using HttpServer.Messages;
-using NLog;
+using FAP.Domain.Services;
 using Fap.Foundation;
+using HttpServer;
+using HttpServer.Headers;
+using NLog;
 
 namespace FAP.Domain.Handlers
 {
-    public class FAPFileUploader: ITransferWorker
+    public class FAPFileUploader : ITransferWorker
     {
-        private BufferService bufferService;
-        private ServerUploadLimiterService uploadLimiter;
-        private NetworkSpeedMeasurement nsm;
-
-        private long length = 0;
-        private bool isComplete = false;
-        private string status = "FAP Upload - Connecting..";
         private static readonly byte[] CRLF = Encoding.ASCII.GetBytes("\r\n");
-        private static readonly int CHUNK_SIZE_LIMIT = 2000000000;//1.86gb
-        private long position = 0;
+        private static readonly int CHUNK_SIZE_LIMIT = 2000000000; //1.86gb
+        private readonly BufferService bufferService;
+        private readonly NetworkSpeedMeasurement nsm;
+        private readonly ServerUploadLimiterService uploadLimiter;
 
-        public DateTime TransferStart { set; get; }
-        public long ResumePoint { set; get; }
+        private bool isComplete;
+        private long length;
+        private long position;
+        private string status = "FAP Upload - Connecting..";
 
         public FAPFileUploader(BufferService b, ServerUploadLimiterService u)
         {
@@ -37,11 +32,44 @@ namespace FAP.Domain.Handlers
             nsm = new NetworkSpeedMeasurement(NetSpeedType.Upload);
         }
 
+        public DateTime TransferStart { set; get; }
+        public long ResumePoint { set; get; }
+
+        #region ITransferWorker Members
+
+        public long Length
+        {
+            get { return length; }
+        }
+
+        public bool IsComplete
+        {
+            get { return isComplete; }
+        }
+
+        public long Speed
+        {
+            get { return nsm.GetSpeed(); }
+        }
+
+        public string Status
+        {
+            get { return status; }
+        }
+
+        public long Position
+        {
+            get { return position; }
+        }
+
+        #endregion
+
         public void DoUpload(IHttpContext context, Stream stream, string user, string url)
         {
             ResumePoint = 0;
             length = stream.Length;
-            var rangeHeader = context.Request.Headers.Where(n => n.Name.ToLowerInvariant() == "range").FirstOrDefault();
+            IHeader rangeHeader =
+                context.Request.Headers.Where(n => n.Name.ToLowerInvariant() == "range").FirstOrDefault();
             ServerUploadToken token = null;
             try
             {
@@ -61,7 +89,6 @@ namespace FAP.Domain.Handlers
 
                         if (header.Contains('-'))
                         {
-
                             starttxt = header.Substring(0, header.IndexOf("-"));
                             endtxt = header.Substring(header.IndexOf("-") + 1, header.Length - (header.IndexOf("-") + 1));
                         }
@@ -91,7 +118,7 @@ namespace FAP.Domain.Handlers
                 //Send HTTP Headers
                 SendChunkedHeaders(context);
 
-                if (stream.Length-stream.Position > Model.FREE_FILE_LIMIT)
+                if (stream.Length - stream.Position > Model.FREE_FILE_LIMIT)
                 {
                     //File isnt free leech, acquire a token before we send the file
                     token = uploadLimiter.RequestUploadToken(context.RemoteEndPoint.Address.ToString());
@@ -100,7 +127,8 @@ namespace FAP.Domain.Handlers
                         int QueuePosition = token.GlobalQueuePosition;
                         if (QueuePosition > 0)
                         {
-                            status = string.Format("{0} - {1} - {2} - Queue Position {3}", user, Path.GetFileName(url), Utility.FormatBytes(stream.Length), QueuePosition);
+                            status = string.Format("{0} - {1} - {2} - Queue Position {3}", user, Path.GetFileName(url),
+                                                   Utility.FormatBytes(stream.Length), QueuePosition);
                             SendChunkedData(context, Encoding.ASCII.GetBytes(QueuePosition.ToString() + '|'));
                             token.WaitTimeout();
                         }
@@ -110,14 +138,15 @@ namespace FAP.Domain.Handlers
                 TransferStart = DateTime.Now;
                 //Zero queue flag, data follows
                 SendChunkedData(context, Encoding.ASCII.GetBytes("0|"));
-                status = string.Format("{0} - {1} - {2}", user, Path.GetFileName(url), Utility.FormatBytes(stream.Length));
-                
+                status = string.Format("{0} - {1} - {2}", user, Path.GetFileName(url),
+                                       Utility.FormatBytes(stream.Length));
+
                 //Send data
-                var buffer = bufferService.GetBuffer();
+                MemoryBuffer buffer = bufferService.GetBuffer();
                 try
                 {
-                   //Unfortunatly the microsoft http client implementation uses an int32 for chunk sizes which limits them to 2047mb. 
-                   //so sigh, send it smaller chunks.  Use a limit to 1.86gb for as it is more clean..
+                    //Unfortunatly the microsoft http client implementation uses an int32 for chunk sizes which limits them to 2047mb. 
+                    //so sigh, send it smaller chunks.  Use a limit to 1.86gb for as it is more clean..
 
                     for (long i = 0; i < stream.Length; i += CHUNK_SIZE_LIMIT)
                     {
@@ -125,7 +154,7 @@ namespace FAP.Domain.Handlers
                         if (stream.Length - position > CHUNK_SIZE_LIMIT)
                             chunkSize = CHUNK_SIZE_LIMIT;
                         else
-                            chunkSize = (int)(stream.Length - position);
+                            chunkSize = (int) (stream.Length - position);
 
                         //Send chunk length
                         byte[] hexbytes = Encoding.ASCII.GetBytes(chunkSize.ToString("X"));
@@ -140,7 +169,7 @@ namespace FAP.Domain.Handlers
                             int toRead = buffer.Data.Length;
                             //Less that one buffer to send, ensure we dont send too much data just incase the file size has increased.
                             if (chunkSize - dataSent < toRead)
-                                toRead = (int)(chunkSize - dataSent);
+                                toRead = (int) (chunkSize - dataSent);
                             bytesRead = stream.Read(buffer.Data, 0, toRead);
                             context.Stream.Write(buffer.Data, 0, bytesRead);
                             nsm.PutData(bytesRead);
@@ -204,31 +233,6 @@ namespace FAP.Domain.Handlers
             sb.Append("\r\n");
             byte[] buffer = context.Response.Encoding.GetBytes(sb.ToString());
             context.Stream.Write(buffer, 0, buffer.Length);
-        }
-
-        public long Length
-        {
-            get { return length; }
-        }
-
-        public bool IsComplete
-        {
-            get { return isComplete; }
-        }
-
-        public long Speed
-        {
-            get { return nsm.GetSpeed(); }
-        }
-
-        public string Status
-        {
-            get { return status; }
-        }
-
-        public long Position
-        {
-            get { return position; }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,33 +14,28 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Fap.Foundation;
 using System.IO;
-using System.Xml.Serialization;
+using Fap.Foundation;
 using Newtonsoft.Json;
 using NLog;
 
 namespace FAP.Domain.Entities
 {
     [Serializable]
-    public class DownloadQueue: BaseEntity
+    public class DownloadQueue : BaseEntity
     {
-        private SafeObservedCollection<DownloadRequest> queue = new SafeObservedCollection<DownloadRequest>();
+        private readonly SafeObservedCollection<DownloadRequest> queue = new SafeObservedCollection<DownloadRequest>();
 
         private readonly string saveLocation = "Queue.cfg";
-        private object sync = new object();
+        private readonly object sync = new object();
 
         public SafeObservedCollection<DownloadRequest> List
         {
-            get
-            {
-                return queue;
-            }
+            get { return queue; }
         }
 
         public void Save()
@@ -57,7 +53,7 @@ namespace FAP.Domain.Entities
                     queue.Clear();
                     if (File.Exists(DATA_FOLDER + saveLocation))
                     {
-                        DownloadQueue saved = SafeLoad<DownloadQueue>(saveLocation);
+                        var saved = SafeLoad<DownloadQueue>(saveLocation);
                         queue.AddRange(saved.List.ToList());
                     }
                 }

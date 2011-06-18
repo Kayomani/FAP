@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,12 +14,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FAP.Domain.Entities;
+
 using FAP.Network.Entities;
 using Newtonsoft.Json;
 
@@ -26,17 +24,26 @@ namespace FAP.Domain.Verbs
 {
     public class ConnectVerb : BaseVerb, IVerb
     {
+        public string Address { set; get; }
+        public string Secret { set; get; }
+        public ClientType ClientType { set; get; }
+
+        [JsonIgnore]
+        public string OverlordID { set; get; }
+
+        #region IVerb Members
+
         public NetworkRequest CreateRequest()
         {
-            NetworkRequest r = new NetworkRequest();
+            var r = new NetworkRequest();
             r.Verb = "CONNECT";
-            r.Data = Serialize<ConnectVerb>(this);
+            r.Data = Serialize(this);
             return r;
         }
 
         public NetworkRequest ProcessRequest(NetworkRequest r)
         {
-            ConnectVerb verb = Deserialise<ConnectVerb>(r.Data);
+            var verb = Deserialise<ConnectVerb>(r.Data);
             Address = verb.Address;
             ClientType = verb.ClientType;
             Secret = verb.Secret;
@@ -51,10 +58,6 @@ namespace FAP.Domain.Verbs
             return true;
         }
 
-        public string Address { set; get; }
-        public string Secret { set; get; }
-        public ClientType ClientType { set; get; }
-        [JsonIgnore]
-        public string OverlordID { set; get; }
+        #endregion
     }
 }

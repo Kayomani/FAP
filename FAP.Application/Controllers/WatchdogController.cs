@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,34 +14,34 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using FAP.Domain.Entities;
 using System.Threading;
+using FAP.Domain;
+using FAP.Domain.Entities;
 using FAP.Domain.Net;
 using FAP.Domain.Services;
-using FAP.Domain;
 using NLog;
 
 namespace FAP.Application.Controllers
 {
     public class WatchdogController
     {
-        private bool run =false;
-
-        private Model model;
-        private SharesController shareController;
-        private List<DownloadWorkerService> workers = new List<DownloadWorkerService>();
-        private BufferService bufferService;
-        private OverlordManagerService overlordLauncherService;
+        private readonly BufferService bufferService;
+        private readonly Model model;
+        private readonly OverlordManagerService overlordLauncherService;
+        private readonly SharesController shareController;
         //Sync object for scanfordownloads - only single invocations allowed.
-        private object sync = new object();
+        private readonly object sync = new object();
+        private readonly List<DownloadWorkerService> workers = new List<DownloadWorkerService>();
         private Logger logger;
+        private bool run;
 
-        public WatchdogController(Model m, SharesController s,BufferService b,OverlordManagerService o)
+        public WatchdogController(Model m, SharesController s, BufferService b, OverlordManagerService o)
         {
             model = m;
             shareController = s;
@@ -54,7 +55,7 @@ namespace FAP.Application.Controllers
             if (!run)
             {
                 run = true;
-                ThreadPool.QueueUserWorkItem(new WaitCallback(processCheck));
+                ThreadPool.QueueUserWorkItem(processCheck);
             }
         }
 
@@ -81,18 +82,20 @@ namespace FAP.Application.Controllers
                     model.LocalNode.DownloadSpeed = NetworkSpeedMeasurement.TotalDownload.GetSpeed();
                     model.LocalNode.UploadSpeed = NetworkSpeedMeasurement.TotalUpload.GetSpeed();
                 }
-                catch { }
+                catch
+                {
+                }
 
                 bufferService.Clean();
 
                 //Poke share controller to check if shares need updating every 5 minutes
-                if (runCount % 60 == 0)
+                if (runCount%60 == 0)
                 {
                     shareController.RefreshShareInfo();
                 }
 
                 //Save config and download queue every 5 minutes but not on start up
-                if (runCount != 0 && runCount % 60 == 0)
+                if (runCount != 0 && runCount%60 == 0)
                 {
                     try
                     {
@@ -100,7 +103,9 @@ namespace FAP.Application.Controllers
                         model.Save();
                         model.DownloadQueue.Save();
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                     finally
                     {
                         model.ReleaseAntiShutdownLock();
@@ -112,14 +117,16 @@ namespace FAP.Application.Controllers
                 {
                     ScanForDownloads();
                 }
-                catch { }
+                catch
+                {
+                }
 
                 //Every 20 seconds try to reduce memory usage
-                if (runCount % 4 == 0)
+                if (runCount%4 == 0)
                 {
-                    System.GC.Collect();
-                    System.GC.WaitForPendingFinalizers();
-                    System.GC.Collect();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
                 }
 
                 //Wait 5 seconds minus the time it took to execute
@@ -135,7 +142,7 @@ namespace FAP.Application.Controllers
         {
             lock (sync)
             {
-                foreach (var item in model.DownloadQueue.List.ToList())
+                foreach (DownloadRequest item in model.DownloadQueue.List.ToList())
                 {
                     switch (item.State)
                     {
@@ -152,24 +159,27 @@ namespace FAP.Application.Controllers
                 }
 
                 var downloads =
-                from download in model.DownloadQueue.List.ToList().Where(d => d.State == DownloadRequestState.None)
-                group download by download.ClientID into g
-                select new
-                {
-                    Downloads = g,
-                    ID = g.First().ClientID,
-                };
+                    from download in model.DownloadQueue.List.ToList().Where(d => d.State == DownloadRequestState.None)
+                    group download by download.ClientID
+                    into g
+                    select new
+                               {
+                                   Downloads = g,
+                                   ID = g.First().ClientID,
+                               };
 
                 foreach (var group in downloads)
                 {
                     //Check if the client is online
                     Node client = model.Network.Nodes.ToList().Where(p => p.ID == group.ID).FirstOrDefault();
                     if (null == client)
-                        client = model.Network.Nodes.ToList().Where(c => c.Nickname == group.Downloads.First().Nickname).FirstOrDefault();
+                        client =
+                            model.Network.Nodes.ToList().Where(c => c.Nickname == group.Downloads.First().Nickname).
+                                FirstOrDefault();
 
                     if (null != client)
                     {
-                        foreach (var item in group.Downloads)
+                        foreach (DownloadRequest item in group.Downloads)
                         {
                             if (item.State == DownloadRequestState.None)
                             {
@@ -181,15 +191,21 @@ namespace FAP.Application.Controllers
                                     addedDownload = true;
                                     //Max workers not reached, add download via new worker.
                                     var worker = new DownloadWorkerService(client, model, bufferService);
-                                    worker.OnWorkerFinished += new EventHandler(worker_OnWorkerFinished);
+                                    worker.OnWorkerFinished += worker_OnWorkerFinished;
                                     workers.Add(worker);
                                     worker.AddDownload(item);
-                                    model.TransferSessions.Add(new TransferSession(worker) { Status = "Connecting..", User = client.Nickname, Size = item.Size, IsDownload = true });
+                                    model.TransferSessions.Add(new TransferSession(worker)
+                                                                   {
+                                                                       Status = "Connecting..",
+                                                                       User = client.Nickname,
+                                                                       Size = item.Size,
+                                                                       IsDownload = true
+                                                                   });
                                 }
                                 else
                                 {
                                     //Max downloaders reached, try to add to an existing queue
-                                    foreach (var worker in workers.Where(w => w.Node == client))
+                                    foreach (DownloadWorkerService worker in workers.Where(w => w.Node == client))
                                     {
                                         if (!worker.IsQueueFull)
                                         {
@@ -211,11 +227,12 @@ namespace FAP.Application.Controllers
                 }
 
                 //Remove redundant workers
-                foreach (var worker in workers.Where(w => w.IsComplete).ToList())
+                foreach (DownloadWorkerService worker in workers.Where(w => w.IsComplete).ToList())
                 {
-                    worker.OnWorkerFinished -= new EventHandler(worker_OnWorkerFinished);
+                    worker.OnWorkerFinished -= worker_OnWorkerFinished;
                     workers.Remove(worker);
-                    var session = model.TransferSessions.ToList().Where(t => t.Worker == worker).FirstOrDefault();
+                    TransferSession session =
+                        model.TransferSessions.ToList().Where(t => t.Worker == worker).FirstOrDefault();
                     if (null != session)
                         model.TransferSessions.Remove(session);
                 }

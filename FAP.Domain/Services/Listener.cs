@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,40 +14,38 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FAP.Network.Server;
-using Autofac;
 using System.Net;
-using HttpServer;
-using FAP.Domain.Handlers;
+using Autofac;
 using FAP.Domain.Entities;
-using FAP.Network.Services;
-using FAP.Domain.Verbs;
+using FAP.Domain.Handlers;
 using FAP.Domain.Net;
+using FAP.Domain.Verbs;
+using FAP.Network.Server;
+using FAP.Network.Services;
+using HttpServer;
 
 namespace FAP.Domain.Services
 {
     public class ListenerService
     {
-        private NodeServer listener;
-        private IContainer container;
+        private readonly IContainer container;
 
-        private HTTPHandler http;
-        private IFAPHandler fap;
-
-        private Model model;
+        private readonly HTTPHandler http;
 
         private readonly bool isServer;
+        private readonly Model model;
+        private IFAPHandler fap;
+        private NodeServer listener;
 
-        public ListenerService(IContainer c,bool _isServer)
+        public ListenerService(IContainer c, bool _isServer)
         {
             container = c;
-            http = c.Resolve<HTTPHandler>(); 
-            this.isServer = _isServer;
+            http = c.Resolve<HTTPHandler>();
+            isServer = _isServer;
             model = container.Resolve<Model>();
         }
 
@@ -58,7 +57,7 @@ namespace FAP.Domain.Services
         public void Start(int inport)
         {
             listener = new NodeServer();
-            listener.OnRequest += new NodeServer.Request(listener_OnRequest);
+            listener.OnRequest += listener_OnRequest;
 
             bool trybind = true;
             int port = inport;
@@ -68,20 +67,23 @@ namespace FAP.Domain.Services
                 {
                     listener.Start(IPAddress.Parse(model.LocalNode.Host), port);
                     trybind = false;
-                    if (isServer) 
+                    if (isServer)
                     {
-                        FAPServerHandler f = new FAPServerHandler(IPAddress.Parse(model.LocalNode.Host), 
-                                                                  port, 
-                                                                  model, 
-                                                                  container.Resolve<MulticastClientService>(), 
-                                                                  container.Resolve<LANPeerFinderService>(),
-                                                                  container.Resolve<MulticastServerService>());
+                        var f = new FAPServerHandler(IPAddress.Parse(model.LocalNode.Host),
+                                                     port,
+                                                     model,
+                                                     container.Resolve<MulticastClientService>(),
+                                                     container.Resolve<LANPeerFinderService>(),
+                                                     container.Resolve<MulticastServerService>());
                         fap = f;
                         f.Start("Local", "Local");
                     }
                     else
                     {
-                        FAPClientHandler f = new FAPClientHandler(model, container.Resolve<ShareInfoService>(), container.Resolve<IConversationController>(),container.Resolve<BufferService>(),container.Resolve<ServerUploadLimiterService>());
+                        var f = new FAPClientHandler(model, container.Resolve<ShareInfoService>(),
+                                                     container.Resolve<IConversationController>(),
+                                                     container.Resolve<BufferService>(),
+                                                     container.Resolve<ServerUploadLimiterService>());
                         fap = f;
                         f.Start();
                         model.ClientPort = port;
@@ -96,26 +98,24 @@ namespace FAP.Domain.Services
                         throw new Exception("Could to bind listener");
                     }
                 }
-            }
-            while (trybind);
+            } while (trybind);
         }
 
         public void Stop()
         {
             listener.Stop();
-            listener.OnRequest -= new NodeServer.Request(listener_OnRequest);
+            listener.OnRequest -= listener_OnRequest;
             listener = null;
-            FAPServerHandler server = fap as FAPServerHandler;
+            var server = fap as FAPServerHandler;
             if (null != server)
             {
                 server.Stop();
             }
             else
             {
-                FAPClientHandler client = fap as FAPClientHandler;
+                var client = fap as FAPClientHandler;
                 if (null != client)
                 {
-                    
                 }
             }
         }
@@ -125,11 +125,11 @@ namespace FAP.Domain.Services
             if (type == RequestType.HTTP)
             {
                 if (arg.Request.Method == "GET")
-                  return http.Handle(arg.Request.Uri.LocalPath, arg);
+                    return http.Handle(arg.Request.Uri.LocalPath, arg);
             }
             else
             {
-               return fap.Handle(arg);
+                return fap.Handle(arg);
             }
             return false;
         }

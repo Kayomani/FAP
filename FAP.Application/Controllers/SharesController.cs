@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,34 +14,33 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Fap.Foundation;
-using FAP.Application.ViewModels;
-using NLog;
-using FAP.Domain.Entities;
-using Autofac;
-using FAP.Domain.Services;
-using System.Waf.Applications;
 using System.IO;
+using System.Linq;
 using System.Threading;
+using System.Waf.Applications;
 using System.Waf.Applications.Services;
+using System.Windows;
+using Autofac;
+using FAP.Application.ViewModels;
+using FAP.Domain.Entities;
+using FAP.Domain.Services;
+using Fap.Foundation;
+using NLog;
 
 namespace FAP.Application.Controllers
 {
     public class SharesController : AsyncControllerBase
     {
-        private SharesViewModel viewModel;
-        private QueryViewModel browser;
+        private readonly IContainer container;
         private readonly Logger logger;
         private readonly Model model;
-        private IContainer container;
-        private ShareInfoService scanner;
-
-        public SharesViewModel ViewModel { get { return viewModel; } }
+        private readonly ShareInfoService scanner;
+        private QueryViewModel browser;
+        private SharesViewModel viewModel;
 
         public SharesController(IContainer c, Model m)
         {
@@ -48,6 +48,11 @@ namespace FAP.Application.Controllers
             model = m;
             container = c;
             scanner = c.Resolve<ShareInfoService>();
+        }
+
+        public SharesViewModel ViewModel
+        {
+            get { return viewModel; }
         }
 
         public void Initalise()
@@ -73,7 +78,6 @@ namespace FAP.Application.Controllers
             string folder = string.Empty;
             if (browser.SelectFolder(out folder))
             {
-
                 if (model.Shares.Where(os => os.Path == folder).Count() > 0)
                 {
                     logger.Debug("A share with this path already exists");
@@ -86,19 +90,19 @@ namespace FAP.Application.Controllers
 
                     if (model.Shares.Where(sh => sh.Path == folder).Count() > 0)
                     {
-                        System.Windows.MessageBox.Show("You have already shared this folder!");
+                        MessageBox.Show("You have already shared this folder!");
                         return;
                     }
 
-                    Share s = new Share();
+                    var s = new Share();
                     string name = folder;
                     if (name.Contains(Path.DirectorySeparatorChar))
                     {
-                        name = name.Substring(name.LastIndexOf(Path.DirectorySeparatorChar) + 1, (name.Length - name.LastIndexOf(Path.DirectorySeparatorChar)) - 1);
-
+                        name = name.Substring(name.LastIndexOf(Path.DirectorySeparatorChar) + 1,
+                                              (name.Length - name.LastIndexOf(Path.DirectorySeparatorChar)) - 1);
                     }
                     //Check name is valid and ok
-                    MessageBoxViewModel messagebox = container.Resolve<MessageBoxViewModel>();
+                    var messagebox = container.Resolve<MessageBoxViewModel>();
                     messagebox.Response = name;
                     messagebox.Message = "What do you want to name the share?";
                     if (messagebox.ShowDialog())
@@ -111,7 +115,7 @@ namespace FAP.Application.Controllers
                         s.Name = name;
                         s.Path = folder;
                         model.Shares.Add(s);
-                        ThreadPool.QueueUserWorkItem(new WaitCallback(AsyncRefresh), s);
+                        ThreadPool.QueueUserWorkItem(AsyncRefresh, s);
                     }
                 }
                 catch (Exception e)
@@ -124,11 +128,11 @@ namespace FAP.Application.Controllers
 
         private void AsyncRefresh(object o)
         {
-            Share s = o as Share;
+            var s = o as Share;
             if (null != s)
             {
                 s.Status = "Scanning..";
-                var info = scanner.RefreshPath(s);
+                Domain.Entities.FileSystem.Directory info = scanner.RefreshPath(s);
                 s.Size = info.Size;
                 s.FileCount = info.ItemCount;
                 s.Status = string.Empty;
@@ -144,7 +148,9 @@ namespace FAP.Application.Controllers
 
         private void AsyncRefreshShareInfo()
         {
-            foreach (var share in model.Shares.ToList().Where(s => (DateTime.Now - s.LastRefresh).TotalMinutes > 30).ToList())
+            foreach (
+                Share share in
+                    model.Shares.ToList().Where(s => (DateTime.Now - s.LastRefresh).TotalMinutes > 30).ToList())
                 AsyncRefresh(share);
             model.Save();
             RefreshClientStats();
@@ -157,7 +163,7 @@ namespace FAP.Application.Controllers
 
         private void AsyncRefreshCommand()
         {
-            foreach (var share in model.Shares.ToList())
+            foreach (Share share in model.Shares.ToList())
                 AsyncRefresh(share);
             RefreshClientStats();
         }
@@ -175,7 +181,7 @@ namespace FAP.Application.Controllers
         {
             if (null != viewModel.SelectedShare)
             {
-                MessageBoxViewModel messagebox = container.Resolve<MessageBoxViewModel>();
+                var messagebox = container.Resolve<MessageBoxViewModel>();
                 messagebox.Response = viewModel.SelectedShare.Name;
                 messagebox.Message = "What do you want to rename it to?";
                 if (messagebox.ShowDialog(ViewModel.View))
@@ -186,10 +192,14 @@ namespace FAP.Application.Controllers
             }
         }
 
+        #region Nested type: ScanInfo
+
         protected class ScanInfo
         {
             public long Size { set; get; }
             public long FileCount { set; get; }
         }
+
+        #endregion
     }
 }

@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,13 +14,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Runtime.Serialization.Json;
+
 using Newtonsoft.Json;
 
 namespace FAP.Domain.Verbs
@@ -37,10 +34,11 @@ namespace FAP.Domain.Verbs
                 return obj;
             }*/
         }
-        
+
         public static string Serialize<T>(T obj)
         {
-            return JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            return JsonConvert.SerializeObject(obj, Formatting.None,
+                                               new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore});
             /* DataContractJsonSerializer serializer = new DataContractJsonSerializer(obj.GetType());
              using (MemoryStream ms = new MemoryStream())
              {

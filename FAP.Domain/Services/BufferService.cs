@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using Fap.Foundation;
 using NLog;
 
@@ -9,12 +6,11 @@ namespace FAP.Domain.Services
 {
     public class BufferService
     {
-        private Stack<MemoryBuffer> pool = new Stack<MemoryBuffer>();
-        private Stack<MemoryBuffer> smallPool = new Stack<MemoryBuffer>();
-        private Logger logger;
-
-        public const int Buffer = 2621440;//2mb
-        public const int SmallBuffer = 25600;//25kb
+        public const int Buffer = 2621440; //2mb
+        public const int SmallBuffer = 25600; //25kb
+        private readonly Logger logger;
+        private readonly Stack<MemoryBuffer> pool = new Stack<MemoryBuffer>();
+        private readonly Stack<MemoryBuffer> smallPool = new Stack<MemoryBuffer>();
 
         private int largeCount = 10;
         private int smallCount = 10;
@@ -28,7 +24,7 @@ namespace FAP.Domain.Services
         {
             lock (pool)
             {
-                while (pool.Count > largeCount )
+                while (pool.Count > largeCount)
                 {
                     MemoryBuffer arg = pool.Pop();
                     arg.Dispose();
@@ -68,7 +64,6 @@ namespace FAP.Domain.Services
         }*/
 
 
-
         public MemoryBuffer GetBuffer()
         {
             lock (pool)
@@ -76,7 +71,7 @@ namespace FAP.Domain.Services
                 if (pool.Count > 0)
                     return pool.Pop();
             }
-            MemoryBuffer a = new MemoryBuffer(Buffer);
+            var a = new MemoryBuffer(Buffer);
             return a;
         }
 
@@ -87,7 +82,7 @@ namespace FAP.Domain.Services
                 if (smallPool.Count > 0)
                     return smallPool.Pop();
             }
-            MemoryBuffer a = new MemoryBuffer(SmallBuffer);
+            var a = new MemoryBuffer(SmallBuffer);
             return a;
         }
 

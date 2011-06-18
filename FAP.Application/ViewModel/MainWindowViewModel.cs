@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,60 +14,55 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using System.Waf.Applications;
-using FAP.Application.Views;
-using Fap.Foundation;
 using System.Windows.Input;
 using System.Windows.Threading;
-using FAP.Domain.Entities;
+using FAP.Application.Views;
 using FAP.Domain;
+using FAP.Domain.Entities;
+using Fap.Foundation;
 
 namespace FAP.Application.ViewModels
 {
     public class MainWindowViewModel : ViewModel<IMainWindow>
     {
-        private SafeObservingCollection<string> chatList;
-        private SafeObservingCollection<TransferSession> sessions;
-
-        private string currentChatMessage;
-        private ICommand sendChatMessage;
-        private ICommand viewShare;
-        private ICommand settings;
-        private ICommand editShares;
+        private bool allowClose;
+        private string avatar;
         private ICommand chat;
-        private ICommand viewQueue;
+        private SafeObservingCollection<string> chatList;
         private ICommand closing;
-        private ICommand openExternal;
         private ICommand compare;
-        private ICommand userinfo;
+        private string currentChatMessage;
+        private string description;
+        private ICommand editShares;
+        private string globalStats;
+        private string localStats;
+        private Model model;
+        private string networkInfo;
+        private string networkStats;
+        private string nickname;
+        private Node node;
+        private string nodeStatus;
+        private ICommand openExternal;
+        private SafeFilteredObservingCollection<Node> peers;
         private ICommand search;
         private object selectedClient;
-        private string avatar;
-        private string networkInfo;
-        private string nickname;
-        private string description;
-        private string windowTitle;
-        private Node node;
-        private SafeFilteredObservingCollection<Node> peers;
-        private bool visible = false;
-        private bool allowClose = false;
-      //  private Entity.Network currentNetwork;
-        private string networkStats;
-        private string nodeStatus;
-        private Model model;
-        private string localStats;
-        private string globalStats;
+        private ICommand sendChatMessage;
+        private SafeObservingCollection<TransferSession> sessions;
+        private ICommand settings;
         private PeerSortType sortType;
+        private ICommand userinfo;
+        private ICommand viewQueue;
+        private ICommand viewShare;
+        private bool visible;
+        private string windowTitle;
 
         public MainWindowViewModel(IMainWindow view)
             : base(view)
         {
-            
         }
 
         public PeerSortType PeerSortType
@@ -87,11 +83,6 @@ namespace FAP.Application.ViewModels
                 model = value;
                 RaisePropertyChanged("Model");
             }
-        }
-
-        public void DoFlashWindow()
-        {
-            ViewCore.Flash();
         }
 
         public string NodeStatus
@@ -172,7 +163,7 @@ namespace FAP.Application.ViewModels
             get { return peers; }
             set
             {
-                peers = value; 
+                peers = value;
                 RaisePropertyChanged("Peers");
             }
         }
@@ -386,7 +377,17 @@ namespace FAP.Application.ViewModels
                 RaisePropertyChanged("SelectedClient");
             }
         }
-        
+
+        public Dispatcher Dispatcher
+        {
+            get { return ViewCore.Dispatcher; }
+        }
+
+        public void DoFlashWindow()
+        {
+            ViewCore.Flash();
+        }
+
 
         public void Show()
         {
@@ -400,11 +401,5 @@ namespace FAP.Application.ViewModels
             AllowClose = true;
             ViewCore.Close();
         }
-
-        public Dispatcher Dispatcher
-        {
-            get { return ViewCore.Dispatcher; }
-        }
     }
 }
-

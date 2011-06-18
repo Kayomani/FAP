@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using FAP.Domain.Entities;
 
 namespace FAP.Domain.Services
 {
     public class ServerUploadLimiterService
     {
-        private List<ServerUploadToken> activeTokenList = new List<ServerUploadToken>();
-        private Queue<ServerUploadToken> recycledList = new Queue<ServerUploadToken>();
-        private Model model;
+        private readonly List<ServerUploadToken> activeTokenList = new List<ServerUploadToken>();
+        private readonly Model model;
+        private readonly Queue<ServerUploadToken> recycledList = new Queue<ServerUploadToken>();
 
         public ServerUploadLimiterService(Model model)
         {
@@ -36,7 +34,7 @@ namespace FAP.Domain.Services
                 if (totalUploads > model.MaxUploads)
                 {
                     //Record queue position
-                    token.GlobalQueuePosition = activeTokenList.Where(t => t.GlobalQueuePosition != 0).Count()+1;
+                    token.GlobalQueuePosition = activeTokenList.Where(t => t.GlobalQueuePosition != 0).Count() + 1;
                 }
                 else
                     token.GlobalQueuePosition = 0;
@@ -68,7 +66,8 @@ namespace FAP.Domain.Services
                 activeTokenList.Remove(itoken);
 
                 //Start next item
-                var list =activeTokenList.Where(t => t.GlobalQueuePosition>0).OrderBy(t=>t.GlobalQueuePosition).ToList();
+                List<ServerUploadToken> list =
+                    activeTokenList.Where(t => t.GlobalQueuePosition > 0).OrderBy(t => t.GlobalQueuePosition).ToList();
                 if (list.Count > 0)
                     list[0].GlobalQueuePosition = 0;
                 for (int i = 1; i < list.Count; i++)

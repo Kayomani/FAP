@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,31 +14,30 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
+
+using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using FAP.Application.ViewModels;
-using Autofac;
-using FAP.Domain.Entities;
-using Fap.Foundation;
-using System.Waf.Applications;
 using System.Threading;
-using FAP.Domain;
-using FAP.Domain.Verbs;
+using System.Waf.Applications;
+using Autofac;
+using FAP.Application.ViewModels;
+using FAP.Domain.Entities;
 using FAP.Domain.Net;
+using FAP.Domain.Verbs;
+using Fap.Foundation;
 
 namespace FAP.Application.Controllers
 {
     public class ConversationController : IConversationController
     {
-        private readonly PopupWindowController windowController;
+        private readonly IContainer container;
+        private readonly SafeObservedCollection<Conversation> conversations = new SafeObservedCollection<Conversation>();
         private readonly Model model;
-        private IContainer container;
-        private SafeObservedCollection<Conversation> conversations = new SafeObservedCollection<Conversation>();
-        private SafeObservingCollection<Conversation> uiConversations;
-        private SafeObservable<ConversationViewModel> viewModels = new SafeObservable<ConversationViewModel>();
+        private readonly SafeObservingCollection<Conversation> uiConversations;
+        private readonly SafeObservable<ConversationViewModel> viewModels = new SafeObservable<ConversationViewModel>();
+        private readonly PopupWindowController windowController;
 
         public ConversationController(IContainer container, Model m)
         {
@@ -45,33 +45,15 @@ namespace FAP.Application.Controllers
             model = m;
             this.container = container;
             uiConversations = new SafeObservingCollection<Conversation>(conversations);
-            uiConversations.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(uiConversations_CollectionChanged);
-            windowController.OnTabClosing += new PopupWindowController.TabClosing(chatPopupController_OnTabClosing);
+            uiConversations.CollectionChanged += uiConversations_CollectionChanged;
+            windowController.OnTabClosing += chatPopupController_OnTabClosing;
         }
 
-        /// <summary>
-        /// New conversion has been added - add a window.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void uiConversations_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
-            {
-                foreach (Conversation c in e.NewItems)
-                {
-                    var vm = container.Resolve<ConversationViewModel>();
-                    vm.SendChatMessage = new DelegateCommand(SendChatMessage);
-                    vm.Conversation = c;
-                    viewModels.Add(vm);
-                    windowController.AddWindow(vm.View, c.OtherParty.Nickname);
-                }
-            }
-        }
+        #region IConversationController Members
 
         public bool HandleMessage(string id, string nickname, string message)
         {
-            var peer = model.Network.Nodes.Where(p => p.ID == id).FirstOrDefault();
+            Node peer = model.Network.Nodes.Where(p => p.ID == id).FirstOrDefault();
 
             if (null != peer)
             {
@@ -92,9 +74,31 @@ namespace FAP.Application.Controllers
             return false;
         }
 
+        #endregion
+
+        /// <summary>
+        /// New conversion has been added - add a window.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void uiConversations_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+                foreach (Conversation c in e.NewItems)
+                {
+                    var vm = container.Resolve<ConversationViewModel>();
+                    vm.SendChatMessage = new DelegateCommand(SendChatMessage);
+                    vm.Conversation = c;
+                    viewModels.Add(vm);
+                    windowController.AddWindow(vm.View, c.OtherParty.Nickname);
+                }
+            }
+        }
+
         private void chatPopupController_OnTabClosing(object o)
         {
-            ConversationViewModel vm = o as ConversationViewModel;
+            var vm = o as ConversationViewModel;
             if (null != vm)
             {
                 conversations.Remove(vm.Conversation);
@@ -105,11 +109,11 @@ namespace FAP.Application.Controllers
 
         public void CreateConversation(Node n)
         {
-            var search = viewModels.Where(c => c.Conversation.OtherParty == n).FirstOrDefault();
+            ConversationViewModel search = viewModels.Where(c => c.Conversation.OtherParty == n).FirstOrDefault();
             if (null == search)
             {
                 //New conversation
-                Conversation c = new Conversation();
+                var c = new Conversation();
                 c.OtherParty = n;
                 conversations.Add(c);
             }
@@ -122,23 +126,23 @@ namespace FAP.Application.Controllers
 
         private void SendChatMessage(object ivm)
         {
-            ConversationViewModel vm = ivm as ConversationViewModel;
+            var vm = ivm as ConversationViewModel;
             if (null != vm && !string.IsNullOrEmpty(vm.CurrentChatMessage))
             {
                 vm.Conversation.Messages.Add("You: " + vm.CurrentChatMessage);
-                ThreadPool.QueueUserWorkItem(new WaitCallback(SendMessageAsync), ivm);
+                ThreadPool.QueueUserWorkItem(SendMessageAsync, ivm);
             }
         }
 
         private void SendMessageAsync(object ivm)
         {
-            ConversationViewModel vm = ivm as ConversationViewModel;
+            var vm = ivm as ConversationViewModel;
             if (null != vm && !string.IsNullOrEmpty(vm.CurrentChatMessage))
             {
                 string message = vm.CurrentChatMessage;
 
-                Client c = new Client(model.LocalNode);
-                ConversationVerb verb = new ConversationVerb();
+                var c = new Client(model.LocalNode);
+                var verb = new ConversationVerb();
                 verb.Nickname = model.LocalNode.Nickname;
                 verb.Message = message;
                 verb.SourceID = model.LocalNode.ID;

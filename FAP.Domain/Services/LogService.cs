@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NLog.Targets;
+﻿using System.Diagnostics;
+using FAP.Domain.Entities;
 using Fap.Foundation;
 using NLog;
 using NLog.Config;
+using NLog.Targets;
 using NLog.Targets.Wrappers;
-using System.Diagnostics;
-using FAP.Domain.Entities;
 
 namespace FAP.Domain.Services
 {
@@ -22,16 +18,17 @@ namespace FAP.Domain.Services
     /// </summary>
     public class LogService
     {
-        private LogServiceTarget target;
-        private LoggingRule rule;
+        private readonly LoggingRule rule;
+        private readonly LogServiceTarget target;
 
-        public LogService(Model m )
+        public LogService(Model m)
         {
             LoggingConfiguration config = LogManager.Configuration;
             target = new LogServiceTarget(m.Messages);
-            target.Layout = "${level}=> ${message} ${exception:format=Message} ${exception:format=Type} ${exception:format=StackTrace}";
+            target.Layout =
+                "${level}=> ${message} ${exception:format=Message} ${exception:format=Type} ${exception:format=StackTrace}";
             target.Name = "LogService";
-            AsyncTargetWrapper wrapper = new AsyncTargetWrapper(target);
+            var wrapper = new AsyncTargetWrapper(target);
 
             config.AddTarget("LogService", wrapper);
 
@@ -45,10 +42,7 @@ namespace FAP.Domain.Services
 
         public LogLevel Filter
         {
-            set
-            {
-                target.Filter = value;
-            }
+            set { target.Filter = value; }
             get { return target.Filter; }
         }
     }
@@ -56,7 +50,7 @@ namespace FAP.Domain.Services
     [Target("LogService")]
     public class LogServiceTarget : TargetWithLayout
     {
-        private SafeObservedCollection<string> messages;
+        private readonly SafeObservedCollection<string> messages;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryTarget" /> class.
@@ -73,7 +67,10 @@ namespace FAP.Domain.Services
         /// <summary>
         /// Gets the list of logs gathered in the <see cref="MemoryTarget"/>.
         /// </summary>
-        public SafeObservedCollection<string> Logs { get { return messages; } }
+        public SafeObservedCollection<string> Logs
+        {
+            get { return messages; }
+        }
 
         /// <summary>
         /// Hard filter level, changing nlog filters at runtime doesnt seem to work??
@@ -89,7 +86,7 @@ namespace FAP.Domain.Services
             if (null != logEvent)
             {
                 if (logEvent.Level >= Filter)
-                    messages.AddRotate(Layout.Render(logEvent),50);
+                    messages.AddRotate(Layout.Render(logEvent), 50);
             }
         }
     }

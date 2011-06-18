@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,18 +14,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FAP.Domain.Entities;
+
 using System.Runtime.Serialization;
+using FAP.Domain.Entities;
 using FAP.Network.Entities;
 
 namespace FAP.Domain.Verbs
 {
-    public class InfoVerb: BaseVerb, IVerb
+    public class InfoVerb : BaseVerb, IVerb
     {
         private Node node = new Node();
 
@@ -35,16 +34,7 @@ namespace FAP.Domain.Verbs
             get { return node; }
         }
 
-
-        public Node GetValidatedNode()
-        {
-            if (null != Node)
-            {
-                if (!Node.ContainsKey("Nickname"))
-                    return null;
-            }
-            return Node;
-        }
+        #region IVerb Members
 
         /// <summary>
         /// Called by a end client to send an update a server
@@ -52,8 +42,8 @@ namespace FAP.Domain.Verbs
         /// <returns></returns>
         public NetworkRequest CreateRequest()
         {
-            NetworkRequest req = new NetworkRequest();
-            req.Data = Serialize<InfoVerb>(this);
+            var req = new NetworkRequest();
+            req.Data = Serialize(this);
             req.Verb = "INFO";
             return req;
         }
@@ -65,7 +55,7 @@ namespace FAP.Domain.Verbs
         /// <returns></returns>
         public NetworkRequest ProcessRequest(NetworkRequest r)
         {
-            InfoVerb inc = Deserialise<InfoVerb>(r.Data);
+            var inc = Deserialise<InfoVerb>(r.Data);
             Node = inc.Node;
             return null;
         }
@@ -74,7 +64,7 @@ namespace FAP.Domain.Verbs
         {
             try
             {
-                InfoVerb inc = Deserialise<InfoVerb>(r.Data);
+                var inc = Deserialise<InfoVerb>(r.Data);
                 Node = inc.Node;
                 return true;
             }
@@ -82,6 +72,18 @@ namespace FAP.Domain.Verbs
             {
                 return false;
             }
+        }
+
+        #endregion
+
+        public Node GetValidatedNode()
+        {
+            if (null != Node)
+            {
+                if (!Node.ContainsKey("Nickname"))
+                    return null;
+            }
+            return Node;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,24 +14,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net.Sockets;
-using NLog;
+
 using System.Net;
-using System.Threading;
+using System.Net.Sockets;
+using System.Text;
+using NLog;
 
 namespace FAP.Network.Services
 {
     public class MulticastServerService : MulticastCommon
     {
+        private readonly object sync = new object();
         private Socket broadcastSocket;
         private Logger logService;
-
-        private object sync = new object();
 
         public MulticastServerService()
         {
@@ -40,7 +38,8 @@ namespace FAP.Network.Services
         private void ConnectBroadcast()
         {
             broadcastSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            broadcastSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(broadcastAddress, IPAddress.Any));
+            broadcastSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership,
+                                            new MulticastOption(broadcastAddress, IPAddress.Any));
             broadcastSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, 1);
             broadcastSocket.Connect(broadcastAddress, broadcastPort);
         }

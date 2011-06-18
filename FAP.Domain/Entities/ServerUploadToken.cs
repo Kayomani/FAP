@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 
 namespace FAP.Domain.Entities
@@ -11,9 +8,9 @@ namespace FAP.Domain.Entities
     /// </summary>
     public class ServerUploadToken : IDisposable
     {
-        private int globalQueuePosition = 0;
+        private readonly AutoResetEvent sync = new AutoResetEvent(true);
+        private int globalQueuePosition;
         private string remoteEndPoint;
-        private AutoResetEvent sync = new AutoResetEvent(true);
 
         public int GlobalQueuePosition
         {
@@ -44,6 +41,15 @@ namespace FAP.Domain.Entities
             }
         }
 
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            sync.Close();
+        }
+
+        #endregion
+
         public void Wait()
         {
             sync.WaitOne();
@@ -52,11 +58,6 @@ namespace FAP.Domain.Entities
         public void WaitTimeout()
         {
             sync.WaitOne(5000);
-        }
-
-        public void Dispose()
-        {
-            sync.Close();
         }
     }
 }

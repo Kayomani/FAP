@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,13 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FAP.Domain.Entities;
 using System.Threading;
+using FAP.Domain.Entities;
 using Fap.Foundation;
 using FAP.Network.Entities;
 
@@ -30,13 +30,21 @@ namespace FAP.Domain.Net
     /// </summary>
     public class ClientStream
     {
-        public readonly int PRE_TIMEOUT_PERIOD = 10000;
-        private BackgroundSafeObservable<NetworkRequest> pendingRequests = new BackgroundSafeObservable<NetworkRequest>();
-        private Node destination;
-        private Node serverNode;
+        #region Delegates
 
-        private AutoResetEvent workerEvent = new AutoResetEvent(true);
+        public delegate void Disconnect(ClientStream s);
+
+        #endregion
+
+        public readonly int PRE_TIMEOUT_PERIOD = 10000;
+
+        private readonly BackgroundSafeObservable<NetworkRequest> pendingRequests =
+            new BackgroundSafeObservable<NetworkRequest>();
+
+        private readonly AutoResetEvent workerEvent = new AutoResetEvent(true);
+        private Node destination;
         private bool run = true;
+        private Node serverNode;
 
         public Node Node
         {
@@ -48,7 +56,7 @@ namespace FAP.Domain.Net
             destination = _destination;
             serverNode = _serverNode;
             destination.LastUpdate = Environment.TickCount;
-            ThreadPool.QueueUserWorkItem(new WaitCallback(Process));
+            ThreadPool.QueueUserWorkItem(Process);
         }
 
         public void Kill()
@@ -62,7 +70,7 @@ namespace FAP.Domain.Net
         {
             if (run)
             {
-                pendingRequests.Add(new NetworkRequest() { Verb = verb, Param = param, Data = data });
+                pendingRequests.Add(new NetworkRequest {Verb = verb, Param = param, Data = data});
                 workerEvent.Set();
             }
         }
@@ -77,7 +85,7 @@ namespace FAP.Domain.Net
         }
 
         //On uplink disconnection
-        public delegate void Disconnect(ClientStream s);
+
         public event Disconnect OnDisconnect;
 
         private void Process(object o)
@@ -87,23 +95,25 @@ namespace FAP.Domain.Net
                 while (run)
                 {
                     //If the client has timed out then disconect
-                    if (pendingRequests.Count == 0 && Environment.TickCount - destination.LastUpdate > Model.UPLINK_TIMEOUT)
+                    if (pendingRequests.Count == 0 &&
+                        Environment.TickCount - destination.LastUpdate > Model.UPLINK_TIMEOUT)
                     {
                         if (null != OnDisconnect)
                             OnDisconnect(this);
-                        NetworkRequest req = new NetworkRequest() { Verb = "DISCONNECT", SourceID=serverNode.ID };
+                        var req = new NetworkRequest {Verb = "DISCONNECT", SourceID = serverNode.ID};
                         TransmitRequest(req);
                         return;
                     }
                     //If the client is going to timeout in the next 15 seconds then do an update
-                    if (pendingRequests.Count == 0 && Environment.TickCount - destination.LastUpdate > Model.UPLINK_TIMEOUT - PRE_TIMEOUT_PERIOD)
-                        pendingRequests.Add(new NetworkRequest()
-                                             {
-                                                 Data = string.Empty,
-                                                 Param = string.Empty,
-                                                 Verb = "NOOP",
-                                                 SourceID = serverNode.ID
-                                             });
+                    if (pendingRequests.Count == 0 &&
+                        Environment.TickCount - destination.LastUpdate > Model.UPLINK_TIMEOUT - PRE_TIMEOUT_PERIOD)
+                        pendingRequests.Add(new NetworkRequest
+                                                {
+                                                    Data = string.Empty,
+                                                    Param = string.Empty,
+                                                    Verb = "NOOP",
+                                                    SourceID = serverNode.ID
+                                                });
 
                     while (pendingRequests.Count > 0)
                     {
@@ -128,7 +138,7 @@ namespace FAP.Domain.Net
 
         private void TransmitRequest(NetworkRequest req)
         {
-            Client client = new Client(serverNode);
+            var client = new Client(serverNode);
             req.AuthKey = destination.Secret;
             if (!client.Execute(req, destination))
                 throw new Exception("Transmission failiure");

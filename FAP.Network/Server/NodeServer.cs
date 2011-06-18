@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,41 +14,42 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Net;
 using HttpServer;
 using HttpServer.Headers;
-using HttpListener = HttpServer.HttpListener;
-using System.Net;
 using HttpServer.Messages;
-using System.IO;
+using HttpListener = HttpServer.HttpListener;
 
 namespace FAP.Network.Server
 {
-    public enum RequestType { FAP, HTTP };
+    public enum RequestType
+    {
+        FAP,
+        HTTP
+    } ;
+
     public class NodeServer
     {
-        private HttpListener listener;
+        #region Delegates
 
         public delegate bool Request(RequestType type, RequestEventArgs arg);
+
+        #endregion
+
+        private HttpListener listener;
+
         public event Request OnRequest;
 
-        
-
-        public NodeServer()
-        {
-           
-        }
-
-        
 
         public void Start(IPAddress a, int port)
         {
             listener = HttpListener.Create(a, port);
-            listener.RequestReceived+=new EventHandler<RequestEventArgs>(listener_RequestReceived);
+            listener.RequestReceived += listener_RequestReceived;
             listener.Start(1000);
         }
 
@@ -61,7 +63,9 @@ namespace FAP.Network.Server
             e.IsHandled = true;
             e.Response.Reason = string.Empty;
             string userAgent = string.Empty;
-            var uahead = e.Request.Headers.Where(h => string.Equals("User-Agent", h.Name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            IHeader uahead =
+                e.Request.Headers.Where(h => string.Equals("User-Agent", h.Name, StringComparison.OrdinalIgnoreCase)).
+                    FirstOrDefault();
             if (null != uahead)
                 userAgent = uahead.HeaderValue;
 
@@ -75,7 +79,7 @@ namespace FAP.Network.Server
                 return;
             e.Response.Reason = "Handler error";
             e.Response.Status = HttpStatusCode.InternalServerError;
-            ResponseWriter generator = new ResponseWriter();
+            var generator = new ResponseWriter();
             generator.SendHeaders(e.Context, e.Response);
         }
     }

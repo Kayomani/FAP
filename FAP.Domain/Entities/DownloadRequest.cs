@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,29 +14,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Serialization;
 using System.IO;
+using System.Xml.Serialization;
 using Newtonsoft.Json;
-using FAP.Domain.Entities.FileSystem;
 
 namespace FAP.Domain.Entities
 {
     public class DownloadRequest : BaseEntity
     {
+        private DateTime added;
         private string clientid;
+        private bool isFolder;
+        private string localPath;
+        private int nextTryTime;
         private string nickname;
         private string path;
         private long size;
-        private DateTime added;
-        private bool isFolder;
-        private int nextTryTime;
         private DownloadRequestState state;
-        private string localPath;
 
         public string LocalPath
         {
@@ -44,10 +43,7 @@ namespace FAP.Domain.Entities
                 localPath = value;
                 NotifyChange("LocalPath");
             }
-            get
-            {
-                return localPath;
-            }
+            get { return localPath; }
         }
 
         public long Size
@@ -57,10 +53,7 @@ namespace FAP.Domain.Entities
                 size = value;
                 NotifyChange("Size");
             }
-            get
-            {
-                return size;
-            }
+            get { return size; }
         }
 
         [XmlIgnore]
@@ -72,10 +65,7 @@ namespace FAP.Domain.Entities
                 state = value;
                 NotifyChange("State");
             }
-            get
-            {
-                return state;
-            }
+            get { return state; }
         }
 
         [XmlIgnore]
@@ -87,10 +77,7 @@ namespace FAP.Domain.Entities
                 nextTryTime = value;
                 NotifyChange("NextTryTime");
             }
-            get
-            {
-                return nextTryTime;
-            }
+            get { return nextTryTime; }
         }
 
         public bool IsFolder
@@ -100,10 +87,7 @@ namespace FAP.Domain.Entities
                 isFolder = value;
                 NotifyChange("IsFolder");
             }
-            get
-            {
-                return isFolder;
-            }
+            get { return isFolder; }
         }
 
         public string ClientID
@@ -113,10 +97,7 @@ namespace FAP.Domain.Entities
                 clientid = value;
                 NotifyChange("ClientID");
             }
-            get
-            {
-                return clientid;
-            }
+            get { return clientid; }
         }
 
         public string Nickname
@@ -126,10 +107,7 @@ namespace FAP.Domain.Entities
                 nickname = value;
                 NotifyChange("Nickname");
             }
-            get
-            {
-                return nickname;
-            }
+            get { return nickname; }
         }
 
         public string FullPath
@@ -141,10 +119,7 @@ namespace FAP.Domain.Entities
                 NotifyChange("FolderPath");
                 NotifyChange("FileName");
             }
-            get
-            {
-                return path;
-            }
+            get { return path; }
         }
 
         [XmlIgnore]
@@ -158,7 +133,7 @@ namespace FAP.Domain.Entities
                 int length = FileName.Length;
                 if (length == FullPath.Length)
                     return string.Empty;
-                if (FullPath.Length > length+1)
+                if (FullPath.Length > length + 1)
                 {
                     return path.Substring(0, path.Length - (length + 1));
                 }
@@ -185,10 +160,7 @@ namespace FAP.Domain.Entities
                 added = value;
                 NotifyChange("Added");
             }
-            get
-            {
-                return added;
-            }
+            get { return added; }
         }
     }
 }

@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
 using System.Text;
 using Fap.Foundation;
-using System.Collections.ObjectModel;
 using Newtonsoft.Json;
 
 namespace FAP.Domain.Entities.FileSystem
 {
-    public class BrowsingFile: BaseEntity
+    public class BrowsingFile : BaseEntity
     {
+        private bool populated;
         private ObservableCollection<BrowsingFile> subItems = new ObservableCollection<BrowsingFile>();
         private BrowsingFile temp;
 
@@ -20,17 +19,6 @@ namespace FAP.Domain.Entities.FileSystem
         }
 
 
-        public void AddItem(BrowsingFile ent)
-        {
-            subItems.Add(ent);
-        }
-
-        public void ClearItems()
-        {
-            if (subItems.Count > 0)
-                subItems.Clear();
-        }
-
         [JsonIgnore]
         public FilteredObservableCollection<BrowsingFile> Folders
         {
@@ -38,16 +26,14 @@ namespace FAP.Domain.Entities.FileSystem
             {
                 if (!IsPopulated && subItems.Count == 0)
                 {
-                    temp = new BrowsingFile() { IsFolder = true };
+                    temp = new BrowsingFile {IsFolder = true};
                     subItems.Add(temp);
                 }
-                FilteredObservableCollection<BrowsingFile> lcv = new FilteredObservableCollection<BrowsingFile>(subItems);
-                lcv.Filter = i => ((BrowsingFile)i).IsFolder;
+                var lcv = new FilteredObservableCollection<BrowsingFile>(subItems);
+                lcv.Filter = i => (i).IsFolder;
                 return lcv;
             }
         }
-
-        private bool populated;
 
         public bool IsPopulated
         {
@@ -62,6 +48,7 @@ namespace FAP.Domain.Entities.FileSystem
             }
             get { return populated; }
         }
+
         public bool IsFolder { set; get; }
         public string Name { set; get; }
         public long Size { set; get; }
@@ -82,7 +69,7 @@ namespace FAP.Domain.Entities.FileSystem
         {
             get
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 if (!string.IsNullOrEmpty(Path))
                 {
                     sb.Append(Path);
@@ -107,6 +94,17 @@ namespace FAP.Domain.Entities.FileSystem
         }
 
         public string Path { set; get; }
+
+        public void AddItem(BrowsingFile ent)
+        {
+            subItems.Add(ent);
+        }
+
+        public void ClearItems()
+        {
+            if (subItems.Count > 0)
+                subItems.Clear();
+        }
 
         public override string ToString()
         {

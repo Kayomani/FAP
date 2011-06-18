@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FAP.Network.Entities;
+﻿using FAP.Network.Entities;
 
 namespace FAP.Domain.Verbs
 {
     public class AddDownload : BaseVerb, IVerb
     {
+        public string URL { set; get; }
+
+        #region IVerb Members
+
         public NetworkRequest CreateRequest()
         {
-            NetworkRequest req = new NetworkRequest();
+            var req = new NetworkRequest();
             req.Verb = "ADDDOWNLOAD";
             req.Param = URL;
             return req;
@@ -27,6 +27,6 @@ namespace FAP.Domain.Verbs
             return true;
         }
 
-        public string URL { set; get; }
+        #endregion
     }
 }

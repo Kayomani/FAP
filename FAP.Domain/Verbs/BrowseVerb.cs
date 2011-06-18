@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FAP.Network.Entities;
-using FAP.Domain.Entities.FileSystem;
-using FAP.Domain.Entities;
-using FAP.Domain.Services;
 using System.IO;
+using System.Linq;
+using FAP.Domain.Entities;
+using FAP.Domain.Entities.FileSystem;
+using FAP.Domain.Services;
+using FAP.Network.Entities;
+using Directory = FAP.Domain.Entities.FileSystem.Directory;
+using File = FAP.Domain.Entities.FileSystem.File;
 
 namespace FAP.Domain.Verbs
 {
     public class BrowseVerb : BaseVerb, IVerb
     {
-        private ShareInfoService infoService;
-        private Model model;
-
-        public bool NoCache { set; get; }
-        public string Path { set; get; }
+        private readonly ShareInfoService infoService;
+        private readonly Model model;
 
         public BrowseVerb(Model m, ShareInfoService i)
         {
@@ -25,50 +23,55 @@ namespace FAP.Domain.Verbs
             Results = new List<BrowsingFile>();
         }
 
+        public bool NoCache { set; get; }
+        public string Path { set; get; }
+
 
         public List<BrowsingFile> Results { set; get; }
 
+        #region IVerb Members
 
         public NetworkRequest CreateRequest()
         {
-            NetworkRequest req = new NetworkRequest();
+            var req = new NetworkRequest();
             req.Verb = "BROWSE";
-            req.Data = Serialize<BrowseVerb>(this);
+            req.Data = Serialize(this);
             return req;
         }
 
         public NetworkRequest ProcessRequest(NetworkRequest r)
         {
-            BrowseVerb verb = Deserialise<BrowseVerb>(r.Data);
+            var verb = Deserialise<BrowseVerb>(r.Data);
 
             if (string.IsNullOrEmpty(verb.Path))
             {
                 //If we are given no path then provide a list of virtual directories
                 lock (model.Shares)
                 {
-                    List<string> sent = new List<string>();
+                    var sent = new List<string>();
 
                     var shares = from s in model.Shares
                                  orderby s.Name
-                                 group s by s.Name into g
-                                 select new {
-                                     Name = g.Key, 
-                                     Size = g.Sum(s=>s.Size),
-                                     LastModified = g.Count()>1?DateTime.Now:g.First().LastRefresh
-                                 };
+                                 group s by s.Name
+                                 into g
+                                 select new
+                                            {
+                                                Name = g.Key,
+                                                Size = g.Sum(s => s.Size),
+                                                LastModified = g.Count() > 1 ? DateTime.Now : g.First().LastRefresh
+                                            };
 
 
                     foreach (var share in shares)
                     {
-                       
-                            Results.Add(new BrowsingFile()
-                                       {
-                                           IsFolder = true,
-                                           Name = share.Name,
-                                           Size = share.Size,
-                                           LastModified = share.LastModified
-                                       });
-                            sent.Add(share.Name);
+                        Results.Add(new BrowsingFile
+                                        {
+                                            IsFolder = true,
+                                            Name = share.Name,
+                                            Size = share.Size,
+                                            LastModified = share.LastModified
+                                        });
+                        sent.Add(share.Name);
                     }
                 }
             }
@@ -81,30 +84,30 @@ namespace FAP.Domain.Verbs
                     if (infoService.ToLocalPath(verb.Path, out posiblePaths))
                     {
                         bool isVirtual = false;
-                        var scanInfo = infoService.GetPath(verb.Path, out isVirtual);
+                        Directory scanInfo = infoService.GetPath(verb.Path, out isVirtual);
 
                         if (null != scanInfo && !verb.NoCache)
                         {
-                            foreach (var dir in scanInfo.SubDirectories)
+                            foreach (Directory dir in scanInfo.SubDirectories)
                             {
-                                Results.Add(new BrowsingFile()
-                                {
-                                    IsFolder = true,
-                                    Size = dir.Size,
-                                    Name = dir.Name,
-                                    LastModified = DateTime.FromFileTime(dir.LastModified)
-                                });
+                                Results.Add(new BrowsingFile
+                                                {
+                                                    IsFolder = true,
+                                                    Size = dir.Size,
+                                                    Name = dir.Name,
+                                                    LastModified = DateTime.FromFileTime(dir.LastModified)
+                                                });
                             }
 
-                            foreach (var file in scanInfo.Files)
+                            foreach (File file in scanInfo.Files)
                             {
-                                Results.Add(new BrowsingFile()
-                                            {
-                                                IsFolder = false,
-                                                Size = file.Size,
-                                                Name = file.Name,
-                                                LastModified = DateTime.FromFileTime(file.LastModified)
-                                            });
+                                Results.Add(new BrowsingFile
+                                                {
+                                                    IsFolder = false,
+                                                    Size = file.Size,
+                                                    Name = file.Name,
+                                                    LastModified = DateTime.FromFileTime(file.LastModified)
+                                                });
                             }
 
                             if (isVirtual)
@@ -115,15 +118,15 @@ namespace FAP.Domain.Verbs
                         }
                         else
                         {
-                            foreach (var posiblePath in posiblePaths)
+                            foreach (string posiblePath in posiblePaths)
                             {
-                                var fsPath = posiblePath.Replace('/', '\\');
+                                string fsPath = posiblePath.Replace('/', '\\');
                                 var directory = new DirectoryInfo(fsPath);
                                 DirectoryInfo[] directories = directory.GetDirectories();
                                 //Get directories
-                                foreach (var dir in directories)
+                                foreach (DirectoryInfo dir in directories)
                                 {
-                                    Results.Add(new BrowsingFile()
+                                    Results.Add(new BrowsingFile
                                                     {
                                                         IsFolder = true,
                                                         Size = 0,
@@ -133,9 +136,9 @@ namespace FAP.Domain.Verbs
                                 }
                                 //Get files
                                 FileInfo[] files = directory.GetFiles();
-                                foreach (var file in files)
+                                foreach (FileInfo file in files)
                                 {
-                                    Results.Add(new BrowsingFile()
+                                    Results.Add(new BrowsingFile
                                                     {
                                                         IsFolder = false,
                                                         Size = file.Length,
@@ -147,10 +150,12 @@ namespace FAP.Domain.Verbs
                         }
                     }
                 }
-                catch { }
+                catch
+                {
+                }
             }
 
-            r.Data = Serialize<BrowseVerb>(this);
+            r.Data = Serialize(this);
             return r;
         }
 
@@ -159,7 +164,7 @@ namespace FAP.Domain.Verbs
         {
             try
             {
-                BrowseVerb verb = Deserialise<BrowseVerb>(r.Data);
+                var verb = Deserialise<BrowseVerb>(r.Data);
                 NoCache = verb.NoCache;
                 Path = verb.Path;
                 Results = verb.Results;
@@ -170,5 +175,7 @@ namespace FAP.Domain.Verbs
             }
             return false;
         }
+
+        #endregion
     }
 }

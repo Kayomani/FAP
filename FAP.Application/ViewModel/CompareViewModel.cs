@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,30 +14,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using System.Waf.Applications;
-using FAP.Application.Views;
 using System.Windows.Input;
-using Fap.Foundation;
+using FAP.Application.Views;
 using FAP.Domain.Entities;
+using Fap.Foundation;
 
 namespace FAP.Application.ViewModels
 {
     public class CompareViewModel : ViewModel<ICompareView>
     {
-        private ICommand run;
-        private string status;
         private SafeObservable<CompareNode> data;
         private bool enableStart = true;
+        private ICommand run;
+        private string status;
 
         public CompareViewModel(ICompareView view)
             : base(view)
         {
-
         }
 
         public bool EnableRun

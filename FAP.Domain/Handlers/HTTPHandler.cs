@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,20 +14,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using HttpServer;
-using FAP.Domain.Services;
-using FAP.Domain.Entities;
-using System.Net;
-using HttpServer.Messages;
-using HttpServer.Headers;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Reflection;
+using System.Text;
+using FAP.Domain.Entities;
+using FAP.Domain.Services;
 using Fap.Foundation;
+using HttpServer;
+using HttpServer.Headers;
+using HttpServer.Messages;
+using Directory = FAP.Domain.Entities.FileSystem.Directory;
 
 namespace FAP.Domain.Handlers
 {
@@ -35,17 +41,17 @@ namespace FAP.Domain.Handlers
         private const string WEB_PREFIX = "/Fap.app.web/";
         private const string WEB_ICON_PREFIX = "/Fap.app.web/icon/";
 
-        private ShareInfoService infoService;
-        private Model model;
-        private BufferService bufferService;
-        private ServerUploadLimiterService uploadLimiter;
+        private readonly BufferService bufferService;
 
-        private Dictionary<string, ContentTypeHeader> contentTypes =
-           new Dictionary<string, ContentTypeHeader>();
+        private readonly Dictionary<string, ContentTypeHeader> contentTypes =
+            new Dictionary<string, ContentTypeHeader>();
 
         //Icon cache
-        private Dictionary<string, byte[]> iconCache = new Dictionary<string, byte[]>();
-        private object sync = new object();
+        private readonly Dictionary<string, byte[]> iconCache = new Dictionary<string, byte[]>();
+        private readonly ShareInfoService infoService;
+        private readonly Model model;
+        private readonly object sync = new object();
+        private readonly ServerUploadLimiterService uploadLimiter;
 
         public HTTPHandler(ShareInfoService i, Model m, BufferService b, ServerUploadLimiterService u)
         {
@@ -86,22 +92,19 @@ namespace FAP.Domain.Handlers
                         }
                         else
                         {
-
-
-                            var icon = IconReader.GetFileIcon("file." + ext, IconReader.IconSize.Small, false);
-                            using (MemoryStream mem = new MemoryStream())
+                            Icon icon = IconReader.GetFileIcon("file." + ext, IconReader.IconSize.Small, false);
+                            using (var mem = new MemoryStream())
                             {
-                                using (var bmp = icon.ToBitmap())
+                                using (Bitmap bmp = icon.ToBitmap())
                                 {
                                     bmp.MakeTransparent();
-                                    bmp.Save(mem, System.Drawing.Imaging.ImageFormat.Png);
+                                    bmp.Save(mem, ImageFormat.Png);
                                     data = mem.ToArray();
                                     iconCache.Add(ext, data);
                                     e.Response.ContentType = contentTypes["png"];
                                 }
                             }
                         }
-
                     }
                 }
             }
@@ -125,7 +128,7 @@ namespace FAP.Domain.Handlers
                 bool validPath = false;
 
                 string page = Encoding.UTF8.GetString(GetResource("template.html"));
-                Dictionary<string, object> pagedata = new Dictionary<string, object>();
+                var pagedata = new Dictionary<string, object>();
 
                 pagedata.Add("model", model);
                 pagedata.Add("appver", Model.AppVersion);
@@ -133,7 +136,7 @@ namespace FAP.Domain.Handlers
                 pagedata.Add("uploadslots", model.MaxUploads);
                 int freeslots = model.MaxUploads - uploadLimiter.GetActiveTokenCount();
                 pagedata.Add("currentuploadslots", freeslots);
-                pagedata.Add("queueInfo",  freeslots > 0 ? "" : "  Queue length: " + uploadLimiter.GetQueueLength() + ".");
+                pagedata.Add("queueInfo", freeslots > 0 ? "" : "  Queue length: " + uploadLimiter.GetQueueLength() + ".");
                 pagedata.Add("slotcolour", freeslots > 0 ? "green" : "red");
 
                 pagedata.Add("util", new Utility());
@@ -144,19 +147,19 @@ namespace FAP.Domain.Handlers
                     pagedata.Add("path", (path).Replace("#", "%23"));
 
                 //Add path info
-                List<Dictionary<string, object>> paths = new List<Dictionary<string, object>>();
+                var paths = new List<Dictionary<string, object>>();
 
-                string[] split = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] split = path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < split.Length; i++)
                 {
-                    StringBuilder sb = new StringBuilder("/");
+                    var sb = new StringBuilder("/");
                     for (int y = 0; y <= i; y++)
                     {
                         sb.Append(split[y]);
                         sb.Append("/");
                     }
 
-                    Dictionary<string, object> di = new Dictionary<string, object>();
+                    var di = new Dictionary<string, object>();
                     di.Add("Name", split[i]);
                     di.Add("Path", sb.ToString());
                     paths.Add(di);
@@ -178,7 +181,7 @@ namespace FAP.Domain.Handlers
                  }
 
                  pagedata.Add("peers", peers);*/
-                List<Dictionary<string, object>> files = new List<Dictionary<string, object>>();
+                var files = new List<Dictionary<string, object>>();
                 long totalSize = 0;
 
                 if (string.IsNullOrEmpty(path) || path == "/")
@@ -186,22 +189,23 @@ namespace FAP.Domain.Handlers
                     validPath = true;
                     //At the root - Send a list of shares
 
-                    FAP.Domain.Entities.FileSystem.Directory root = new FAP.Domain.Entities.FileSystem.Directory();
+                    var root = new Directory();
 
 
                     var shares = from s in model.Shares
                                  orderby s.Name
-                                 group s by s.Name into g
+                                 group s by s.Name
+                                 into g
                                  select new
-                                 {
-                                     Name = g.Key,
-                                     Size = g.Sum(s => s.Size),
-                                     LastModified = g.Count() > 1 ? DateTime.Now : g.First().LastRefresh
-                                 };
+                                            {
+                                                Name = g.Key,
+                                                Size = g.Sum(s => s.Size),
+                                                LastModified = g.Count() > 1 ? DateTime.Now : g.First().LastRefresh
+                                            };
 
                     foreach (var share in shares)
                     {
-                        Dictionary<string, object> d = new Dictionary<string, object>();
+                        var d = new Dictionary<string, object>();
                         d.Add("Name", share.Name);
                         d.Add("Path", Utility.EncodeURL(share.Name));
                         d.Add("Icon", "folder");
@@ -212,7 +216,6 @@ namespace FAP.Domain.Handlers
                         files.Add(d);
                         totalSize += share.Size;
                     }
-
                 }
                 else
                 {
@@ -220,18 +223,18 @@ namespace FAP.Domain.Handlers
 
                     if (infoService.ToLocalPath(path, out possiblePaths))
                         //User has requested a file
-                        foreach (var possiblePath in possiblePaths)
+                        foreach (string possiblePath in possiblePaths)
                             if (File.Exists(possiblePath))
                                 return SendFile(e, possiblePath, path);
 
 
                     bool isVirtual = false;
-                    var fileInfo = infoService.GetPath(path, out isVirtual);
+                    Directory fileInfo = infoService.GetPath(path, out isVirtual);
 
                     if (null != fileInfo)
                     {
                         validPath = true;
-                        foreach (var dir in fileInfo.SubDirectories.ToList())
+                        foreach (Directory dir in fileInfo.SubDirectories.ToList())
                         {
                             var d = new Dictionary<string, object>
                                         {
@@ -250,7 +253,7 @@ namespace FAP.Domain.Handlers
                             totalSize += dir.Size;
                         }
 
-                        foreach (var file in fileInfo.Files.ToList())
+                        foreach (Entities.FileSystem.File file in fileInfo.Files.ToList())
                         {
                             var d = new Dictionary<string, object> {{"Name", file.Name}};
                             string ext = Path.GetExtension(file.Name);
@@ -289,11 +292,11 @@ namespace FAP.Domain.Handlers
                 }
 
                 //Clear up
-                foreach (var item in pagedata.Values)
+                foreach (object item in pagedata.Values)
                 {
                     if (item is Dictionary<string, object>)
                     {
-                        Dictionary<string, object> i = item as Dictionary<string, object>;
+                        var i = item as Dictionary<string, object>;
                         i.Clear();
                     }
                 }
@@ -304,7 +307,7 @@ namespace FAP.Domain.Handlers
             {
                 data = Encoding.UTF8.GetBytes("404 Not found");
             }
-            ResponseWriter generator = new ResponseWriter();
+            var generator = new ResponseWriter();
             e.Response.ContentLength.Value = data.Length;
             generator.SendHeaders(e.Context, e.Response);
             e.Context.Stream.Write(data, 0, data.Length);
@@ -338,19 +341,20 @@ namespace FAP.Domain.Handlers
 
 
                     // Allow for file systems with subsecond time stamps
-                    modified = new DateTime(modified.Year, modified.Month, modified.Day, modified.Hour, modified.Minute, modified.Second, modified.Kind);
+                    modified = new DateTime(modified.Year, modified.Month, modified.Day, modified.Hour, modified.Minute,
+                                            modified.Second, modified.Kind);
                     if (since >= modified)
                     {
                         e.Response.Status = HttpStatusCode.NotModified;
 
-                        ResponseWriter generator = new ResponseWriter();
+                        var generator = new ResponseWriter();
                         e.Response.ContentLength.Value = 0;
                         generator.SendHeaders(e.Context, e.Response);
                         return true;
                     }
                 }
 
-                using (FileStream fs = new FileStream(path, FileMode.Open,FileAccess.Read,FileShare.Read))
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     e.Response.Add(new DateHeader("Last-Modified", modified));
                     // Send response and tell server to do nothing more with the request.
@@ -373,7 +377,7 @@ namespace FAP.Domain.Handlers
         /// <param name="stream">File stream</param>
         private void SendFile(IHttpContext context, Stream stream, string url)
         {
-            HTTPFileUploader worker = new HTTPFileUploader(bufferService, uploadLimiter);
+            var worker = new HTTPFileUploader(bufferService, uploadLimiter);
             TransferSession session = null;
             try
             {
@@ -385,15 +389,17 @@ namespace FAP.Domain.Handlers
 
                 //Try to find the username of the request
                 string userName = context.RemoteEndPoint.Address.ToString();
-                var search = model.Network.Nodes.ToList().Where(n => n.NodeType != ClientType.Overlord && n.Host == userName).FirstOrDefault();
+                Node search =
+                    model.Network.Nodes.ToList().Where(n => n.NodeType != ClientType.Overlord && n.Host == userName).
+                        FirstOrDefault();
                 if (null != search && !string.IsNullOrEmpty(search.Nickname))
                     userName = search.Nickname;
-                
+
                 worker.DoUpload(context, stream, userName, url);
 
                 //Add log of the upload
-                double seconds = (DateTime.Now-worker.TransferStart).TotalSeconds;
-                TransferLog txlog = new TransferLog();
+                double seconds = (DateTime.Now - worker.TransferStart).TotalSeconds;
+                var txlog = new TransferLog();
                 txlog.Nickname = userName;
                 txlog.Completed = DateTime.Now;
                 txlog.Filename = Path.GetFileName(url);
@@ -405,30 +411,29 @@ namespace FAP.Domain.Handlers
                         txlog.Path = txlog.Path.Substring(1);
                 }
 
-                txlog.Size = worker.Length-worker.ResumePoint;
+                txlog.Size = worker.Length - worker.ResumePoint;
                 if (txlog.Size < 0)
                     txlog.Size = 0;
                 if (0 != seconds)
-                    txlog.Speed = (int)(txlog.Size / seconds);
+                    txlog.Speed = (int) (txlog.Size/seconds);
                 model.CompletedUploads.Add(txlog);
             }
             finally
             {
-                if(null!=session)
+                if (null != session)
                     model.TransferSessions.Remove(session);
             }
         }
 
         private string getParentDir(string path)
         {
-            if(string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path))
                 return "/";
             path = path.Substring(0, path.LastIndexOf('/'));
             if (string.IsNullOrEmpty(path))
                 return "/";
             return path;
         }
-
 
 
         public void AddDefaultMimeTypes()
@@ -470,15 +475,17 @@ namespace FAP.Domain.Handlers
 
         public byte[] GetResource(string name)
         {
-           string path = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+            string path = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
 
             try
             {
-                using (FileStream stream = File.Open(path + "\\Web.Resources\\" + name, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (
+                    FileStream stream = File.Open(path + "\\Web.Resources\\" + name, FileMode.Open, FileAccess.Read,
+                                                  FileShare.Read))
                 {
-                    byte[] buffer = new byte[stream.Length];
-                     stream.Read(buffer, 0, buffer.Length);
-                     return buffer;
+                    var buffer = new byte[stream.Length];
+                    stream.Read(buffer, 0, buffer.Length);
+                    return buffer;
                 }
             }
             catch

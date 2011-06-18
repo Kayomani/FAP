@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Fap.Foundation;
-using FAP.Domain.Entities;
 using System.Threading;
+using FAP.Domain.Entities;
+using Fap.Foundation;
 using FAP.Network.Entities;
 
 namespace FAP.Domain.Net
@@ -15,28 +12,29 @@ namespace FAP.Domain.Net
     public class Uplink
     {
         //On uplink disconnection
-        public delegate void Disconnect(Uplink s);
-        public event Disconnect OnDisconnect;
 
-        private bool running = true;
+        #region Delegates
+
+        public delegate void Disconnect(Uplink s);
+
+        #endregion
+
+        private readonly Node destination;
 
         // --------------------- TX ---------------------
-        private BackgroundSafeObservable<NetworkRequest> pendingRequests = new BackgroundSafeObservable<NetworkRequest>();
-        private Node source;
-        private Node destination;
-       
+        private readonly BackgroundSafeObservable<NetworkRequest> pendingRequests =
+            new BackgroundSafeObservable<NetworkRequest>();
+
+        private readonly Node source;
+
         //Worker stuff
-        private AutoResetEvent workerEvent = new AutoResetEvent(true);
+        private readonly AutoResetEvent workerEvent = new AutoResetEvent(true);
+        private bool running = true;
 
         public Uplink(Node source, Node destination)
         {
             this.source = source;
             this.destination = destination;
-        }
-
-        public void Start()
-        {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(Process));
         }
 
         public bool Running
@@ -57,6 +55,13 @@ namespace FAP.Domain.Net
         public int PendingRequests
         {
             get { return pendingRequests.Count; }
+        }
+
+        public event Disconnect OnDisconnect;
+
+        public void Start()
+        {
+            ThreadPool.QueueUserWorkItem(Process);
         }
 
         public void RecieveCommand()
@@ -86,11 +91,11 @@ namespace FAP.Domain.Net
                 {
                     while (pendingRequests.Count > 0)
                     {
-                        var req =pendingRequests[0];
+                        NetworkRequest req = pendingRequests[0];
                         pendingRequests.RemoveAt(0);
 
                         destination.LastUpdate = Environment.TickCount;
-                        Client c = new Client(source);
+                        var c = new Client(source);
                         if (!c.Execute(req, destination))
                         {
                             //Error
@@ -103,8 +108,8 @@ namespace FAP.Domain.Net
                     if ((Environment.TickCount - destination.LastUpdate) > Model.UPLINK_TIMEOUT)
                     {
                         //We havent recently sent/recieved so went a noop so check we are still connected.
-                        NetworkRequest req = new NetworkRequest() { Verb = "NOOP", SourceID = source.ID, AuthKey = destination.Secret };
-                        Client client = new Client(source);
+                        var req = new NetworkRequest {Verb = "NOOP", SourceID = source.ID, AuthKey = destination.Secret};
+                        var client = new Client(source);
                         if (!client.Execute(req, destination, 4000))
                         {
                             //Error
@@ -117,7 +122,9 @@ namespace FAP.Domain.Net
                     workerEvent.WaitOne(5000);
                 }
             }
-            catch { }
+            catch
+            {
+            }
             finally
             {
                 if (null != OnDisconnect)

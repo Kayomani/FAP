@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,38 +14,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace FAP.Domain.Entities
 {
     public class CompareNode : Node
     {
-        private long ParseString(string s)
-        {
-            long d = 0;
-            long.TryParse(s, out d);
-            return d;
-        }
-
-        public long GetSystemScore()
-        {
-            long total = 0;
-            total += CPUSpeed * CPUThreads;
-            total += CPUBits * 50;
-            total += (long)((RAMSize / 1000000) * 1.25);
-            total += (GPUCount * 1000);
-            total += GPUTotalMemory / 2000000;
-            total += ((DisplayTotalWidth * DisplayTotalHeight) / 10000);
-            total += (long)((HDDFree / 1000000000) * 0.75);
-            total += ((HDDSize - HDDFree) / 1000000000);
-            return total;
-        }
-
-
         public string Status
         {
             get { return data.SafeGet("Status"); }
@@ -296,6 +274,27 @@ namespace FAP.Domain.Entities
                 LastUpdate = Environment.TickCount;
                 NotifyChange("Score");
             }
+        }
+
+        private long ParseString(string s)
+        {
+            long d = 0;
+            long.TryParse(s, out d);
+            return d;
+        }
+
+        public long GetSystemScore()
+        {
+            long total = 0;
+            total += CPUSpeed*CPUThreads;
+            total += CPUBits*50;
+            total += (long) ((RAMSize/1000000)*1.25);
+            total += (GPUCount*1000);
+            total += GPUTotalMemory/2000000;
+            total += ((DisplayTotalWidth*DisplayTotalHeight)/10000);
+            total += (long) ((HDDFree/1000000000)*0.75);
+            total += ((HDDSize - HDDFree)/1000000000);
+            return total;
         }
     }
 }

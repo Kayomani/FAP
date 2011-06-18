@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FAP.Domain.Entities;
+﻿using System.Net;
 using System.Threading;
-using System.Net;
+using FAP.Domain.Entities;
 
 namespace FAP.Domain.Services
 {
     public class UpdateCheckerService
     {
-        private Model model;
+        private readonly Model model;
 
         public UpdateCheckerService(Model m)
         {
@@ -19,18 +15,20 @@ namespace FAP.Domain.Services
 
         public void Run()
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(doCheck));
+            ThreadPool.QueueUserWorkItem(doCheck);
         }
 
         private void doCheck(object o)
         {
             try
             {
-                WebClient client = new WebClient();
-                string message = client.DownloadString("http://iownallyourbase.com/fap/updates.php?i=" + model.LocalNode.ID + "&v=" + Model.AppVersion);
+                var client = new WebClient();
+                string message =
+                    client.DownloadString("http://iownallyourbase.com/fap/updates.php?i=" + model.LocalNode.ID + "&v=" +
+                                          Model.AppVersion);
                 if (null != message)
                 {
-                    foreach(var split in message.Split('\n'))
+                    foreach (string split in message.Split('\n'))
                         model.Messages.Add(split);
                 }
             }

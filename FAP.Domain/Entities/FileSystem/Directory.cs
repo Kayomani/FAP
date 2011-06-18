@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,15 +14,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
-using System.Xml.Serialization;
+using System.Text;
 using FAP.Domain.Services;
-using Newtonsoft.Json;
 using ProtoBuf;
 
 namespace FAP.Domain.Entities.FileSystem
@@ -30,17 +30,24 @@ namespace FAP.Domain.Entities.FileSystem
     [ProtoContract]
     public class Directory : File
     {
+        public Directory()
+        {
+            SubDirectories = new List<Directory>();
+            Files = new List<File>();
+        }
+
         [ProtoMember(1)]
         public long ItemCount { set; get; }
+
         [ProtoMember(2)]
         public List<Directory> SubDirectories { set; get; }
+
         [ProtoMember(3)]
         public List<File> Files { set; get; }
-        public Directory() { SubDirectories = new List<Directory>(); Files = new List<File>(); }
 
         public void Clean()
         {
-            foreach (var dir in SubDirectories)
+            foreach (Directory dir in SubDirectories)
                 dir.Clean();
             SubDirectories.Clear();
             Files.Clear();
@@ -67,15 +74,20 @@ namespace FAP.Domain.Entities.FileSystem
                  textWriter.Close();
              }*/
 
-            using (Stream file = System.IO.File.Open(ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) + ".cache", FileMode.Create))
+            using (
+                Stream file =
+                    System.IO.File.Open(
+                        ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) + ".cache",
+                        FileMode.Create))
             {
-                ProtoBuf.Serializer.Serialize<Directory>(file, this);
+                Serializer.Serialize(file, this);
             }
         }
 
         public void Load(string id)
         {
-            string fileName = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) + ".cache";
+            string fileName = ShareInfoService.SaveLocation + Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) +
+                              ".cache";
             try
             {
                 //Json load
@@ -100,7 +112,7 @@ namespace FAP.Domain.Entities.FileSystem
 
                 using (Stream stream = System.IO.File.Open(fileName, FileMode.Open))
                 {
-                    Directory m = ProtoBuf.Serializer.Deserialize<Directory>(stream);
+                    var m = Serializer.Deserialize<Directory>(stream);
                     Name = m.Name;
                     Size = m.Size;
                     ItemCount = m.ItemCount;
@@ -115,7 +127,9 @@ namespace FAP.Domain.Entities.FileSystem
                 {
                     System.IO.File.Delete(fileName);
                 }
-                catch { }
+                catch
+                {
+                }
                 throw new Exception("Failed to read share info for " + Path.GetFileName(fileName), e);
             }
         }

@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,39 +14,41 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FAP.Application.ViewModels;
-using Autofac;
-using System.Waf.Applications;
-using FAP.Domain.Entities;
-using System.IO;
-using System.Drawing;
-using System.Waf.Applications.Services;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Reflection;
+using System.Waf.Applications;
+using System.Waf.Applications.Services;
+using Autofac;
+using FAP.Application.ViewModels;
+using FAP.Domain.Entities;
 
 namespace FAP.Application.Controllers
 {
-    class SettingsController
+    internal class SettingsController
     {
-        private SettingsViewModel viewModel;
+        private readonly IContainer container;
+        private readonly ApplicationCore core;
+        private readonly Model model;
         private QueryViewModel browser;
-        private ApplicationCore core;
+        private SettingsViewModel viewModel;
 
-        private IContainer container;
-        private Model model;
-
-        public SettingsViewModel ViewModel { get { return viewModel; } }
-
-        public SettingsController(IContainer c,Model m, ApplicationCore ac)
+        public SettingsController(IContainer c, Model m, ApplicationCore ac)
         {
             container = c;
             model = m;
             core = ac;
+        }
+
+        public SettingsViewModel ViewModel
+        {
+            get { return viewModel; }
         }
 
         public void Initaize()
@@ -85,22 +88,21 @@ namespace FAP.Application.Controllers
             {
                 try
                 {
-                    MemoryStream ms = new MemoryStream();
-                    FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+                    var ms = new MemoryStream();
+                    var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
                     ms.SetLength(stream.Length);
-                    stream.Read(ms.GetBuffer(), 0, (int)stream.Length);
+                    stream.Read(ms.GetBuffer(), 0, (int) stream.Length);
                     ms.Flush();
                     stream.Close();
                     //Resize
-                    Bitmap bitmap = new Bitmap(ms);
+                    var bitmap = new Bitmap(ms);
                     Image thumbnail = ResizeImage(bitmap, 100, 100);
                     ms = new MemoryStream();
-                    thumbnail.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                    thumbnail.Save(ms, ImageFormat.Png);
                     model.Avatar = Convert.ToBase64String(ms.ToArray());
                 }
                 catch
                 {
-
                 }
             }
         }
@@ -108,21 +110,21 @@ namespace FAP.Application.Controllers
         private Image ResizeImage(Bitmap FullsizeImage, int NewWidth, int MaxHeight)
         {
             // Prevent using images internal thumbnail
-            FullsizeImage.RotateFlip(System.Drawing.RotateFlipType.Rotate180FlipNone);
-            FullsizeImage.RotateFlip(System.Drawing.RotateFlipType.Rotate180FlipNone);
+            FullsizeImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
+            FullsizeImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
 
             if (FullsizeImage.Width <= NewWidth)
                 NewWidth = FullsizeImage.Width;
 
-            int NewHeight = FullsizeImage.Height * NewWidth / FullsizeImage.Width;
+            int NewHeight = FullsizeImage.Height*NewWidth/FullsizeImage.Width;
             if (NewHeight > MaxHeight)
             {
                 // Resize with height instead
-                NewWidth = FullsizeImage.Width * MaxHeight / FullsizeImage.Height;
+                NewWidth = FullsizeImage.Width*MaxHeight/FullsizeImage.Height;
                 NewHeight = MaxHeight;
             }
 
-            System.Drawing.Image NewImage = FullsizeImage.GetThumbnailImage(NewWidth, NewHeight, null, IntPtr.Zero);
+            Image NewImage = FullsizeImage.GetThumbnailImage(NewWidth, NewHeight, null, IntPtr.Zero);
             // Clear handle to original file so that we can overwrite it if necessary
             FullsizeImage.Dispose();
             // Save resized picture
@@ -134,7 +136,7 @@ namespace FAP.Application.Controllers
             model.LocalNode.Host = null;
             model.Save();
             container.Resolve<IMessageService>().ShowWarning("Interface selection reset.  FAP will now restart.");
-            Process notePad = new Process();
+            var notePad = new Process();
 
             notePad.StartInfo.FileName = Assembly.GetEntryAssembly().CodeBase;
             notePad.StartInfo.Arguments = "WAIT";

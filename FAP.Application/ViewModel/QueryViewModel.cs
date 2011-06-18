@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,23 +14,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using FAP.Application.Views;
-using Fap.Foundation;
 
 namespace FAP.Application.ViewModels
 {
     public class QueryViewModel : IQuery
     {
-        IQuery brower;
+        private readonly IQuery brower;
+
         public QueryViewModel(IQuery q)
         {
             brower = q;
         }
+
+        #region IQuery Members
 
         public bool SelectFolder(out string result)
         {
@@ -40,5 +41,7 @@ namespace FAP.Application.ViewModels
         {
             return brower.SelectFile(out result);
         }
+
+        #endregion
     }
 }

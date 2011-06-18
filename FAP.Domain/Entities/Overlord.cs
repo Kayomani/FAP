@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,11 +14,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Fap.Foundation;
 using Newtonsoft.Json;
 
@@ -25,17 +25,16 @@ namespace FAP.Domain.Entities
 {
     public class Overlord : Node
     {
+        private int maxPeers;
         private BackgroundSafeObservable<Node> peers = new BackgroundSafeObservable<Node>();
         private int strength;
-        private int maxPeers;
 
         public Overlord()
-            : base()
         {
             NodeType = ClientType.Overlord;
         }
 
-        [JsonIgnoreAttribute]
+        [JsonIgnore]
         public int Strength
         {
             set
@@ -70,7 +69,7 @@ namespace FAP.Domain.Entities
 
         public void GenerateStrength(OverlordPriority priority)
         {
-            Random r = new Random(Environment.TickCount);
+            var r = new Random(Environment.TickCount);
 
             switch (priority)
             {

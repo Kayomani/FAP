@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,27 +14,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Waf.Applications;
-using FAP.Application.Views;
 using System.Windows.Input;
-using Fap.Foundation;
+using FAP.Application.Views;
 using FAP.Domain.Entities;
+using Fap.Foundation;
 
 namespace FAP.Application.ViewModels
 {
     public class SharesViewModel : ViewModel<ISharesView>
     {
         private ICommand addCommand;
-        private ICommand renameCommand;
-        private ICommand removeCommand;
         private ICommand refreshCommand;
-        private SafeObservingCollection<Share> shares;
+        private ICommand removeCommand;
+        private ICommand renameCommand;
         private Share selectedShare;
+        private SafeObservingCollection<Share> shares;
 
         public SharesViewModel(ISharesView view)
             : base(view)
@@ -50,24 +51,24 @@ namespace FAP.Application.ViewModels
                 {
                     lock (shares)
                     {
-                        foreach (var s in shares.ToList())
+                        foreach (Share s in shares.ToList())
                         {
-                            s.PropertyChanged -= new System.ComponentModel.PropertyChangedEventHandler(s_PropertyChanged);
+                            s.PropertyChanged -= s_PropertyChanged;
                         }
                     }
-                    value.CollectionChanged -= new System.Collections.Specialized.NotifyCollectionChangedEventHandler(value_CollectionChanged);
+                    value.CollectionChanged -= value_CollectionChanged;
                 }
 
                 shares = value;
                 //Listen for changes on sub objects
                 lock (shares)
                 {
-                    foreach (var s in shares.ToList())
+                    foreach (Share s in shares.ToList())
                     {
-                        s.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(s_PropertyChanged);
+                        s.PropertyChanged += s_PropertyChanged;
                     }
                 }
-                value.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(value_CollectionChanged);
+                value.CollectionChanged += value_CollectionChanged;
                 RaisePropertyChanged("TotalShareSizeString");
                 RaisePropertyChanged("Shares");
             }
@@ -83,50 +84,6 @@ namespace FAP.Application.ViewModels
             }
         }
 
-        void value_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            switch (e.Action)
-            {
-                case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
-                    foreach (var n in e.NewItems)
-                    {
-                        ((Share)n).PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(s_PropertyChanged);
-                    }
-                    break;
-                case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
-                    foreach (var n in e.OldItems)
-                    {
-                        ((Share)n).PropertyChanged -= new System.ComponentModel.PropertyChangedEventHandler(s_PropertyChanged);
-                    }
-                    break;
-                case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
-                    foreach (var n in e.OldItems)
-                    {
-                        ((Share)n).PropertyChanged -= new System.ComponentModel.PropertyChangedEventHandler(s_PropertyChanged);
-                    }
-                    foreach (var n in e.NewItems)
-                    {
-                        ((Share)n).PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(s_PropertyChanged);
-                    }
-                    break;
-                case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
-                    if (null != e.OldItems)
-                    {
-                        foreach (var n in e.OldItems)
-                        {
-                            ((Share)n).PropertyChanged -= new System.ComponentModel.PropertyChangedEventHandler(s_PropertyChanged);
-                        }
-                    }
-                    break;
-            }
-            RaisePropertyChanged("TotalShareSizeString");
-        }
-
-        void s_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            RaisePropertyChanged("TotalShareSizeString");
-        }
-
 
         public string TotalShareSizeString
         {
@@ -135,7 +92,7 @@ namespace FAP.Application.ViewModels
                 long total = 0;
                 lock (Shares)
                 {
-                    foreach (var share in Shares.ToList())
+                    foreach (Share share in Shares.ToList())
                     {
                         total += share.Size;
                     }
@@ -163,6 +120,7 @@ namespace FAP.Application.ViewModels
                 RaisePropertyChanged("RenameCommand");
             }
         }
+
         public ICommand RemoveCommand
         {
             get { return removeCommand; }
@@ -172,6 +130,7 @@ namespace FAP.Application.ViewModels
                 RaisePropertyChanged("RemoveCommand");
             }
         }
+
         public ICommand RefreshCommand
         {
             get { return refreshCommand; }
@@ -182,5 +141,48 @@ namespace FAP.Application.ViewModels
             }
         }
 
+        private void value_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    foreach (object n in e.NewItems)
+                    {
+                        ((Share) n).PropertyChanged += s_PropertyChanged;
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Remove:
+                    foreach (object n in e.OldItems)
+                    {
+                        ((Share) n).PropertyChanged -= s_PropertyChanged;
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Replace:
+                    foreach (object n in e.OldItems)
+                    {
+                        ((Share) n).PropertyChanged -= s_PropertyChanged;
+                    }
+                    foreach (object n in e.NewItems)
+                    {
+                        ((Share) n).PropertyChanged += s_PropertyChanged;
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Reset:
+                    if (null != e.OldItems)
+                    {
+                        foreach (object n in e.OldItems)
+                        {
+                            ((Share) n).PropertyChanged -= s_PropertyChanged;
+                        }
+                    }
+                    break;
+            }
+            RaisePropertyChanged("TotalShareSizeString");
+        }
+
+        private void s_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            RaisePropertyChanged("TotalShareSizeString");
+        }
     }
 }

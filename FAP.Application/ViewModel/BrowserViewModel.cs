@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,39 +14,33 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Waf.Applications;
-using FAP.Application.Views;
-using Fap.Foundation;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.ComponentModel;
 using System.Collections.ObjectModel;
+using System.Waf.Applications;
+using System.Windows.Input;
+using FAP.Application.Views;
 using FAP.Domain.Entities.FileSystem;
 
 namespace FAP.Application.ViewModels
 {
-    public class BrowserViewModel: ViewModel<IBrowserView>
+    public class BrowserViewModel : ViewModel<IBrowserView>
     {
-
-        private ObservableCollection<BrowsingFile> root = new ObservableCollection<BrowsingFile>();
         private BrowsingFile currentItem;
         private string currentPath;
-        private string status;
         private ICommand download;
-        private ICommand refresh;
-        private List<BrowsingFile> lastSelectedEntity;
         private bool isBusy;
+        private List<BrowsingFile> lastSelectedEntity;
         private bool noCache;
+        private ICommand refresh;
+        private ObservableCollection<BrowsingFile> root = new ObservableCollection<BrowsingFile>();
+        private string status;
 
         public BrowserViewModel(IBrowserView view)
             : base(view)
         {
-
         }
 
         public bool NoCache
@@ -55,10 +50,7 @@ namespace FAP.Application.ViewModels
                 noCache = value;
                 RaisePropertyChanged("NoCache");
             }
-            get
-            {
-                return noCache;
-            }
+            get { return noCache; }
         }
 
         public bool IsBusy
@@ -68,10 +60,7 @@ namespace FAP.Application.ViewModels
                 isBusy = value;
                 RaisePropertyChanged("IsBusy");
             }
-            get
-            {
-                return isBusy;
-            }
+            get { return isBusy; }
         }
 
         public ObservableCollection<BrowsingFile> Root
@@ -81,10 +70,7 @@ namespace FAP.Application.ViewModels
                 root = value;
                 RaisePropertyChanged("Root");
             }
-            get
-            {
-                return root;
-            }
+            get { return root; }
         }
 
         public string Status
@@ -94,10 +80,7 @@ namespace FAP.Application.ViewModels
                 status = value;
                 RaisePropertyChanged("Status");
             }
-            get
-            {
-                return status;
-            }
+            get { return status; }
         }
 
         public ICommand Download
@@ -107,10 +90,7 @@ namespace FAP.Application.ViewModels
                 download = value;
                 RaisePropertyChanged("Download");
             }
-            get
-            {
-                return download;
-            }
+            get { return download; }
         }
 
         public ICommand Refresh
@@ -120,10 +100,7 @@ namespace FAP.Application.ViewModels
                 refresh = value;
                 RaisePropertyChanged("Refresh");
             }
-            get
-            {
-                return refresh;
-            }
+            get { return refresh; }
         }
 
         public List<BrowsingFile> LastSelectedEntity

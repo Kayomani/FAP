@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2010.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,47 +14,46 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
+using System.Reflection;
 using System.Waf.Applications;
-using FAP.Application.Views;
 using System.Windows.Input;
+using FAP.Application.Views;
 using FAP.Domain.Entities;
 using Fap.Foundation;
 using Microsoft.Win32;
-using System.Reflection;
 
 namespace FAP.Application.ViewModels
 {
     public class SettingsViewModel : ViewModel<ISettingsView>
     {
-        private Model model;
-        private ICommand editDownloadDir;
+        private readonly string startupRegistryPath = "SOFTWARE/Microsoft/Windows/CurrentVersion/Run";
         private ICommand changeAvatar;
-        private ICommand resetInterface;
         private ICommand displayQuickStart;
+        private ICommand editDownloadDir;
+        private Model model;
+        private ICommand resetInterface;
 
         public SettingsViewModel(ISettingsView view)
             : base(view)
         {
-
         }
 
         public ICommand ResetInterface
         {
-            get { return resetInterface;}
-            set{ resetInterface = value; RaisePropertyChanged("ResetInterface");}
+            get { return resetInterface; }
+            set
+            {
+                resetInterface = value;
+                RaisePropertyChanged("ResetInterface");
+            }
         }
 
         public ICommand EditDownloadDir
         {
-            get
-            {
-                return editDownloadDir;
-            }
+            get { return editDownloadDir; }
             set
             {
                 editDownloadDir = value;
@@ -63,10 +63,7 @@ namespace FAP.Application.ViewModels
 
         public ICommand DisplayQuickStart
         {
-            get
-            {
-                return displayQuickStart;
-            }
+            get { return displayQuickStart; }
             set
             {
                 displayQuickStart = value;
@@ -74,18 +71,15 @@ namespace FAP.Application.ViewModels
             }
         }
 
-         public ICommand ChangeAvatar
-         {
-             get
-             {
-                 return changeAvatar;
-             }
-             set
-             {
-                 changeAvatar = value;
-                 RaisePropertyChanged("ChangeAvatar");
-             }
-         }
+        public ICommand ChangeAvatar
+        {
+            get { return changeAvatar; }
+            set
+            {
+                changeAvatar = value;
+                RaisePropertyChanged("ChangeAvatar");
+            }
+        }
 
         public Model Model
         {
@@ -96,8 +90,6 @@ namespace FAP.Application.ViewModels
                 RaisePropertyChanged("Model");
             }
         }
-
-        private readonly string startupRegistryPath = "SOFTWARE/Microsoft/Windows/CurrentVersion/Run";
 
         public bool RunOnStartUp
         {
@@ -111,7 +103,8 @@ namespace FAP.Application.ViewModels
             }
             get
             {
-                return (RegistryHelper.GetRegistryData(Registry.CurrentUser, startupRegistryPath +"/FAP") == GetStartupCommand());
+                return (RegistryHelper.GetRegistryData(Registry.CurrentUser, startupRegistryPath + "/FAP") ==
+                        GetStartupCommand());
             }
         }
 

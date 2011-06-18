@@ -1,4 +1,5 @@
 ﻿#region Copyright Kayomani 2011.  Licensed under the GPLv3 (Or later version), Expand for details. Do not remove this notice.
+
 /**
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,23 +14,20 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
+
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace FAP.Domain.Entities
 {
     public class TransferSession : BaseEntity
     {
+        private readonly ITransferWorker worker;
         private bool isDownload;
-        private string user;
-        private string status;
         private int percent;
-        private long speed;
         private long size;
-        private ITransferWorker worker;
+        private long speed;
+        private string status;
+        private string user;
 
         public TransferSession(ITransferWorker worker)
         {
@@ -51,10 +49,7 @@ namespace FAP.Domain.Entities
                     NotifyChange("Size");
                 }
             }
-            get
-            {
-                return size;
-            }
+            get { return size; }
         }
 
         public long Speed
@@ -67,10 +62,7 @@ namespace FAP.Domain.Entities
                     NotifyChange("Speed");
                 }
             }
-            get
-            {
-                return speed;
-            }
+            get { return speed; }
         }
 
         public int Percent
@@ -83,10 +75,7 @@ namespace FAP.Domain.Entities
                     NotifyChange("Percent");
                 }
             }
-            get
-            {
-                return percent;
-            }
+            get { return percent; }
         }
 
         public string Status
@@ -99,10 +88,7 @@ namespace FAP.Domain.Entities
                     NotifyChange("Status");
                 }
             }
-            get
-            {
-                return status;
-            }
+            get { return status; }
         }
 
         public string User
@@ -115,10 +101,7 @@ namespace FAP.Domain.Entities
                     NotifyChange("User");
                 }
             }
-            get
-            {
-                return user;
-            }
+            get { return user; }
         }
 
         public bool IsDownload
@@ -131,10 +114,7 @@ namespace FAP.Domain.Entities
                     NotifyChange("IsDownload");
                 }
             }
-            get
-            {
-                return isDownload;
-            }
+            get { return isDownload; }
         }
     }
 }
