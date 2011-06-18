@@ -183,6 +183,7 @@ namespace FAP.Domain.Services
                         try
                         {
                             length = currentItem.Size;
+                            position = 0;
                             status = currentItem.Nickname + " - " + currentItem.FileName + " - Connecting..";
                             currentItem.State = DownloadRequestState.Downloading;
 

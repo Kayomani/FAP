@@ -297,43 +297,44 @@ namespace FAP.Domain.Services
                     foreach (string posiblePath in posiblePaths)
                     {
                         string fsPath = posiblePath.Replace('/', '\\');
-                        //Strip trailing slash
-                        if (fsPath.EndsWith("\\"))
-                            fsPath = fsPath.Substring(0, fsPath.Length - 1);
-
+                        if (!fsPath.EndsWith("\\"))
+                            fsPath += "\\";
 
                         //Check for parent folder usage.
-                        string checkedPath = Path.GetDirectoryName(fsPath);
+                        string checkedPath = Path.GetFullPath(fsPath);
                         //If the evaluated path is different then someone tried to use '..' or similar.
                         if (fsPath != checkedPath)
                             continue;
 
-
-                        var directory = new DirectoryInfo(checkedPath);
-                        DirectoryInfo[] directories = directory.GetDirectories();
-                        //Get directories
-                        foreach (DirectoryInfo dir in directories)
+                        try
                         {
-                            results.Add(new BrowsingFile
-                                            {
-                                                IsFolder = true,
-                                                Size = 0,
-                                                Name = dir.Name,
-                                                LastModified = dir.LastWriteTime
-                                            });
+                            var directory = new DirectoryInfo(checkedPath);
+                            DirectoryInfo[] directories = directory.GetDirectories();
+                            //Get directories
+                            foreach (DirectoryInfo dir in directories)
+                            {
+                                results.Add(new BrowsingFile
+                                                {
+                                                    IsFolder = true,
+                                                    Size = 0,
+                                                    Name = dir.Name,
+                                                    LastModified = dir.LastWriteTime
+                                                });
+                            }
+                            //Get files
+                            FileInfo[] files = directory.GetFiles();
+                            foreach (FileInfo file in files)
+                            {
+                                results.Add(new BrowsingFile
+                                                {
+                                                    IsFolder = false,
+                                                    Size = file.Length,
+                                                    Name = file.Name,
+                                                    LastModified = file.LastWriteTime
+                                                });
+                            }
                         }
-                        //Get files
-                        FileInfo[] files = directory.GetFiles();
-                        foreach (FileInfo file in files)
-                        {
-                            results.Add(new BrowsingFile
-                                            {
-                                                IsFolder = false,
-                                                Size = file.Length,
-                                                Name = file.Name,
-                                                LastModified = file.LastWriteTime
-                                            });
-                        }
+                        catch { }
                     }
 
                     if (posiblePaths.Length > 1)
@@ -351,7 +352,7 @@ namespace FAP.Domain.Services
                     {
                         if (browsingFile.IsFolder)
                         {
-                            var search = files.GetValue(browsingFile.Name);
+                            var search = folders.GetValue(browsingFile.Name);
                             if (search.Count == 0)
                             {
                                 //Folder not found so add it to the list.
