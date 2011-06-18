@@ -25,9 +25,9 @@ namespace FAP.Domain.Entities
 {
     public class Overlord : Node
     {
-        private int maxPeers;
-        private BackgroundSafeObservable<Node> peers = new BackgroundSafeObservable<Node>();
-        private int strength;
+        private int _maxPeers;
+        private BackgroundSafeObservable<Node> _peers = new BackgroundSafeObservable<Node>();
+        private int _strength;
 
         public Overlord()
         {
@@ -39,10 +39,10 @@ namespace FAP.Domain.Entities
         {
             set
             {
-                strength = value;
+                _strength = value;
                 NotifyChange("Strength");
             }
-            get { return strength; }
+            get { return _strength; }
         }
 
         [JsonIgnoreAttribute]
@@ -50,10 +50,10 @@ namespace FAP.Domain.Entities
         {
             set
             {
-                maxPeers = value;
+                _maxPeers = value;
                 NotifyChange("MaxPeers");
             }
-            get { return maxPeers; }
+            get { return _maxPeers; }
         }
 
         [JsonIgnoreAttribute]
@@ -61,10 +61,10 @@ namespace FAP.Domain.Entities
         {
             set
             {
-                peers = value;
+                _peers = value;
                 NotifyChange("Peers");
             }
-            get { return peers; }
+            get { return _peers; }
         }
 
         public void GenerateStrength(OverlordPriority priority)

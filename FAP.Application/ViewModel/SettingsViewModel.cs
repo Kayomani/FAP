@@ -24,10 +24,11 @@ using FAP.Application.Views;
 using FAP.Domain.Entities;
 using Fap.Foundation;
 using Microsoft.Win32;
+using System.ComponentModel;
 
 namespace FAP.Application.ViewModels
 {
-    public class SettingsViewModel : ViewModel<ISettingsView>
+    public class SettingsViewModel : ViewModel<ISettingsView>, IDataErrorInfo
     {
         private readonly string startupRegistryPath = "SOFTWARE/Microsoft/Windows/CurrentVersion/Run";
         private ICommand changeAvatar;
@@ -112,6 +113,16 @@ namespace FAP.Application.ViewModels
         {
             string location = Assembly.GetEntryAssembly().Location;
             return string.Format("\"{0}\" STARTUP", location);
+        }
+
+        public string Error
+        {
+            get { return this[null]; }
+        }
+
+        public string this[string columnName]
+        {
+            get { return model[columnName]; }
         }
     }
 }

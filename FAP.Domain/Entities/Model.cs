@@ -34,11 +34,12 @@ using Newtonsoft.Json;
 using NLog;
 using Directory = System.IO.Directory;
 using File = System.IO.File;
+using System.ComponentModel;
 
 namespace FAP.Domain.Entities
 {
     [Serializable]
-    public class Model : BaseEntity
+    public class Model : BaseEntity, IDataErrorInfo
     {
         public static readonly string AppVersion = "FAP Beta 2";
         public static readonly string ProtocolVersion = "FAP/1.0";
@@ -524,6 +525,39 @@ namespace FAP.Domain.Entities
                                                              nodeId);
                     }
                 }
+            }
+        }
+
+        public string Error
+        {
+            get { return this[null]; }
+        }
+
+        public string this[string columnName]
+        {
+            get
+            {
+                if(null==columnName || columnName == "Nickname")
+                {
+                    if (string.IsNullOrEmpty(Nickname))
+                        return "Please enter a nickname";
+                }
+                if (null == columnName || columnName == "MaxDownloads")
+                {
+                    if (MaxDownloads < 0)
+                        return "Please enter a positive number";
+                }
+                if (null == columnName || columnName == "MaxDownloadsPerUser")
+                {
+                    if (MaxDownloadsPerUser < 0)
+                        return "Please enter a positive number";
+                }
+                if (null == columnName || columnName == "MaxUploads")
+                {
+                    if (MaxUploads < 1)
+                        return "You must allow atleast one upload!";
+                }
+                return null;
             }
         }
     }

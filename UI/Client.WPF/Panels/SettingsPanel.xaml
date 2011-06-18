@@ -25,7 +25,7 @@
                 </Grid.RowDefinitions>
 
                 <Label Content="Nickname" VerticalAlignment="Center"  />
-                <TextBox MaxLength="15" Grid.Column="1" Height="23" Text="{Binding  Model.Nickname}" />
+                <TextBox MaxLength="15" Grid.Column="1" Height="23" Text="{Binding  Model.Nickname,ValidatesOnExceptions=True,ValidatesOnDataErrors=True,NotifyOnValidationError=True,UpdateSourceTrigger=PropertyChanged}" />
 
                 <Label Content="Description" Grid.Row="1" VerticalAlignment="Center" />
                 <TextBox MaxLength="15" Height="23" Grid.Row="1" Grid.Column="1" Text="{Binding  Model.Description}" />
@@ -102,12 +102,12 @@
                 </Grid.RowDefinitions>
 
                 <Label Content="Total Max downloads" VerticalAlignment="Center" />
-                <TextBox Height="23" Grid.Column="1" Text="{Binding Model.MaxDownloads}" />
+                <TextBox Height="23" Grid.Column="1" Text="{Binding Model.MaxDownloads,ValidatesOnExceptions=True,ValidatesOnDataErrors=True,NotifyOnValidationError=True,UpdateSourceTrigger=PropertyChanged}" MaxLength="4" />
                 <Label Margin="5,0,0,0" Content="Per User" Grid.Column="2" VerticalAlignment="Center" />
-                <TextBox  Height="23" Text="{Binding  Model.MaxDownloadsPerUser}" Grid.Column="3" />
+                <TextBox  Height="23" Text="{Binding  Model.MaxDownloadsPerUser,ValidatesOnExceptions=True,ValidatesOnDataErrors=True,NotifyOnValidationError=True,UpdateSourceTrigger=PropertyChanged}" Grid.Column="3" MaxLength="4" OverridesDefaultStyle="False" />
 
                 <Label Content="Total Max uploads" Grid.Row="1" VerticalAlignment="Center" />
-                <TextBox Height="23" Text="{Binding  Model.MaxUploads}" Grid.Row="1" Grid.Column="1" />
+                <TextBox Height="23" Text="{Binding  Model.MaxUploads,ValidatesOnExceptions=True,ValidatesOnDataErrors=True,NotifyOnValidationError=True,UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="1" MaxLength="4" />
 
                 <!--<Label  Visibility="Hidden" Content="Max uploads" Height="28" HorizontalAlignment="Left" Margin="22,104,0,0" VerticalAlignment="Top" />
                 <TextBox Visibility="Hidden" Height="23" HorizontalAlignment="Left" Margin="121,115,0,0" Text="{Binding  Model.MaxUploadsPerUser}" VerticalAlignment="Top" Width="60" />
