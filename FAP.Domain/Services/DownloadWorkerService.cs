@@ -140,7 +140,7 @@ namespace FAP.Domain.Services
                         position = 0;
                         status = "Downloading folder info for " + currentItem.FullPath;
                         //Item is a folder - Just get the folder items and add them to the queue.
-                        var verb = new BrowseVerb(null, null);
+                        var verb = new BrowseVerb(null);
                         verb.Path = currentItem.FullPath;
                         //Always get the latest info.
                         verb.NoCache = true;

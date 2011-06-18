@@ -490,7 +490,7 @@ namespace FAP.Domain.Entities
                 else
                 {
                     //Node found - browse to get info
-                    var verb = new BrowseVerb(null, null);
+                    var verb = new BrowseVerb(null);
                     verb.NoCache = false;
                     verb.Path = parentDir;
 

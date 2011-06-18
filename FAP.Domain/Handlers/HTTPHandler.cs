@@ -27,12 +27,14 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using FAP.Domain.Entities;
+using FAP.Domain.Entities.FileSystem;
 using FAP.Domain.Services;
 using Fap.Foundation;
 using HttpServer;
 using HttpServer.Headers;
 using HttpServer.Messages;
 using Directory = FAP.Domain.Entities.FileSystem.Directory;
+using File = System.IO.File;
 
 namespace FAP.Domain.Handlers
 {
@@ -184,101 +186,67 @@ namespace FAP.Domain.Handlers
                 var files = new List<Dictionary<string, object>>();
                 long totalSize = 0;
 
-                if (string.IsNullOrEmpty(path) || path == "/")
+
+
+
+                //Try to resolve the path to a file first
+                string[] possiblePaths;
+                if (infoService.ToLocalPath(path, out possiblePaths))
+                    //User has requested a file
+                    foreach (string possiblePath in possiblePaths)
+                        if (File.Exists(possiblePath))
+                            return SendFile(e, possiblePath, path);
+
+                //User didnt request a file so try to send directory info
+                List<BrowsingFile> results;
+                if (infoService.GetPath(path, false, true, out results))
                 {
-                    validPath = true;
-                    //At the root - Send a list of shares
 
-                    var root = new Directory();
-
-
-                    var shares = from s in model.Shares
-                                 orderby s.Name
-                                 group s by s.Name
-                                 into g
-                                 select new
-                                            {
-                                                Name = g.Key,
-                                                Size = g.Sum(s => s.Size),
-                                                LastModified = g.Count() > 1 ? DateTime.Now : g.First().LastRefresh
-                                            };
-
-                    foreach (var share in shares)
+                    foreach (var browsingFile in results)
                     {
-                        var d = new Dictionary<string, object>();
-                        d.Add("Name", share.Name);
-                        d.Add("Path", Utility.EncodeURL(share.Name));
-                        d.Add("Icon", "folder");
-                        d.Add("Size", share.Size);
-                        d.Add("Sizetxt", Utility.FormatBytes(share.Size));
-                        d.Add("LastModifiedtxt", share.LastModified.ToShortDateString());
-                        d.Add("LastModified", share.LastModified.ToFileTime());
-                        files.Add(d);
-                        totalSize += share.Size;
-                    }
-                }
-                else
-                {
-                    string[] possiblePaths;
-
-                    if (infoService.ToLocalPath(path, out possiblePaths))
-                        //User has requested a file
-                        foreach (string possiblePath in possiblePaths)
-                            if (File.Exists(possiblePath))
-                                return SendFile(e, possiblePath, path);
-
-
-                    bool isVirtual = false;
-                    Directory fileInfo = infoService.GetPath(path, out isVirtual);
-
-                    if (null != fileInfo)
-                    {
-                        validPath = true;
-                        foreach (Directory dir in fileInfo.SubDirectories.ToList())
+                        if (browsingFile.IsFolder)
                         {
                             var d = new Dictionary<string, object>
                                         {
-                                            {"Name", dir.Name},
-                                            {"Path", Utility.EncodeURL(dir.Name)},
+                                            {"Name", browsingFile.Name},
+                                            {"Path", Utility.EncodeURL(browsingFile.Name)},
                                             {"Icon", "folder"},
-                                            {"Sizetxt", Utility.FormatBytes(dir.Size)},
-                                            {"Size", dir.Size},
+                                            {"Sizetxt", Utility.FormatBytes(browsingFile.Size)},
+                                            {"Size", browsingFile.Size},
                                             {
                                                 "LastModifiedtxt",
-                                                DateTime.FromFileTime(dir.LastModified).ToShortDateString()
+                                                browsingFile.LastModified.ToShortDateString()
                                                 },
-                                            {"LastModified", dir.LastModified}
+                                            {"LastModified", browsingFile.LastModified}
                                         };
                             files.Add(d);
-                            totalSize += dir.Size;
+                            totalSize += browsingFile.Size;
                         }
-
-                        foreach (Entities.FileSystem.File file in fileInfo.Files.ToList())
+                        else
                         {
-                            var d = new Dictionary<string, object> {{"Name", file.Name}};
-                            string ext = Path.GetExtension(file.Name);
+                            var d = new Dictionary<string, object> {{"Name", browsingFile.Name}};
+                            string ext = Path.GetExtension(browsingFile.Name);
                             if (ext != null && ext.StartsWith("."))
                                 ext = ext.Substring(1);
-                            string name = file.Name;
+                            string name = browsingFile.Name;
                             if (!string.IsNullOrEmpty(name))
                                 name = name.Replace("#", "%23");
                             d.Add("Path", name);
                             d.Add("Icon", ext);
-                            d.Add("Size", file.Size);
-                            d.Add("Sizetxt", Utility.FormatBytes(file.Size));
-                            d.Add("LastModifiedtxt", DateTime.FromFileTime(file.LastModified).ToShortDateString());
-                            d.Add("LastModified", file.LastModified);
+                            d.Add("Size", browsingFile.Size);
+                            d.Add("Sizetxt", Utility.FormatBytes(browsingFile.Size));
+                            d.Add("LastModifiedtxt", browsingFile.LastModified.ToShortDateString());
+                            d.Add("LastModified", browsingFile.LastModified);
                             files.Add(d);
-                            totalSize += file.Size;
-                        }
-
-                        if (isVirtual)
-                        {
-                            fileInfo.Files.Clear();
-                            fileInfo.SubDirectories.Clear();
+                            totalSize += browsingFile.Size;
                         }
                     }
+
+                    validPath = true;
+                    //Clear result list to help GC
+                    results.Clear();
                 }
+
 
                 pagedata.Add("files", files);
                 pagedata.Add("totalSize", Utility.FormatBytes(totalSize));
@@ -292,7 +260,7 @@ namespace FAP.Domain.Handlers
                 }
 
                 //Clear up
-                foreach (object item in pagedata.Values)
+                foreach (var item in pagedata.Values)
                 {
                     if (item is Dictionary<string, object>)
                     {

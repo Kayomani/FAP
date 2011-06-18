@@ -176,7 +176,7 @@ namespace FAP.Domain.Handlers
 
         private bool HandleBrowse(RequestEventArgs e, NetworkRequest req)
         {
-            var verb = new BrowseVerb(model, shareInfoService);
+            var verb = new BrowseVerb(shareInfoService);
             NetworkRequest result = verb.ProcessRequest(req);
             byte[] data = Encoding.UTF8.GetBytes(result.Data);
             var generator = new ResponseWriter();

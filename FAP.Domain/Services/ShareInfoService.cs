@@ -24,8 +24,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using FAP.Domain.Entities;
+using FAP.Domain.Entities.FileSystem;
+using Fap.Foundation;
+using Fap.Foundation.Sorting;
 using NLog;
 using Directory = FAP.Domain.Entities.FileSystem.Directory;
+using File = System.IO.File;
 
 namespace FAP.Domain.Services
 {
@@ -206,6 +210,200 @@ namespace FAP.Domain.Services
                     isVirtual = true;
                     return virtualDir;
             }
+        }
+
+        /// <summary>
+        /// Retrieve file system information for a path
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="noCache"></param>
+        /// <param name="distinct"></param>
+        /// <param name="results"></param>
+        /// <returns></returns>
+        public bool GetPath(string path, bool noCache, bool distinct, out List<BrowsingFile> results)
+        {
+            results = new List<BrowsingFile>();
+
+            //At the root so just return a list of shares
+            if (string.IsNullOrEmpty(path) || path == "/")
+            {
+                var ms = from s in model.Shares
+                             orderby s.Name
+                             group s by s.Name
+                                 into g
+                                 select new
+                                 {
+                                     Name = g.Key,
+                                     Size = g.Sum(s => s.Size),
+                                     LastModified = g.Count() > 1 ? DateTime.Now : g.First().LastRefresh
+                                 };
+
+                foreach (var share in ms)
+                {
+                    results.Add(new BrowsingFile()
+                                    {
+                                        IsFolder = true,
+                                        Size = share.Size,
+                                        LastModified = share.LastModified,
+                                        Name = share.Name
+                                    });
+                }
+
+                return true;
+            }
+
+            string[] posiblePaths;
+            bool isVirtual = false;
+
+            if (ToLocalPath(path, out posiblePaths))
+            {
+                Directory scanInfo = GetPath(path, out isVirtual);
+                //Have cache info and cache allowed
+                if (null != scanInfo && !noCache)
+                {
+                    foreach (var dir in scanInfo.SubDirectories)
+                    {
+                        results.Add(new BrowsingFile
+                                        {
+                                            IsFolder = true,
+                                            Size = dir.Size,
+                                            Name = dir.Name,
+                                            LastModified = DateTime.FromFileTime(dir.LastModified)
+                                        });
+                    }
+
+                    foreach (var file in scanInfo.Files)
+                    {
+                        results.Add(new BrowsingFile
+                                        {
+                                            IsFolder = false,
+                                            Size = file.Size,
+                                            Name = file.Name,
+                                            LastModified = DateTime.FromFileTime(file.LastModified)
+                                        });
+                    }
+
+                    //Virtual info so clear down to ensure GC works.
+                    if (isVirtual)
+                    {
+                        scanInfo.SubDirectories.Clear();
+                        scanInfo.Files.Clear();
+                    }
+                }
+                else
+                {
+                    //No cache info or cache not allowed, try to pull file information directly.
+
+                    foreach (string posiblePath in posiblePaths)
+                    {
+                        string fsPath = posiblePath.Replace('/', '\\');
+                        //Strip trailing slash
+                        if (fsPath.EndsWith("\\"))
+                            fsPath = fsPath.Substring(0, fsPath.Length - 1);
+
+
+                        //Check for parent folder usage.
+                        string checkedPath = Path.GetDirectoryName(fsPath);
+                        //If the evaluated path is different then someone tried to use '..' or similar.
+                        if (fsPath != checkedPath)
+                            continue;
+
+
+                        var directory = new DirectoryInfo(checkedPath);
+                        DirectoryInfo[] directories = directory.GetDirectories();
+                        //Get directories
+                        foreach (DirectoryInfo dir in directories)
+                        {
+                            results.Add(new BrowsingFile
+                                            {
+                                                IsFolder = true,
+                                                Size = 0,
+                                                Name = dir.Name,
+                                                LastModified = dir.LastWriteTime
+                                            });
+                        }
+                        //Get files
+                        FileInfo[] files = directory.GetFiles();
+                        foreach (FileInfo file in files)
+                        {
+                            results.Add(new BrowsingFile
+                                            {
+                                                IsFolder = false,
+                                                Size = file.Length,
+                                                Name = file.Name,
+                                                LastModified = file.LastWriteTime
+                                            });
+                        }
+                    }
+
+                    if (posiblePaths.Length > 1)
+                        isVirtual = true;
+                }
+
+                if (distinct)
+                {
+                    //Check for file folder overlap where multiple directories were used.
+
+                    var folders = new TreeSort<BrowsingFile>();
+                    var files = new TreeSort<BrowsingFile>();
+
+                    foreach (var browsingFile in results)
+                    {
+                        if (browsingFile.IsFolder)
+                        {
+                            var search = files.GetValue(browsingFile.Name);
+                            if (search.Count == 0)
+                            {
+                                //Folder not found so add it to the list.
+                                folders.PutValue(browsingFile.Name, browsingFile);
+                            }
+                            else
+                            {
+                                //Folder already exists, append info.
+                                var bf = search.First();
+                                bf.Size += browsingFile.Size;
+                                if (bf.LastModified < browsingFile.LastModified)
+                                    bf.LastModified = browsingFile.LastModified;
+                            }
+
+                        }
+                        else
+                        {
+                            var search = files.GetValue(browsingFile.Name);
+                            //Only add file the first instance of a file.  Duplicates are hidden.
+                            if (search.Count == 0)
+                                files.PutValue(browsingFile.Name, browsingFile);
+                        }
+                    }
+
+                    //Clear existing results
+                    results.Clear();
+                    //Re-add distinct sorted results.
+                    
+                    //Folders
+                    var fsort = folders.GetAllNodes();
+                    for(int i=fsort.Count-1;i>=0;i--)
+                    {
+                         var search = fsort[i].Values.FirstOrDefault();
+                        if (null != search)
+                            results.Add(search);
+                    }
+
+                  
+
+                    //Files
+                    var filesort = files.GetAllNodes();
+                    for (int i = filesort.Count - 1; i >= 0; i--)
+                    {
+                        var search = filesort[i].Values.FirstOrDefault();
+                        if (null != search)
+                            results.Add(search);
+                    }
+                }
+                return true;
+            }
+
+            return false;
         }
 
         public bool ToLocalPath(string input, out string[] output)

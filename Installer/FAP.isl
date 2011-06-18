@@ -341,35 +341,35 @@
 		<col def="S0">ISDotNetInstallerArgsCommit</col>
 		<col def="S0">ISDotNetInstallerArgsUninstall</col>
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
-		<row><td>Antlr3.Runtime.Debug.dll</td><td>{418FF661-33E7-4361-A213-35EBFAA29934}</td><td>INSTALLDIR</td><td>2</td><td/><td>antlr3.runtime.debug.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Antlr3.Runtime.dll</td><td>{4FAB48C2-636D-4F60-94F9-B87B403893AD}</td><td>INSTALLDIR</td><td>2</td><td/><td>antlr3.runtime.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Antlr3.StringTemplate.dll</td><td>{958D4231-D4DA-4B95-80EC-365D0F8247F3}</td><td>INSTALLDIR</td><td>2</td><td/><td>antlr3.stringtemplate.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Autofac.dll</td><td>{F79B28EF-D072-4122-B0CE-9C78ECCF0D69}</td><td>INSTALLDIR</td><td>2</td><td/><td>autofac.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>BlogsPrajeesh.BlogSpot.WPFControls.dll</td><td>{4FFF2DFF-298C-4385-8CB2-C3F36495B276}</td><td>INSTALLDIR</td><td>2</td><td/><td>blogsprajeesh.blogspot.wpfco</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>FAP.Application.dll</td><td>{078BC8C4-005E-43F0-8BD3-C184B8AB62E1}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.application.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>FAP.Domain.dll</td><td>{D0BBA24E-F4D0-42DF-B9C6-14210C05B56F}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.domain.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>FAP.Network.dll</td><td>{225E62E7-F452-42B0-8FE8-AC5DA2D165FD}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.network.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Fap.Foundation.dll</td><td>{F3DEAD04-3EF3-4CD0-9EF0-6BD82B5A8BF0}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.foundation.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Fap.Presentation.exe</td><td>{A851AC8E-1E6F-44C1-8B57-E80737C554A8}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.presentation.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>HttpServer.dll</td><td>{9034FA78-D63A-4AEB-A4AF-C24F6C41BC5D}</td><td>INSTALLDIR</td><td>2</td><td/><td>httpserver.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Antlr3.Runtime.Debug.dll2</td><td>{1959962F-A089-4A7B-A547-1FB7A9B63840}</td><td>INSTALLDIR</td><td>2</td><td/><td>antlr3.runtime.debug.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Antlr3.Runtime.dll2</td><td>{A32F99D4-FF97-4614-B934-E191552E6E45}</td><td>INSTALLDIR</td><td>2</td><td/><td>antlr3.runtime.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Antlr3.StringTemplate.dll2</td><td>{F3A3C3E6-65A8-46A1-9A89-C0EB7B052135}</td><td>INSTALLDIR</td><td>2</td><td/><td>antlr3.stringtemplate.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Autofac.dll2</td><td>{7CCC5BCC-88E1-4BA0-B149-2678D0964C7D}</td><td>INSTALLDIR</td><td>2</td><td/><td>autofac.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BlogsPrajeesh.BlogSpot.WPFControls.dll2</td><td>{59277238-3C7F-4786-899A-CDD312902AC6}</td><td>INSTALLDIR</td><td>2</td><td/><td>blogsprajeesh.blogspot.wpfco2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>FAP.Application.dll2</td><td>{EC88AFE1-2F72-4586-BE12-1B4E0EF1A82B}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.application.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>FAP.Domain.dll2</td><td>{B6C6C78A-3193-4390-B2A5-F6232921A197}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.domain.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>FAP.Network.dll2</td><td>{168E040B-CDD9-4DFD-B6B3-B5F2AEDBA5FB}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.network.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Fap.Foundation.dll2</td><td>{9173B06B-7E6B-4BB1-A34D-A138FB5D8C37}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.foundation.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Fap.exe</td><td>{3780CB9E-7C39-444A-A68B-727AAFF11641}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>HttpServer.dll2</td><td>{2DEEDF77-4EFA-4E02-8B20-4555B9AB12CA}</td><td>INSTALLDIR</td><td>2</td><td/><td>httpserver.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td>{1FB5F86F-F776-4869-AC17-F23F986088A9}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{DE19847B-1CA7-4E1D-942D-9F2E32B74AF3}</td><td>WEB.RESOURCES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT2</td><td>{AC8593F5-70A0-43B2-9319-49AC445D4794}</td><td>CSS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{BC0B8F20-27CF-4B98-BA8D-B19B969A125C}</td><td>IMAGES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT4</td><td>{CC1548B1-4039-4935-B1AF-0F130FF30840}</td><td>JS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT5</td><td>{A51DC631-E9A7-4560-ABF7-8F6E7C8C1E3A}</td><td>WEB.HELP</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT6</td><td>{10F8D8EF-3168-417C-902C-F5896E7D3436}</td><td>CSS1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT7</td><td>{FD0690FC-F774-4B83-8EE1-2A4F8B21BD67}</td><td>IMAGES1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT8</td><td>{229D3B62-E343-4D3B-9AC3-127F9ED91824}</td><td>LICENCES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Interop.Bonjour.dll</td><td>{4D3992AA-03CB-49A1-8287-4F6BB350C5C7}</td><td>INSTALLDIR</td><td>2</td><td/><td>interop.bonjour.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>LinqToWmi.Core.dll</td><td>{137F10DA-C9D4-449F-BA11-24DC3DC84E3A}</td><td>INSTALLDIR</td><td>2</td><td/><td>linqtowmi.core.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>NLog.dll</td><td>{518CA902-4788-421C-A920-E25071034C7C}</td><td>INSTALLDIR</td><td>2</td><td/><td>nlog.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Newtonsoft.Json.Net35.dll</td><td>{759D8965-CAD2-46AC-A1EC-2197BD7322FA}</td><td>INSTALLDIR</td><td>2</td><td/><td>newtonsoft.json.net35.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Odyssey.dll</td><td>{49C66A58-27DC-4550-AC13-A2EF68B512FE}</td><td>INSTALLDIR</td><td>2</td><td/><td>odyssey.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Server.Console.exe</td><td>{3AE614E3-FB73-490A-BAAF-FCB9E30F256E}</td><td>INSTALLDIR</td><td>2</td><td/><td>server.console.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>WPFToolkit.dll</td><td>{B852FB4C-1B77-445B-9CBD-B8C041464DD4}</td><td>INSTALLDIR</td><td>2</td><td/><td>wpftoolkit.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>WpfApplicationFramework.dll</td><td>{98680006-0CA7-4909-A5FD-749FA16CAAF5}</td><td>INSTALLDIR</td><td>2</td><td/><td>wpfapplicationframework.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>protobuf_net.dll</td><td>{A9CF31C8-82FC-4CFA-9725-DBF0F6EC3DED}</td><td>INSTALLDIR</td><td>2</td><td/><td>protobuf_net.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{ACBA3859-A62C-4DF7-9661-28BF93645AB9}</td><td>DATABASEDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT2</td><td>{97C958BC-1C7F-48F4-9101-8AF4D1242706}</td><td>LICENCES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{E95A9DA4-0C0A-4567-B0F6-1D38C42C164E}</td><td>WEB.RESOURCES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT4</td><td>{A3C51EE9-92A5-44CD-BFFD-0015646B9B9C}</td><td>CSS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT5</td><td>{8D7B6A5E-D4A8-4384-A037-BCF3571109CB}</td><td>IMAGES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT6</td><td>{EAE1E4D8-B73F-4B72-A79D-41C3C2C62CF0}</td><td>JS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT7</td><td>{4A3CC1E1-351A-4EDB-98B2-62FB8F8F3644}</td><td>WEB.HELP</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT8</td><td>{1E790600-EA0A-4D20-B783-97798F1113D4}</td><td>CSS1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT9</td><td>{D6560B20-8C2F-400C-8734-3FFA5D64DA8D}</td><td>IMAGES1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>LinqToWmi.Core.dll2</td><td>{518F2AC6-B22D-409D-BDBD-30704C3C06D8}</td><td>INSTALLDIR</td><td>2</td><td/><td>linqtowmi.core.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>NLog.dll2</td><td>{63F77C55-DF19-429C-83D8-5030299B8CD7}</td><td>INSTALLDIR</td><td>2</td><td/><td>nlog.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Newtonsoft.Json.Net35.dll2</td><td>{990386AE-6908-44C4-BBFB-687E1CB55505}</td><td>INSTALLDIR</td><td>2</td><td/><td>newtonsoft.json.net35.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Odyssey.dll2</td><td>{8F00A5D4-915F-4551-A1D2-26B0326FA976}</td><td>INSTALLDIR</td><td>2</td><td/><td>odyssey.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Server.Console.exe</td><td>{17E5EDEE-E4C9-48BA-BD69-FE47CE75474C}</td><td>INSTALLDIR</td><td>2</td><td/><td>server.console.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>WPFToolkit.dll2</td><td>{29621650-A1FD-4DDF-BF72-6179DFCF575D}</td><td>INSTALLDIR</td><td>2</td><td/><td>wpftoolkit.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>WpfApplicationFramework.dll2</td><td>{216721D9-7672-404C-87C9-DFE44908598C}</td><td>INSTALLDIR</td><td>2</td><td/><td>wpfapplicationframework.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>protobuf_net.dll2</td><td>{BA502DED-B20B-458B-BEB4-819E482119AE}</td><td>INSTALLDIR</td><td>2</td><td/><td>protobuf_net.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
 
 	<table name="Condition">
@@ -563,7 +563,7 @@
 		<row><td>InstallChangeFolder</td><td>Up</td><td>PushButton</td><td>310</td><td>66</td><td>19</td><td>19</td><td>3670019</td><td/><td/><td>NewFolder</td><td>##IDS__IsBrowseFolderDlg_UpOneLevel##</td><td>0</td><td/><td/><td>NewBinary3</td></row>
 		<row><td>InstallWelcome</td><td>Back</td><td>PushButton</td><td>164</td><td>243</td><td>66</td><td>17</td><td>1</td><td/><td>##IDS_BACK##</td><td>Copyright</td><td/><td>0</td><td/><td/><td/></row>
 		<row><td>InstallWelcome</td><td>Cancel</td><td>PushButton</td><td>301</td><td>243</td><td>66</td><td>17</td><td>3</td><td/><td>##IDS_CANCEL##</td><td>Back</td><td/><td>0</td><td/><td/><td/></row>
-		<row><td>InstallWelcome</td><td>Copyright</td><td>Text</td><td>135</td><td>144</td><td>228</td><td>73</td><td>65538</td><td/><td>##IDS__IsWelcomeDlg_WarningCopyright##</td><td>Next</td><td/><td>0</td><td/><td/><td/></row>
+		<row><td>InstallWelcome</td><td>Copyright</td><td>Text</td><td>135</td><td>144</td><td>228</td><td>73</td><td>65539</td><td/><td>##IDS__IsWelcomeDlg_WarningCopyright##</td><td>Next</td><td/><td>0</td><td/><td/><td/></row>
 		<row><td>InstallWelcome</td><td>DlgLine</td><td>Line</td><td>0</td><td>234</td><td>374</td><td>0</td><td>1</td><td/><td/><td/><td/><td>0</td><td/><td/><td/></row>
 		<row><td>InstallWelcome</td><td>Image</td><td>Bitmap</td><td>0</td><td>0</td><td>374</td><td>234</td><td>1</td><td/><td/><td/><td/><td>0</td><td/><td/><td>NewBinary5</td></row>
 		<row><td>InstallWelcome</td><td>Next</td><td>PushButton</td><td>230</td><td>243</td><td>66</td><td>17</td><td>3</td><td/><td>##IDS_NEXT##</td><td>Cancel</td><td/><td>0</td><td/><td/><td/></row>
@@ -1080,6 +1080,7 @@
 	<table name="CreateFolder">
 		<col key="yes" def="s72">Directory_</col>
 		<col key="yes" def="s72">Component_</col>
+		<row><td>DATABASEDIR</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 	</table>
 
 	<table name="CustomAction">
@@ -1095,6 +1096,7 @@
 		<row><td>ISSelfRegisterCosting</td><td>1</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterCosting</td><td/><td/></row>
 		<row><td>ISSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFiles</td><td/><td/></row>
 		<row><td>ISSelfRegisterFinalize</td><td>1</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFinalize</td><td/><td/></row>
+		<row><td>ISSetAllUsers</td><td>257</td><td>SetAllUsers.dll</td><td>SetAllUsers</td><td/><td/></row>
 		<row><td>ISUnSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISUnSelfRegisterFiles</td><td/><td/></row>
 		<row><td>LaunchProgramFileFromSetupCompleteSuccess</td><td>1</td><td>NewBinary19</td><td>LaunchProgram</td><td/><td/></row>
 		<row><td>SetARPINSTALLLOCATION</td><td>51</td><td>ARPINSTALLLOCATION</td><td>[INSTALLDIR]</td><td/><td/></row>
@@ -1897,17 +1899,17 @@
 	<table name="FeatureComponents">
 		<col key="yes" def="s38">Feature_</col>
 		<col key="yes" def="s72">Component_</col>
-		<row><td>AlwaysInstall</td><td>Antlr3.Runtime.Debug.dll</td></row>
-		<row><td>AlwaysInstall</td><td>Antlr3.Runtime.dll</td></row>
-		<row><td>AlwaysInstall</td><td>Antlr3.StringTemplate.dll</td></row>
-		<row><td>AlwaysInstall</td><td>Autofac.dll</td></row>
-		<row><td>AlwaysInstall</td><td>BlogsPrajeesh.BlogSpot.WPFControls.dll</td></row>
-		<row><td>AlwaysInstall</td><td>FAP.Application.dll</td></row>
-		<row><td>AlwaysInstall</td><td>FAP.Domain.dll</td></row>
-		<row><td>AlwaysInstall</td><td>FAP.Network.dll</td></row>
-		<row><td>AlwaysInstall</td><td>Fap.Foundation.dll</td></row>
-		<row><td>AlwaysInstall</td><td>Fap.Presentation.exe</td></row>
-		<row><td>AlwaysInstall</td><td>HttpServer.dll</td></row>
+		<row><td>AlwaysInstall</td><td>Antlr3.Runtime.Debug.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>Antlr3.Runtime.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>Antlr3.StringTemplate.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>Autofac.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>BlogsPrajeesh.BlogSpot.WPFControls.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>FAP.Application.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>FAP.Domain.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>FAP.Network.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>Fap.Foundation.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>Fap.exe</td></row>
+		<row><td>AlwaysInstall</td><td>HttpServer.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT2</td></row>
@@ -1917,15 +1919,15 @@
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT6</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT7</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT8</td></row>
-		<row><td>AlwaysInstall</td><td>Interop.Bonjour.dll</td></row>
-		<row><td>AlwaysInstall</td><td>LinqToWmi.Core.dll</td></row>
-		<row><td>AlwaysInstall</td><td>NLog.dll</td></row>
-		<row><td>AlwaysInstall</td><td>Newtonsoft.Json.Net35.dll</td></row>
-		<row><td>AlwaysInstall</td><td>Odyssey.dll</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT9</td></row>
+		<row><td>AlwaysInstall</td><td>LinqToWmi.Core.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>NLog.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>Newtonsoft.Json.Net35.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>Odyssey.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>Server.Console.exe</td></row>
-		<row><td>AlwaysInstall</td><td>WPFToolkit.dll</td></row>
-		<row><td>AlwaysInstall</td><td>WpfApplicationFramework.dll</td></row>
-		<row><td>AlwaysInstall</td><td>protobuf_net.dll</td></row>
+		<row><td>AlwaysInstall</td><td>WPFToolkit.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>WpfApplicationFramework.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>protobuf_net.dll2</td></row>
 	</table>
 
 	<table name="File">
@@ -1940,65 +1942,64 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
-		<row><td>antlr3.runtime.debug.dll</td><td>Antlr3.Runtime.Debug.dll</td><td>ANTLR3~1.DLL|Antlr3.Runtime.Debug.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Antlr3.Runtime.Debug.dll</td><td>1</td><td/></row>
-		<row><td>antlr3.runtime.dll</td><td>Antlr3.Runtime.dll</td><td>ANTLR3~1.DLL|Antlr3.Runtime.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Antlr3.Runtime.dll</td><td>1</td><td/></row>
-		<row><td>antlr3.stringtemplate.dll</td><td>Antlr3.StringTemplate.dll</td><td>ANTLR3~1.DLL|Antlr3.StringTemplate.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Antlr3.StringTemplate.dll</td><td>1</td><td/></row>
-		<row><td>autofac.dll</td><td>Autofac.dll</td><td>Autofac.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Autofac.dll</td><td>1</td><td/></row>
-		<row><td>autofac_license.txt</td><td>ISX_DEFAULTCOMPONENT8</td><td>AUTOFA~1.TXT|Autofac License.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\Autofac License.txt</td><td>1</td><td/></row>
-		<row><td>back_disabled.jpg</td><td>ISX_DEFAULTCOMPONENT3</td><td>BACK_D~1.JPG|back_disabled.jpg</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\back_disabled.jpg</td><td>1</td><td/></row>
-		<row><td>back_enabled.jpg</td><td>ISX_DEFAULTCOMPONENT3</td><td>BACK_E~1.JPG|back_enabled.jpg</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\back_enabled.jpg</td><td>1</td><td/></row>
-		<row><td>blogsprajeesh.blogspot.wpfco</td><td>BlogsPrajeesh.BlogSpot.WPFControls.dll</td><td>BLOGSP~1.DLL|BlogsPrajeesh.BlogSpot.WPFControls.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\BlogsPrajeesh.BlogSpot.WPFControls.dll</td><td>1</td><td/></row>
-		<row><td>chart_bar.png</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHARTB~1.PNG|Chart Bar.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\images\Chart Bar.png</td><td>1</td><td/></row>
-		<row><td>client.png</td><td>ISX_DEFAULTCOMPONENT7</td><td>client.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\images\client.png</td><td>1</td><td/></row>
-		<row><td>cog.png</td><td>ISX_DEFAULTCOMPONENT7</td><td>Cog.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\images\Cog.png</td><td>1</td><td/></row>
-		<row><td>drawer_closed.png</td><td>ISX_DEFAULTCOMPONENT7</td><td>DRAWER~1.PNG|Drawer Closed.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\images\Drawer Closed.png</td><td>1</td><td/></row>
-		<row><td>fap.application.dll</td><td>FAP.Application.dll</td><td>FAPAPP~1.DLL|FAP.Application.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\FAP.Application.dll</td><td>1</td><td/></row>
-		<row><td>fap.css</td><td>ISX_DEFAULTCOMPONENT2</td><td>fap.css</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\CSS\fap.css</td><td>1</td><td/></row>
-		<row><td>fap.domain.dll</td><td>FAP.Domain.dll</td><td>FAPDOM~1.DLL|FAP.Domain.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\FAP.Domain.dll</td><td>1</td><td/></row>
-		<row><td>fap.foundation.dll</td><td>Fap.Foundation.dll</td><td>FAPFOU~1.DLL|Fap.Foundation.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Fap.Foundation.dll</td><td>1</td><td/></row>
-		<row><td>fap.network.dll</td><td>FAP.Network.dll</td><td>FAPNET~1.DLL|FAP.Network.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\FAP.Network.dll</td><td>1</td><td/></row>
-		<row><td>fap.png</td><td>ISX_DEFAULTCOMPONENT3</td><td>fap.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\fap.png</td><td>1</td><td/></row>
-		<row><td>fap.presentation.exe</td><td>Fap.Presentation.exe</td><td>FAPPRE~1.EXE|Fap.Presentation.exe</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Fap.Presentation.exe</td><td>1</td><td/></row>
-		<row><td>fap_licence.txt</td><td>ISX_DEFAULTCOMPONENT8</td><td>FAPLIC~1.TXT|FAP Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\FAP Licence.txt</td><td>1</td><td/></row>
-		<row><td>favicon.ico</td><td>ISX_DEFAULTCOMPONENT1</td><td>favicon.ico</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\favicon.ico</td><td>1</td><td/></row>
-		<row><td>folder.png</td><td>ISX_DEFAULTCOMPONENT3</td><td>folder.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\folder.png</td><td>1</td><td/></row>
-		<row><td>folder_sync.png</td><td>ISX_DEFAULTCOMPONENT7</td><td>FOLDER~1.PNG|Folder Sync.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\images\Folder Sync.png</td><td>1</td><td/></row>
-		<row><td>forward_disabled.jpg</td><td>ISX_DEFAULTCOMPONENT3</td><td>FORWAR~1.JPG|forward_disabled.jpg</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\forward_disabled.jpg</td><td>1</td><td/></row>
-		<row><td>forward_enabled.jpg</td><td>ISX_DEFAULTCOMPONENT3</td><td>FORWAR~1.JPG|forward_enabled.jpg</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\forward_enabled.jpg</td><td>1</td><td/></row>
-		<row><td>help.html</td><td>ISX_DEFAULTCOMPONENT5</td><td>HELP~1.HTM|help.html</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\help.html</td><td>1</td><td/></row>
-		<row><td>http_server_licence.txt</td><td>ISX_DEFAULTCOMPONENT8</td><td>HTTPSE~1.TXT|HTTP Server Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\HTTP Server Licence.txt</td><td>1</td><td/></row>
-		<row><td>httpserver.dll</td><td>HttpServer.dll</td><td>HTTPSE~1.DLL|HttpServer.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\HttpServer.dll</td><td>1</td><td/></row>
-		<row><td>icon_licence.txt</td><td>ISX_DEFAULTCOMPONENT8</td><td>ICONLI~1.TXT|Icon Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\Icon Licence.txt</td><td>1</td><td/></row>
-		<row><td>ie.css</td><td>ISX_DEFAULTCOMPONENT6</td><td>ie.css</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\css\ie.css</td><td>1</td><td/></row>
-		<row><td>interop.bonjour.dll</td><td>Interop.Bonjour.dll</td><td>INTERO~1.DLL|Interop.Bonjour.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Interop.Bonjour.dll</td><td>1</td><td/></row>
-		<row><td>jquery.datatables.min.js</td><td>ISX_DEFAULTCOMPONENT4</td><td>JQUERY~1.JS|jquery.dataTables.min.js</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\JS\jquery.dataTables.min.js</td><td>1</td><td/></row>
-		<row><td>jquery_1.5.2.min.js</td><td>ISX_DEFAULTCOMPONENT4</td><td>JQUERY~1.JS|jquery-1.5.2.min.js</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\JS\jquery-1.5.2.min.js</td><td>1</td><td/></row>
-		<row><td>json.net_licence.txt</td><td>ISX_DEFAULTCOMPONENT8</td><td>JSONNE~1.TXT|Json.NET Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\Json.NET Licence.txt</td><td>1</td><td/></row>
-		<row><td>linqtowmi.core.dll</td><td>LinqToWmi.Core.dll</td><td>LINQTO~1.DLL|LinqToWmi.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\LinqToWmi.Core.dll</td><td>1</td><td/></row>
-		<row><td>linqtowmi_licence.txt</td><td>ISX_DEFAULTCOMPONENT8</td><td>LINQTO~1.TXT|LinqToWmi Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\LinqToWmi Licence.txt</td><td>1</td><td/></row>
-		<row><td>messagebox_licence.txt</td><td>ISX_DEFAULTCOMPONENT8</td><td>MESSAG~1.TXT|Messagebox Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\Messagebox Licence.txt</td><td>1</td><td/></row>
-		<row><td>newtonsoft.json.net35.dll</td><td>Newtonsoft.Json.Net35.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.Net35.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Newtonsoft.Json.Net35.dll</td><td>1</td><td/></row>
-		<row><td>nlog.config</td><td>ISX_DEFAULTCOMPONENT</td><td>NLOG~1.CON|NLog.config</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\NLog.config</td><td>1</td><td/></row>
-		<row><td>nlog.dll</td><td>NLog.dll</td><td>NLog.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\NLog.dll</td><td>1</td><td/></row>
-		<row><td>odyssey.dll</td><td>Odyssey.dll</td><td>Odyssey.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Odyssey.dll</td><td>1</td><td/></row>
-		<row><td>odyssey_licence.txt</td><td>ISX_DEFAULTCOMPONENT8</td><td>ODYSSE~1.TXT|Odyssey Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\Odyssey Licence.txt</td><td>1</td><td/></row>
-		<row><td>print.css</td><td>ISX_DEFAULTCOMPONENT6</td><td>print.css</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\css\print.css</td><td>1</td><td/></row>
-		<row><td>protobuf_net.dll</td><td>protobuf_net.dll</td><td>PROTOB~1.DLL|protobuf-net.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\protobuf-net.dll</td><td>1</td><td/></row>
-		<row><td>protoc_license.txt</td><td>ISX_DEFAULTCOMPONENT8</td><td>PROTOC~1.TXT|protoc-license.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\protoc-license.txt</td><td>1</td><td/></row>
-		<row><td>screen.css</td><td>ISX_DEFAULTCOMPONENT6</td><td>screen.css</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\css\screen.css</td><td>1</td><td/></row>
-		<row><td>search.png</td><td>ISX_DEFAULTCOMPONENT7</td><td>Search.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\images\Search.png</td><td>1</td><td/></row>
-		<row><td>server.console.exe</td><td>Server.Console.exe</td><td>SERVER~1.EXE|Server.Console.exe</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Server.Console\bin\Release\Server.Console.exe</td><td>1</td><td/></row>
-		<row><td>sort_asc.png</td><td>ISX_DEFAULTCOMPONENT3</td><td>sort_asc.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\sort_asc.png</td><td>1</td><td/></row>
-		<row><td>sort_asc_disabled.png</td><td>ISX_DEFAULTCOMPONENT3</td><td>SORT_A~1.PNG|sort_asc_disabled.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\sort_asc_disabled.png</td><td>1</td><td/></row>
-		<row><td>sort_both.png</td><td>ISX_DEFAULTCOMPONENT3</td><td>SORT_B~1.PNG|sort_both.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\sort_both.png</td><td>1</td><td/></row>
-		<row><td>sort_desc.png</td><td>ISX_DEFAULTCOMPONENT3</td><td>SORT_D~1.PNG|sort_desc.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\sort_desc.png</td><td>1</td><td/></row>
-		<row><td>sort_desc_disabled.png</td><td>ISX_DEFAULTCOMPONENT3</td><td>SORT_D~1.PNG|sort_desc_disabled.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\Images\sort_desc_disabled.png</td><td>1</td><td/></row>
-		<row><td>stringtemplate_licence.txt</td><td>ISX_DEFAULTCOMPONENT8</td><td>STRING~1.TXT|StringTemplate Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\StringTemplate Licence.txt</td><td>1</td><td/></row>
-		<row><td>template.html</td><td>ISX_DEFAULTCOMPONENT1</td><td>TEMPLA~1.HTM|template.html</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Resources\template.html</td><td>1</td><td/></row>
-		<row><td>web.png</td><td>ISX_DEFAULTCOMPONENT7</td><td>web.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Web.Help\images\web.png</td><td>1</td><td/></row>
-		<row><td>wpf_application_framework_li</td><td>ISX_DEFAULTCOMPONENT8</td><td>WPFAPP~1.TXT|Wpf Application Framework Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\Licences\Wpf Application Framework Licence.txt</td><td>1</td><td/></row>
-		<row><td>wpfapplicationframework.dll</td><td>WpfApplicationFramework.dll</td><td>WPFAPP~1.DLL|WpfApplicationFramework.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\WpfApplicationFramework.dll</td><td>1</td><td/></row>
-		<row><td>wpftoolkit.dll</td><td>WPFToolkit.dll</td><td>WPFTOO~1.DLL|WPFToolkit.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\WPFToolkit.dll</td><td>1</td><td/></row>
+		<row><td>antlr3.runtime.debug.dll2</td><td>Antlr3.Runtime.Debug.dll2</td><td>ANTLR3~1.DLL|Antlr3.Runtime.Debug.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Antlr3.Runtime.Debug.dll</td><td>1</td><td/></row>
+		<row><td>antlr3.runtime.dll2</td><td>Antlr3.Runtime.dll2</td><td>ANTLR3~1.DLL|Antlr3.Runtime.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Antlr3.Runtime.dll</td><td>1</td><td/></row>
+		<row><td>antlr3.stringtemplate.dll2</td><td>Antlr3.StringTemplate.dll2</td><td>ANTLR3~1.DLL|Antlr3.StringTemplate.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Antlr3.StringTemplate.dll</td><td>1</td><td/></row>
+		<row><td>autofac.dll2</td><td>Autofac.dll2</td><td>Autofac.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Autofac.dll</td><td>1</td><td/></row>
+		<row><td>autofac_license.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>AUTOFA~1.TXT|Autofac License.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\Autofac License.txt</td><td>1</td><td/></row>
+		<row><td>back_disabled.jpg</td><td>ISX_DEFAULTCOMPONENT5</td><td>BACK_D~1.JPG|back_disabled.jpg</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\back_disabled.jpg</td><td>1</td><td/></row>
+		<row><td>back_enabled.jpg</td><td>ISX_DEFAULTCOMPONENT5</td><td>BACK_E~1.JPG|back_enabled.jpg</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\back_enabled.jpg</td><td>1</td><td/></row>
+		<row><td>blogsprajeesh.blogspot.wpfco2</td><td>BlogsPrajeesh.BlogSpot.WPFControls.dll2</td><td>BLOGSP~1.DLL|BlogsPrajeesh.BlogSpot.WPFControls.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\BlogsPrajeesh.BlogSpot.WPFControls.dll</td><td>1</td><td/></row>
+		<row><td>chart_bar.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>CHARTB~1.PNG|Chart Bar.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\Chart Bar.png</td><td>1</td><td/></row>
+		<row><td>client.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>client.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\client.png</td><td>1</td><td/></row>
+		<row><td>cog.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>Cog.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\Cog.png</td><td>1</td><td/></row>
+		<row><td>drawer_closed.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>DRAWER~1.PNG|Drawer Closed.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\Drawer Closed.png</td><td>1</td><td/></row>
+		<row><td>fap.application.dll2</td><td>FAP.Application.dll2</td><td>FAPAPP~1.DLL|FAP.Application.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\FAP.Application.dll</td><td>1</td><td/></row>
+		<row><td>fap.css</td><td>ISX_DEFAULTCOMPONENT4</td><td>fap.css</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\CSS\fap.css</td><td>1</td><td/></row>
+		<row><td>fap.domain.dll2</td><td>FAP.Domain.dll2</td><td>FAPDOM~1.DLL|FAP.Domain.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\FAP.Domain.dll</td><td>1</td><td/></row>
+		<row><td>fap.exe</td><td>Fap.exe</td><td>Fap.exe</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Fap.exe</td><td>1</td><td/></row>
+		<row><td>fap.foundation.dll2</td><td>Fap.Foundation.dll2</td><td>FAPFOU~1.DLL|Fap.Foundation.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Fap.Foundation.dll</td><td>1</td><td/></row>
+		<row><td>fap.network.dll2</td><td>FAP.Network.dll2</td><td>FAPNET~1.DLL|FAP.Network.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\FAP.Network.dll</td><td>1</td><td/></row>
+		<row><td>fap.png</td><td>ISX_DEFAULTCOMPONENT5</td><td>fap.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\fap.png</td><td>1</td><td/></row>
+		<row><td>fap_licence.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>FAPLIC~1.TXT|FAP Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\FAP Licence.txt</td><td>1</td><td/></row>
+		<row><td>favicon.ico</td><td>ISX_DEFAULTCOMPONENT3</td><td>favicon.ico</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\favicon.ico</td><td>1</td><td/></row>
+		<row><td>folder.png</td><td>ISX_DEFAULTCOMPONENT5</td><td>folder.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\folder.png</td><td>1</td><td/></row>
+		<row><td>folder_sync.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>FOLDER~1.PNG|Folder Sync.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\Folder Sync.png</td><td>1</td><td/></row>
+		<row><td>forward_disabled.jpg</td><td>ISX_DEFAULTCOMPONENT5</td><td>FORWAR~1.JPG|forward_disabled.jpg</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\forward_disabled.jpg</td><td>1</td><td/></row>
+		<row><td>forward_enabled.jpg</td><td>ISX_DEFAULTCOMPONENT5</td><td>FORWAR~1.JPG|forward_enabled.jpg</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\forward_enabled.jpg</td><td>1</td><td/></row>
+		<row><td>help.html</td><td>ISX_DEFAULTCOMPONENT7</td><td>HELP~1.HTM|help.html</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\help.html</td><td>1</td><td/></row>
+		<row><td>http_server_licence.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>HTTPSE~1.TXT|HTTP Server Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\HTTP Server Licence.txt</td><td>1</td><td/></row>
+		<row><td>httpserver.dll2</td><td>HttpServer.dll2</td><td>HTTPSE~1.DLL|HttpServer.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\HttpServer.dll</td><td>1</td><td/></row>
+		<row><td>icon_licence.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>ICONLI~1.TXT|Icon Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\Icon Licence.txt</td><td>1</td><td/></row>
+		<row><td>ie.css</td><td>ISX_DEFAULTCOMPONENT8</td><td>ie.css</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\css\ie.css</td><td>1</td><td/></row>
+		<row><td>jquery.datatables.min.js</td><td>ISX_DEFAULTCOMPONENT6</td><td>JQUERY~1.JS|jquery.dataTables.min.js</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\JS\jquery.dataTables.min.js</td><td>1</td><td/></row>
+		<row><td>jquery_1.5.2.min.js</td><td>ISX_DEFAULTCOMPONENT6</td><td>JQUERY~1.JS|jquery-1.5.2.min.js</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\JS\jquery-1.5.2.min.js</td><td>1</td><td/></row>
+		<row><td>json.net_licence.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>JSONNE~1.TXT|Json.NET Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\Json.NET Licence.txt</td><td>1</td><td/></row>
+		<row><td>linqtowmi.core.dll2</td><td>LinqToWmi.Core.dll2</td><td>LINQTO~1.DLL|LinqToWmi.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\LinqToWmi.Core.dll</td><td>1</td><td/></row>
+		<row><td>linqtowmi_licence.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>LINQTO~1.TXT|LinqToWmi Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\LinqToWmi Licence.txt</td><td>1</td><td/></row>
+		<row><td>messagebox_licence.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>MESSAG~1.TXT|Messagebox Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\Messagebox Licence.txt</td><td>1</td><td/></row>
+		<row><td>newtonsoft.json.net35.dll2</td><td>Newtonsoft.Json.Net35.dll2</td><td>NEWTON~1.DLL|Newtonsoft.Json.Net35.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Newtonsoft.Json.Net35.dll</td><td>1</td><td/></row>
+		<row><td>nlog.config2</td><td>ISX_DEFAULTCOMPONENT</td><td>NLOG~1.CON|NLog.config</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\NLog.config</td><td>1</td><td/></row>
+		<row><td>nlog.dll2</td><td>NLog.dll2</td><td>NLog.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\NLog.dll</td><td>1</td><td/></row>
+		<row><td>odyssey.dll2</td><td>Odyssey.dll2</td><td>Odyssey.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Odyssey.dll</td><td>1</td><td/></row>
+		<row><td>odyssey_licence.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>ODYSSE~1.TXT|Odyssey Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\Odyssey Licence.txt</td><td>1</td><td/></row>
+		<row><td>print.css</td><td>ISX_DEFAULTCOMPONENT8</td><td>print.css</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\css\print.css</td><td>1</td><td/></row>
+		<row><td>protobuf_net.dll2</td><td>protobuf_net.dll2</td><td>PROTOB~1.DLL|protobuf-net.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\protobuf-net.dll</td><td>1</td><td/></row>
+		<row><td>protoc_license.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>PROTOC~1.TXT|protoc-license.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\protoc-license.txt</td><td>1</td><td/></row>
+		<row><td>screen.css</td><td>ISX_DEFAULTCOMPONENT8</td><td>screen.css</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\css\screen.css</td><td>1</td><td/></row>
+		<row><td>search.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>Search.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\Search.png</td><td>1</td><td/></row>
+		<row><td>server.console.exe</td><td>Server.Console.exe</td><td>SERVER~1.EXE|Server.Console.exe</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Server.Console\bin\Release\Server.Console.exe</td><td>1</td><td/></row>
+		<row><td>sort_asc.png</td><td>ISX_DEFAULTCOMPONENT5</td><td>sort_asc.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\sort_asc.png</td><td>1</td><td/></row>
+		<row><td>sort_asc_disabled.png</td><td>ISX_DEFAULTCOMPONENT5</td><td>SORT_A~1.PNG|sort_asc_disabled.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\sort_asc_disabled.png</td><td>1</td><td/></row>
+		<row><td>sort_both.png</td><td>ISX_DEFAULTCOMPONENT5</td><td>SORT_B~1.PNG|sort_both.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\sort_both.png</td><td>1</td><td/></row>
+		<row><td>sort_desc.png</td><td>ISX_DEFAULTCOMPONENT5</td><td>SORT_D~1.PNG|sort_desc.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\sort_desc.png</td><td>1</td><td/></row>
+		<row><td>sort_desc_disabled.png</td><td>ISX_DEFAULTCOMPONENT5</td><td>SORT_D~1.PNG|sort_desc_disabled.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\Images\sort_desc_disabled.png</td><td>1</td><td/></row>
+		<row><td>stringtemplate_licence.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>STRING~1.TXT|StringTemplate Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\StringTemplate Licence.txt</td><td>1</td><td/></row>
+		<row><td>template.html</td><td>ISX_DEFAULTCOMPONENT3</td><td>TEMPLA~1.HTM|template.html</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\template.html</td><td>1</td><td/></row>
+		<row><td>web.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>web.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\web.png</td><td>1</td><td/></row>
+		<row><td>wpf_application_framework_li</td><td>ISX_DEFAULTCOMPONENT2</td><td>WPFAPP~1.TXT|Wpf Application Framework Licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\Licences\Wpf Application Framework Licence.txt</td><td>1</td><td/></row>
+		<row><td>wpfapplicationframework.dll2</td><td>WpfApplicationFramework.dll2</td><td>WPFAPP~1.DLL|WpfApplicationFramework.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\WpfApplicationFramework.dll</td><td>1</td><td/></row>
+		<row><td>wpftoolkit.dll2</td><td>WPFToolkit.dll2</td><td>WPFTOO~1.DLL|WPFToolkit.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\WPFToolkit.dll</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -2255,35 +2256,35 @@
 		<col def="S0">FTPLocation</col>
 		<col def="S0">HTTPLocation</col>
 		<col def="S0">Miscellaneous</col>
-		<row><td>Antlr3.Runtime.Debug.dll</td><td/><td/><td>_36D6281C_051F_4C48_BDD5_EC6B20F928C6_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Antlr3.Runtime.dll</td><td/><td/><td>_759CC170_446C_4AAD_A4E2_D79E869FADE0_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Antlr3.StringTemplate.dll</td><td/><td/><td>_B298877D_42CF_488A_A484_0C0148EFE646_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Autofac.dll</td><td/><td/><td>_B8E6CCF4_7744_4525_9262_70D33901CF39_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>BlogsPrajeesh.BlogSpot.WPFControls.dll</td><td/><td/><td>_8DAEE60F_A31C_4A69_86F9_B44F15720782_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>FAP.Application.dll</td><td/><td/><td>_C683B5A2_F07D_4163_AD79_C805CED3A330_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>FAP.Domain.dll</td><td/><td/><td>_AB8E6301_7E65_4961_97F4_4317D77E7385_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>FAP.Network.dll</td><td/><td/><td>_87409E79_8024_4BE6_B982_26CA46B91B45_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Fap.Foundation.dll</td><td/><td/><td>_8AACB833_8946_47C1_BC96_AE51E02BA023_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Fap.Presentation.exe</td><td/><td/><td>_9FE5BE4D_8B22_4FF3_9363_023E328A21FB_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>HttpServer.dll</td><td/><td/><td>_434B5125_097F_4FEB_913A_7189349E029D_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Antlr3.Runtime.Debug.dll2</td><td/><td/><td>_EF92A619_3A2F_46CA_82AB_8E05FCD552F3_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Antlr3.Runtime.dll2</td><td/><td/><td>_53C918BE_D8CD_4DA6_BE25_78BE614F2FBA_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Antlr3.StringTemplate.dll2</td><td/><td/><td>_5589D5DB_50FD_4919_A8B6_BBDEE3279CAB_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Autofac.dll2</td><td/><td/><td>_2742466B_24B9_4EC9_B53B_7BFA77EC247F_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>BlogsPrajeesh.BlogSpot.WPFControls.dll2</td><td/><td/><td>_BAAE9D72_CB68_44E6_AFDE_1F20C6D372F0_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>FAP.Application.dll2</td><td/><td/><td>_5A24FD54_5F02_4DEC_B62A_6387E85242D0_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>FAP.Domain.dll2</td><td/><td/><td>_700397F4_DDC1_4283_8991_3F7962ABDC70_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>FAP.Network.dll2</td><td/><td/><td>_ECB4FF62_64CC_4C88_AE67_AA23D4BEE9E7_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Fap.Foundation.dll2</td><td/><td/><td>_BAD459DC_61E9_4958_9367_635198E381AB_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Fap.exe</td><td/><td/><td>_E2E498D0_2B0D_45DD_8B55_951FFC135452_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>HttpServer.dll2</td><td/><td/><td>_FA5335F8_AB72_4202_AFA2_8D83D196D0FD_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_C36CFCAB_2C73_4559_9E3C_66E519C88930_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_1F1AEFA2_5C41_4DC1_AE36_56C71457955F_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT2</td><td/><td/><td>_36855B55_5506_4AD2_AEE0_5D2D4D7C78ED_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_4EF1C932_D880_489C_9AFC_F157344D4155_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT4</td><td/><td/><td>_3CFB7BD9_9E22_41FC_B98F_698A52201B0D_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT5</td><td/><td/><td>_C159C18B_ED4C_4ADC_86E2_426E4CADDA1D_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT6</td><td/><td/><td>_2BAC6B08_9027_4914_96A5_CEDC75F32332_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT7</td><td/><td/><td>_2DCB22F9_5236_4857_A025_A14695587298_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT8</td><td/><td/><td>_833CC642_993F_42D9_89E9_959102FBB5CC_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Interop.Bonjour.dll</td><td/><td/><td>_1A85785A_7CA9_469C_BF7B_5B09DECA5A5F_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>LinqToWmi.Core.dll</td><td/><td/><td>_56828D00_505D_47B9_8F2A_64E152993C38_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>NLog.dll</td><td/><td/><td>_AEEF77C7_5F00_4869_AC6F_E7EC3787AB06_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Newtonsoft.Json.Net35.dll</td><td/><td/><td>_7251F3B4_226F_4E2F_B7E8_99BA9AC669BE_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Odyssey.dll</td><td/><td/><td>_1692BF68_81C8_49C5_951D_F9015AB6B6CE_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Server.Console.exe</td><td/><td/><td>_965C3A13_0077_4DFF_A2EA_CCC733E35922_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>WPFToolkit.dll</td><td/><td/><td>_6B678F49_73C9_453D_AC6C_61F7D140303F_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>WpfApplicationFramework.dll</td><td/><td/><td>_695344DE_EF40_423E_9DC3_7CE4A742311E_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>protobuf_net.dll</td><td/><td/><td>_39881A75_D1BD_438B_8CF1_6A19440E0210_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_9D3BFDCF_68D7_49E2_960D_F1CA5EEB8F6E_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT2</td><td/><td/><td>_4AEFD099_001E_47C6_80B3_33F985E3A890_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_AE977174_BA94_4605_B800_E03106B00C8C_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT4</td><td/><td/><td>_BAC2276F_4662_4272_999E_EA7FC80849DF_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT5</td><td/><td/><td>_03BC2991_00E7_42F7_A51F_245E9D7F80F0_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT6</td><td/><td/><td>_16BC787A_B2B3_43CA_BE45_1CC812424BD5_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT7</td><td/><td/><td>_81F0E8F3_3046_40EE_9E99_4E4D677DBBB7_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT8</td><td/><td/><td>_E4D6572C_5C5C_4225_966C_DBD25FFC3BE7_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT9</td><td/><td/><td>_233F5330_F617_4B4A_8AC6_FB9E5063A2CF_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>LinqToWmi.Core.dll2</td><td/><td/><td>_76A50DAB_2CBF_45B3_BF68_1876BA0C4BEA_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>NLog.dll2</td><td/><td/><td>_1E424E2A_60B1_4934_A95E_820A64B9808D_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Newtonsoft.Json.Net35.dll2</td><td/><td/><td>_71BECF5A_FBA0_412E_9B16_41BC2D02BF9F_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Odyssey.dll2</td><td/><td/><td>_45EA9209_ABE7_4B19_A46C_64B658662860_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Server.Console.exe</td><td/><td/><td>_0A0B6799_D58C_4121_8A7F_15B06ACA0AF1_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>WPFToolkit.dll2</td><td/><td/><td>_37A451BD_0CF5_47A1_B39C_33AFCE6448A4_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>WpfApplicationFramework.dll2</td><td/><td/><td>_4F3E39B8_29A0_4AA9_9BCC_A072B7EE0EF8_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>protobuf_net.dll2</td><td/><td/><td>_835837C9_2E35_41EA_81E2_C605F06F0F16_FILTER</td><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="ISCustomActionReference">
@@ -4000,7 +4001,7 @@
 		<row><td>IDS__IsVerifyRemoveAllDlg_Remove</td><td>1033</td><td>&amp;Remove</td><td>0</td><td/><td>-224413195</td></row>
 		<row><td>IDS__IsVerifyRemoveAllDlg_RemoveProgram</td><td>1033</td><td>{&amp;MSSansBold8}Remove the Program</td><td>0</td><td/><td>-224413195</td></row>
 		<row><td>IDS__IsWelcomeDlg_InstallProductName</td><td>1033</td><td>The InstallShield(R) Wizard will install [ProductName] on your computer. To continue, click Next.</td><td>0</td><td/><td>-224413195</td></row>
-		<row><td>IDS__IsWelcomeDlg_WarningCopyright</td><td>1033</td><td/><td>0</td><td/><td>-224414731</td></row>
+		<row><td>IDS__IsWelcomeDlg_WarningCopyright</td><td>1033</td><td>Please see http://code.google.com/p/fap/ for updates!</td><td>0</td><td/><td>-1826677264</td></row>
 		<row><td>IDS__IsWelcomeDlg_WelcomeProductName</td><td>1033</td><td>{&amp;TahomaBold10}Welcome to the InstallShield Wizard for [ProductName]</td><td>0</td><td/><td>-224413195</td></row>
 		<row><td>IDS__TargetReq_DESC_COLOR</td><td>1033</td><td>The color settings of your system are not adequate for running [ProductName].</td><td>0</td><td/><td>-224413195</td></row>
 		<row><td>IDS__TargetReq_DESC_OS</td><td>1033</td><td>The operating system is not adequate for running [ProductName].</td><td>0</td><td/><td>-224413195</td></row>
@@ -4008,11 +4009,14 @@
 		<row><td>IDS__TargetReq_DESC_RAM</td><td>1033</td><td>The amount of RAM is not adequate for running [ProductName].</td><td>0</td><td/><td>-224413195</td></row>
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>-224413195</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>-224413195</td></row>
+		<row><td>ID_STRING10</td><td>1033</td><td>File acceleration protocol dedicated server</td><td>0</td><td/><td>-1826638608</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td>https://code.google.com/p/fap/</td><td>0</td><td/><td>-224419307</td></row>
 		<row><td>ID_STRING3</td><td>1033</td><td>Kayomani</td><td>0</td><td/><td>-224443883</td></row>
+		<row><td>ID_STRING4</td><td>1033</td><td>FAP</td><td>0</td><td/><td>-1826628400</td></row>
 		<row><td>ID_STRING6</td><td>1033</td><td>File transfer protocol</td><td>0</td><td/><td>-224414987</td></row>
 		<row><td>ID_STRING7</td><td>1033</td><td>https://code.google.com/p/fap/</td><td>0</td><td/><td>-224402699</td></row>
 		<row><td>ID_STRING8</td><td>1033</td><td>https://code.google.com/p/fap/</td><td>0</td><td/><td>-224400651</td></row>
+		<row><td>ID_STRING9</td><td>1033</td><td>File acceleration protocol client</td><td>0</td><td/><td>-1826646800</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>-224413195</td></row>
 	</table>
 
@@ -4114,8 +4118,9 @@
 		<col def="V0">Data</col>
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I2">ISIconIndex</col>
-		<row><td>ARPPRODUCTICON.exe</td><td/><td>F:\src\gfap2\trunk\UI\Client.WPF\Images\folder-yellow.ico</td><td>0</td></row>
+		<row><td>ARPPRODUCTICON.exe</td><td/><td>F:\src\fap_git\UI\Client.WPF\Images\folder-yellow.ico</td><td>0</td></row>
 		<row><td>Fap.Presentation.e_BB9D524C67BF4940ABA436030A746E75.exe</td><td/><td>F:\src\gfap2\trunk\UI\Client.WPF\bin\Release\Fap.Presentation.exe</td><td>0</td></row>
+		<row><td>NewShortcut1_BD54CB3852554CC2BCE5F3BE23C386B8.exe</td><td/><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Fap.exe</td><td>0</td></row>
 		<row><td>Server.Console.exe_2F151E17002E4C5DBE7716A0AE2BC844.exe</td><td/><td>F:\src\gfap2\trunk\UI\Server.Console\bin\Release\Server.Console.exe</td><td>0</td></row>
 	</table>
 
@@ -4162,6 +4167,7 @@
 		<row><td>ISSelfRegisterCosting</td><td/><td>2201</td><td/><td/></row>
 		<row><td>ISSelfRegisterFiles</td><td/><td>5601</td><td/><td/></row>
 		<row><td>ISSelfRegisterFinalize</td><td/><td>6601</td><td/><td/></row>
+		<row><td>ISSetAllUsers</td><td>Not Installed</td><td>10</td><td/><td/></row>
 		<row><td>ISUnSelfRegisterFiles</td><td/><td>2202</td><td/><td/></row>
 		<row><td>InstallFiles</td><td/><td>4000</td><td>InstallFiles</td><td/></row>
 		<row><td>InstallFinalize</td><td/><td>6600</td><td>InstallFinalize</td><td/></row>
@@ -4278,6 +4284,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>FileCost</td><td/><td>900</td><td>FileCost</td><td/></row>
 		<row><td>FindRelatedProducts</td><td/><td>430</td><td>FindRelatedProducts</td><td/></row>
 		<row><td>ISPreventDowngrade</td><td>ISFOUNDNEWERPRODUCTVERSION</td><td>450</td><td>ISPreventDowngrade</td><td/></row>
+		<row><td>ISSetAllUsers</td><td>Not Installed</td><td>10</td><td/><td/></row>
 		<row><td>InstallWelcome</td><td>Not Installed</td><td>1210</td><td>InstallWelcome</td><td/></row>
 		<row><td>IsolateComponents</td><td/><td>950</td><td>IsolateComponents</td><td/></row>
 		<row><td>LaunchConditions</td><td>Not Installed</td><td>410</td><td>LaunchConditions</td><td/></row>
@@ -4598,8 +4605,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>IS_SQLSERVER_USERNAME</td><td>sa</td><td/></row>
 		<row><td>InstallChoice</td><td>AR</td><td/></row>
 		<row><td>LAUNCHPROGRAM</td><td>1</td><td/></row>
-		<row><td>LAUNCHPROGRAMCOMPCODE</td><td>{A851AC8E-1E6F-44C1-8B57-E80737C554A8}</td><td/></row>
-		<row><td>LAUNCHPROGRAMFILEKEY</td><td>fap.presentation.exe</td><td/></row>
+		<row><td>LAUNCHPROGRAMCOMPCODE</td><td>{3780CB9E-7C39-444A-A68B-727AAFF11641}</td><td/></row>
+		<row><td>LAUNCHPROGRAMFILEKEY</td><td>fap.exe</td><td/></row>
 		<row><td>LAUNCHREADME</td><td>1</td><td/></row>
 		<row><td>MSIFASTINSTALL</td><td>3</td><td/></row>
 		<row><td>Manufacturer</td><td>##COMPANY_NAME##</td><td/></row>
@@ -4628,10 +4635,10 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGMSG_IIS_ROLLBACKAPPPOOLS</td><td>##IDS_PROGMSG_IIS_ROLLBACKAPPPOOLS##</td><td/></row>
 		<row><td>PROGMSG_IIS_ROLLBACKVROOTS</td><td>##IDS_PROGMSG_IIS_ROLLBACKVROOTS##</td><td/></row>
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
-		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[INSTALLDIR]Fap.Presentation.exe</td><td/></row>
-		<row><td>ProductCode</td><td>{A31B18EA-8563-45D7-9627-4B5D64561334}</td><td/></row>
+		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[INSTALLDIR]Fap.exe</td><td/></row>
+		<row><td>ProductCode</td><td>{A8CE3414-B3DC-4CB4-B30C-D6AF7FCAD81A}</td><td/></row>
 		<row><td>ProductName</td><td>File Acceleration Protocol (FAP)</td><td/></row>
-		<row><td>ProductVersion</td><td>0.01.0000</td><td/></row>
+		<row><td>ProductVersion</td><td>0.02.0000</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
@@ -4644,7 +4651,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>SERIALNUMBER</td><td/><td/></row>
 		<row><td>SERIALNUMVALSUCCESSRETVAL</td><td>1</td><td/></row>
 		<row><td>SHOWLAUNCHPROGRAM</td><td>-1</td><td/></row>
-		<row><td>SecureCustomProperties</td><td>ISFOUNDNEWERPRODUCTVERSION;USERNAME;COMPANYNAME;ISX_SERIALNUM;SUPPORTDIR;DOTNETVERSION35SP1</td><td/></row>
+		<row><td>SecureCustomProperties</td><td>ISFOUNDNEWERPRODUCTVERSION;USERNAME;COMPANYNAME;ISX_SERIALNUM;SUPPORTDIR;DOTNETVERSION35SP1;ISACTIONPROP3</td><td/></row>
 		<row><td>SelectedSetupType</td><td>##IDS__DisplayName_Typical##</td><td/></row>
 		<row><td>SetupType</td><td>Typical</td><td/></row>
 		<row><td>UpgradeCode</td><td>{67737A65-D90B-4A36-8EE3-65ADB80CE452}</td><td/></row>
@@ -4708,10 +4715,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="L255">FileName</col>
 		<col def="s72">DirProperty</col>
 		<col def="i2">InstallMode</col>
-		<row><td>Fap.Presentation.exe</td><td>Fap.Presentation.exe</td><td/><td>kayomani</td><td>2</td></row>
-		<row><td>FileKey1</td><td>Fap.Presentation.exe</td><td/><td>kayomani</td><td>2</td></row>
-		<row><td>FileKey2</td><td>Fap.Presentation.exe</td><td/><td>fap</td><td>2</td></row>
-		<row><td>Server.Console.exe</td><td>Server.Console.exe</td><td/><td>kayomani</td><td>2</td></row>
+		<row><td>NewShortcut1</td><td>Fap.exe</td><td/><td>kayomani</td><td>2</td></row>
 	</table>
 
 	<table name="RemoveIniFile">
@@ -4797,8 +4801,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISComments</col>
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
-		<row><td>Fap.Presentation.exe</td><td>kayomani</td><td>##IDS_SHORTCUT_DISPLAY_NAME4##</td><td>Fap.Presentation.exe</td><td>AlwaysInstall</td><td/><td/><td/><td>Fap.Presentation.e_BB9D524C67BF4940ABA436030A746E75.exe</td><td>1</td><td>1</td><td>INSTALLDIR</td><td/><td/><td/><td/><td/><td/><td/></row>
-		<row><td>Server.Console.exe</td><td>kayomani</td><td>##IDS_SHORTCUT_DISPLAY_NAME5##</td><td>Server.Console.exe</td><td>AlwaysInstall</td><td/><td/><td/><td>Server.Console.exe_2F151E17002E4C5DBE7716A0AE2BC844.exe</td><td>1</td><td>1</td><td>INSTALLDIR</td><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut1</td><td>kayomani</td><td>##ID_STRING4##</td><td>Fap.exe</td><td>AlwaysInstall</td><td/><td>##ID_STRING9##</td><td/><td>NewShortcut1_BD54CB3852554CC2BCE5F3BE23C386B8.exe</td><td>1</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">
@@ -4921,6 +4924,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="s72">ActionProperty</col>
 		<col def="S72">ISDisplayName</col>
 		<row><td>{00000000-0000-0000-0000-000000000000}</td><td>***ALL_VERSIONS***</td><td></td><td></td><td>2</td><td/><td>ISFOUNDNEWERPRODUCTVERSION</td><td>ISPreventDowngrade</td></row>
+		<row><td>{67737A65-D90B-4A36-8EE3-65ADB80CE452}</td><td>0.01.0000</td><td>0.01.0000</td><td>1033</td><td>772</td><td/><td>ISACTIONPROP3</td><td>Beta1</td></row>
 	</table>
 
 	<table name="Verb">

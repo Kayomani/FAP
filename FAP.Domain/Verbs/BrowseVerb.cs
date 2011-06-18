@@ -1,25 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FAP.Domain.Entities;
+﻿using System.Collections.Generic;
 using FAP.Domain.Entities.FileSystem;
 using FAP.Domain.Services;
 using FAP.Network.Entities;
-using Directory = FAP.Domain.Entities.FileSystem.Directory;
-using File = FAP.Domain.Entities.FileSystem.File;
 
 namespace FAP.Domain.Verbs
 {
     public class BrowseVerb : BaseVerb, IVerb
     {
-        private readonly ShareInfoService infoService;
-        private readonly Model model;
+        private readonly ShareInfoService _infoService;
 
-        public BrowseVerb(Model m, ShareInfoService i)
+        public BrowseVerb(ShareInfoService i)
         {
-            model = m;
-            infoService = i;
+            _infoService = i;
             Results = new List<BrowsingFile>();
         }
 
@@ -33,9 +25,7 @@ namespace FAP.Domain.Verbs
 
         public NetworkRequest CreateRequest()
         {
-            var req = new NetworkRequest();
-            req.Verb = "BROWSE";
-            req.Data = Serialize(this);
+            var req = new NetworkRequest {Verb = "BROWSE", Data = Serialize(this)};
             return req;
         }
 
@@ -43,119 +33,13 @@ namespace FAP.Domain.Verbs
         {
             var verb = Deserialise<BrowseVerb>(r.Data);
 
-            if (string.IsNullOrEmpty(verb.Path))
-            {
-                //If we are given no path then provide a list of virtual directories
-                lock (model.Shares)
-                {
-                    var sent = new List<string>();
-
-                    var shares = from s in model.Shares
-                                 orderby s.Name
-                                 group s by s.Name
-                                 into g
-                                 select new
-                                            {
-                                                Name = g.Key,
-                                                Size = g.Sum(s => s.Size),
-                                                LastModified = g.Count() > 1 ? DateTime.Now : g.First().LastRefresh
-                                            };
-
-
-                    foreach (var share in shares)
-                    {
-                        Results.Add(new BrowsingFile
-                                        {
-                                            IsFolder = true,
-                                            Name = share.Name,
-                                            Size = share.Size,
-                                            LastModified = share.LastModified
-                                        });
-                        sent.Add(share.Name);
-                    }
-                }
-            }
-            else
-            {
-                try
-                {
-                    string[] posiblePaths;
-
-                    if (infoService.ToLocalPath(verb.Path, out posiblePaths))
-                    {
-                        bool isVirtual = false;
-                        Directory scanInfo = infoService.GetPath(verb.Path, out isVirtual);
-
-                        if (null != scanInfo && !verb.NoCache)
-                        {
-                            foreach (Directory dir in scanInfo.SubDirectories)
-                            {
-                                Results.Add(new BrowsingFile
-                                                {
-                                                    IsFolder = true,
-                                                    Size = dir.Size,
-                                                    Name = dir.Name,
-                                                    LastModified = DateTime.FromFileTime(dir.LastModified)
-                                                });
-                            }
-
-                            foreach (File file in scanInfo.Files)
-                            {
-                                Results.Add(new BrowsingFile
-                                                {
-                                                    IsFolder = false,
-                                                    Size = file.Size,
-                                                    Name = file.Name,
-                                                    LastModified = DateTime.FromFileTime(file.LastModified)
-                                                });
-                            }
-
-                            if (isVirtual)
-                            {
-                                scanInfo.SubDirectories.Clear();
-                                scanInfo.Files.Clear();
-                            }
-                        }
-                        else
-                        {
-                            foreach (string posiblePath in posiblePaths)
-                            {
-                                string fsPath = posiblePath.Replace('/', '\\');
-                                var directory = new DirectoryInfo(fsPath);
-                                DirectoryInfo[] directories = directory.GetDirectories();
-                                //Get directories
-                                foreach (DirectoryInfo dir in directories)
-                                {
-                                    Results.Add(new BrowsingFile
-                                                    {
-                                                        IsFolder = true,
-                                                        Size = 0,
-                                                        Name = dir.Name,
-                                                        LastModified = dir.LastWriteTime
-                                                    });
-                                }
-                                //Get files
-                                FileInfo[] files = directory.GetFiles();
-                                foreach (FileInfo file in files)
-                                {
-                                    Results.Add(new BrowsingFile
-                                                    {
-                                                        IsFolder = false,
-                                                        Size = file.Length,
-                                                        Name = file.Name,
-                                                        LastModified = file.LastWriteTime
-                                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-                }
-            }
+            List<BrowsingFile> results;
+            if (_infoService.GetPath(verb.Path, verb.NoCache, true, out results))
+                Results = results;
 
             r.Data = Serialize(this);
+            //Clear collection to assist GC
+            results.Clear();
             return r;
         }
 
@@ -170,7 +54,9 @@ namespace FAP.Domain.Verbs
                 Results = verb.Results;
                 return true;
             }
+// ReSharper disable EmptyGeneralCatchClause
             catch
+// ReSharper restore EmptyGeneralCatchClause
             {
             }
             return false;

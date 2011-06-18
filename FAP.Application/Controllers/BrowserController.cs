@@ -132,7 +132,7 @@ namespace FAP.Application.Controllers
             if (null != fse)
             {
                 var c = new Client(model.LocalNode);
-                var cmd = new BrowseVerb(model, shareInfo);
+                var cmd = new BrowseVerb(shareInfo);
                 cmd.Path = fse.FullPath;
                 cmd.NoCache = bvm.NoCache;
                 if (c.Execute(cmd, client))
@@ -160,7 +160,7 @@ namespace FAP.Application.Controllers
             else
             {
                 var c = new Client(model.LocalNode);
-                var cmd = new BrowseVerb(model, shareInfo);
+                var cmd = new BrowseVerb(shareInfo);
                 cmd.NoCache = bvm.NoCache;
 
                 if (c.Execute(cmd, client))
@@ -245,7 +245,7 @@ namespace FAP.Application.Controllers
         private void item_selected_async(object input)
         {
             var c = new Client(model.LocalNode);
-            var cmd = new BrowseVerb(model, shareInfo);
+            var cmd = new BrowseVerb(shareInfo);
             cmd.NoCache = bvm.NoCache;
             var ent = input as BrowsingFile;
             if (null != ent)
@@ -283,7 +283,7 @@ namespace FAP.Application.Controllers
         {
             var req = input as ExpandRequest;
             var c = new Client(model.LocalNode);
-            var cmd = new BrowseVerb(model, shareInfo);
+            var cmd = new BrowseVerb(shareInfo);
             cmd.Path = req.Path.FullPath;
             cmd.NoCache = bvm.NoCache;
             if (c.Execute(cmd, client))
