@@ -56,6 +56,7 @@ namespace FAP.Application
         private readonly RegisterProtocolService registerProtocolService;
         private readonly SingleInstanceService singleInstanceService;
         private readonly UpdateCheckerService updateChecker;
+        private DokanController dokan;
         private ListenerService client;
         private CompareController compareController;
         private ConversationController conversationController;
@@ -100,6 +101,9 @@ namespace FAP.Application
 
         public void ShutDownAsync(object param)
         {
+            if(null!=dokan)
+                dokan.Stop();
+
             model.Save();
             model.DownloadQueue.Save();
             connectionController.Exit();
@@ -145,6 +149,8 @@ namespace FAP.Application
             if (showWindow)
                 ShowMainWindow();
             ThreadPool.QueueUserWorkItem(MainWindowUpdater);
+            dokan = container.Resolve<DokanController>();
+            dokan.Start();
         }
 
         public bool Load(bool server)
