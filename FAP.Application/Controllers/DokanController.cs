@@ -27,7 +27,7 @@ namespace FAP.Application.Controllers
         private Dictionary<string,BrowsingCache> _browsingcache = new Dictionary<string, BrowsingCache>();
         private  ReaderWriterLockSlim readLock = new ReaderWriterLockSlim();
         private readonly int BROWSE_CACHE_TIME = 10000;//10 seconds
-        private readonly int FILE_READAHEAD_SIZE = 512000;//0.5mb
+        private readonly int FILE_READAHEAD_SIZE = 262144;//0.5mb
         private Dictionary<string, ReadAheadCache> readCache = new Dictionary<string, ReadAheadCache>();
 
         public DokanController(Model m)
@@ -85,6 +85,155 @@ namespace FAP.Application.Controllers
             }
         }
 
+
+        public int ReadFile(string filename, byte[] buffer, ref uint readBytes, long offset, DokanFileInfo info)
+        {
+            
+
+            ReadAheadCache cacheItem;
+            lock(readCache)
+            {
+                if(readCache.ContainsKey(filename))
+                {
+                    cacheItem = readCache[filename];
+                }
+                else
+                {
+                    cacheItem = new ReadAheadCache();
+                    readCache.Add(filename,cacheItem);
+                }
+            }
+            try
+            {
+                Monitor.Enter(cacheItem.Lock);
+                //If cache item is valid then check to see if we already have the data we need
+                if (cacheItem.Expires > Environment.TickCount)
+                {
+                    if (offset >= cacheItem.Offset && offset < cacheItem.Offset + cacheItem.Data.Length)
+                    {
+                        int read = 0;
+                        for (long internalOffset = offset - cacheItem.Offset; internalOffset < cacheItem.DataSize && read < buffer.Length; internalOffset++)
+                        {
+                            buffer[read] = cacheItem.Data[internalOffset];
+                            read++;
+                        }
+                        if (read > 0)
+                        {
+                            LogManager.GetLogger("faplog").Trace("Dokan ReadFile (cached) {0} Size {1} Offset {2}", filename, buffer.Length, offset);
+                            readBytes = (uint)read;
+                            return DokanNet.DOKAN_SUCCESS;
+                        }
+                    }
+                }
+
+                //Not in buffer
+                LogManager.GetLogger("faplog").Trace("Dokan ReadFile {0} Size {1} Offset {2}", filename, buffer.Length, offset);
+
+                try
+                {
+                    string path;
+                    var node = ParsePath(filename, out path);
+                    if (null != node)
+                    {
+                        string url = path.Replace('\\', '/');
+                        if (!url.StartsWith("/"))
+                            url = "/" + url;
+
+                        var req = (HttpWebRequest)
+                                  WebRequest.Create(getDownloadUrl(node) + url);
+                        // req.UserAgent = Model.AppVersion;
+                        // req.Headers.Add("FAP-SOURCE", model.LocalNode.ID);
+                       // req.UserAgent = Model.AppVersion;
+                        req.Headers.Add("FAP-SOURCE", _model.LocalNode.ID);
+                        req.Pipelined = true;
+                        // req.Timeout = 10000;
+                      //   req.ReadWriteTimeout = 10000;
+                        //If we are resuming then add range
+                       // if (offset != 0)
+                        //{
+                            //Yes Micrsoft if you read this...  OH WHY IS ADDRANGE ONLY AN INT?? We live in an age where we might actually download more than 2gb
+                            //req.AddRange(fileStream.Length);
+
+                            //Hack
+                            MethodInfo method = typeof(WebHeaderCollection).GetMethod("AddWithoutValidate",
+                                                                                       BindingFlags.Instance |
+                                                                                       BindingFlags.NonPublic);
+                            string key = "Range";
+
+                            long readSize = FILE_READAHEAD_SIZE;
+                             //If request is bigger then read ahead then increase request size
+                            if (buffer.LongLength > readSize)
+                            {
+                                //Upto the free file size limit
+                                if (Model.FREE_FILE_LIMIT > buffer.LongLength)
+                                    readSize = buffer.LongLength;
+                                else
+                                    readSize = Model.FREE_FILE_LIMIT;
+                            }
+
+                            string val = string.Format("bytes={0}-{1}", offset, offset + readSize);
+                            method.Invoke(req.Headers, new object[] { key, val });
+                        //}
+
+                        using(var resp = (HttpWebResponse)req.GetResponse())
+                        {
+
+                            if (resp.StatusCode == HttpStatusCode.OK || resp.StatusCode == HttpStatusCode.PartialContent)
+                            {
+                                cacheItem.Data = new byte[readSize];
+                                cacheItem.Offset = offset;
+                                using (var r = resp.GetResponseStream())
+                                {
+                                    cacheItem.DataSize = 0;
+                                    int position = 0;
+                                    while (position < resp.ContentLength)
+                                    {
+                                        int read = r.Read(cacheItem.Data, position, cacheItem.Data.Length - position);
+                                        cacheItem.DataSize += read;
+                                        position += read;
+                                    }
+
+
+                                    cacheItem.Expires = Environment.TickCount + BROWSE_CACHE_TIME;
+                                    if (cacheItem.DataSize != resp.ContentLength)
+                                    {
+
+                                    }
+
+                                    {
+                                        int read = 0;
+                                        for (long i = 0; i < cacheItem.DataSize && i < buffer.Length; i++)
+                                        {
+                                            buffer[i] = cacheItem.Data[i];
+                                            read++;
+                                        }
+
+                                        //Do not save oversize buffers
+                                        if (cacheItem.Data.Length > FILE_READAHEAD_SIZE)
+                                        {
+                                            cacheItem.Data = new byte[0];
+                                            cacheItem.Expires = 0;
+                                        }
+                                        else
+                                            cacheItem.Expires = Environment.TickCount + BROWSE_CACHE_TIME;
+
+                                        readBytes = (uint)read;
+                                        return DokanNet.DOKAN_SUCCESS;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+            finally
+            {
+                Monitor.Exit(cacheItem.Lock);
+            }
+            return DokanNet.DOKAN_ERROR;
+        }
+
         private Node ParsePath(string path, out string nodePath)
         {
             nodePath = string.Empty;
@@ -138,7 +287,11 @@ namespace FAP.Application.Controllers
                     if (cache.Expires > Environment.TickCount)
                     {
                         lock (cache.Lock)
+                        {
+                            if (null == cache.Info)
+                                return null;
                             return cache.Info.ToList();
+                        }
                     }
                 }
                 else
@@ -164,7 +317,7 @@ namespace FAP.Application.Controllers
                     var cmd = new BrowseVerb(null);
                     cmd.Path = "/" + nodePath.Replace('\\', '/');
                     cmd.NoCache = false;
-                    LogManager.GetLogger("faplog").Warn("Dokan ## Get info for {0}", path);
+                    LogManager.GetLogger("faplog").Trace("Dokan ## Get info for {0}", path);
                     if (c.Execute(cmd, node))
                     {
                         cache.Info = cmd.Results;
@@ -218,51 +371,6 @@ namespace FAP.Application.Controllers
             return sb.ToString();
         }
 
-        public int ReadFile(string filename, byte[] buffer, ref uint readBytes, long offset, DokanFileInfo info)
-        {
-            LogManager.GetLogger("faplog").Trace("Dokan ReadFile {0}", filename);
-            return DokanNet.DOKAN_ERROR;
-            try
-            {
-                string path;
-                var node = ParsePath(filename, out path);
-                if (null != node)
-                {
-                    var req = (HttpWebRequest)
-                              WebRequest.Create(Multiplexor.Encode(getDownloadUrl(node), "GET", path));
-                    // req.UserAgent = Model.AppVersion;
-                    // req.Headers.Add("FAP-SOURCE", model.LocalNode.ID);
-
-                    // req.Timeout = 300000;
-                    // req.ReadWriteTimeout = 3000000;
-                    //If we are resuming then add range
-                    if (offset != 0)
-                    {
-                        //Yes Micrsoft if you read this...  OH WHY IS ADDRANGE ONLY AN INT?? We live in an age where we might actually download more than 2gb
-                        //req.AddRange(fileStream.Length);
-
-                        //Hack
-                        MethodInfo method = typeof (WebHeaderCollection).GetMethod("AddWithoutValidate",
-                                                                                   BindingFlags.Instance |
-                                                                                   BindingFlags.NonPublic);
-                        string key = "Range";
-                        string val = string.Format("bytes={0}", offset);
-                        method.Invoke(req.Headers, new object[] {key, val});
-                    }
-
-                    var resp = (HttpWebResponse) req.GetResponse();
-
-                    if (resp.StatusCode == HttpStatusCode.OK)
-                    {
-                    }
-                }
-            }
-            catch
-            {
-            }
-            return DokanNet.DOKAN_ERROR;
-        }
-
         public int WriteFile(string filename, byte[] buffer, ref uint writtenBytes, long offset, DokanFileInfo info)
         {
             return 0;
@@ -281,12 +389,12 @@ namespace FAP.Application.Controllers
             string path = Path.GetDirectoryName(fullPath);
 
             var bf = GetDirectoryWithCache(path);
-            if (null != info)
+            if (null != bf)
             {
                 var search = bf.Where(f => f.Name == fileName).FirstOrDefault();
                 if (null != search)
                 {
-                    fileinfo.Attributes = FileAttributes.Normal;
+                    fileinfo.Attributes =search.IsFolder?  FileAttributes.Directory:FileAttributes.Normal;
                     fileinfo.CreationTime = search.LastModified;
                     fileinfo.FileName = fileName;
                     fileinfo.LastAccessTime = search.LastModified;
@@ -395,6 +503,8 @@ namespace FAP.Application.Controllers
             public int Expires { set; get; }
             public byte[] Data { set; get; }
             public long Offset { set; get; }
+            public int DataSize { set; get; }
+            public object Lock = new object();
         }
    }
 }

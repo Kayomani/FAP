@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections;
 using Dokan;
+using System.Threading;
 
 namespace DokaNetMirror
 {
@@ -18,7 +19,7 @@ namespace DokaNetMirror
         private string GetPath(string filename)
         {
             string path = root_ + filename;
-            Console.Error.WriteLine("GetPath : {0}", path);
+          //  Console.Error.WriteLine("GetPath : {0}", path);
             return path;
         }
 
@@ -70,6 +71,11 @@ namespace DokaNetMirror
         public int ReadFile(String filename, Byte[] buffer, ref uint readBytes,
             long offset, DokanFileInfo info)
         {
+            string fileName2 = Path.GetFileName(filename);
+            if (filename.Length > 20)
+                fileName2 = filename.Substring(filename.Length - 20, 20);
+
+            Console.WriteLine("Read " + fileName2 + " " + buffer.Length + " Offset " + offset);
             try
             {
                 FileStream fs = File.OpenRead(GetPath(filename));
@@ -213,6 +219,15 @@ namespace DokaNetMirror
 
         static void Main(string[] args)
         {
+           
+            ThreadPool.QueueUserWorkItem(new WaitCallback(Run));
+            Console.ReadKey();
+            DokanNet.DokanUnmount('n');
+        }
+
+
+        private static void Run(object o)
+        {
             DokanOptions opt = new DokanOptions();
             opt.DebugMode = true;
             opt.MountPoint = "n:\\";
@@ -241,7 +256,7 @@ namespace DokaNetMirror
                 default:
                     Console.WriteLine("Unknown status: %d", status);
                     break;
-                       
+
             }
         }
     }
