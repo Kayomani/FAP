@@ -281,33 +281,31 @@ namespace FAP.Application.Controllers
             {
                 readLock.EnterReadLock();
                 if (_browsingcache.ContainsKey(path))
-                {
                     cache = _browsingcache[path];
-                    //Item is cached so just return it
-                    if (cache.Expires > Environment.TickCount)
-                    {
-                        lock (cache.Lock)
-                        {
-                            if (null == cache.Info)
-                                return null;
-                            return cache.Info.ToList();
-                        }
-                    }
-                }
                 else
                 {
-                    cache = new BrowsingCache() { Expires = Environment.TickCount + BROWSE_CACHE_TIME};
+                    cache = new BrowsingCache() { Expires = 0};
                     _browsingcache.Add(path, cache);
                 }
-                //Not cached, get lock and download.
-                Monitor.Enter(cache.Lock);
+               
             }
             finally
             {
                 readLock.ExitReadLock();
             }
+
             try
             {
+                Monitor.Enter(cache.Lock);
+                //Item is cached so just return it
+
+                if (cache.Expires > Environment.TickCount)
+                {
+
+                    if (null == cache.Info)
+                        return null;
+                    return cache.Info.ToList();
+                }
 
                 string nodePath;
                 var node = ParsePath(path, out nodePath);
@@ -321,6 +319,7 @@ namespace FAP.Application.Controllers
                     if (c.Execute(cmd, node))
                     {
                         cache.Info = cmd.Results;
+                        cache.Expires = Environment.TickCount + BROWSE_CACHE_TIME;
                         return cache.Info.ToList();
                     }
                 }
