@@ -27,7 +27,7 @@ namespace FAP.Application.Controllers
         private Dictionary<string,BrowsingCache> _browsingcache = new Dictionary<string, BrowsingCache>();
         private  ReaderWriterLockSlim readLock = new ReaderWriterLockSlim();
         private readonly int BROWSE_CACHE_TIME = 10000;//10 seconds
-        private readonly int FILE_READAHEAD_SIZE = 262144;//0.5mb
+        private readonly int FILE_READAHEAD_SIZE = 262144;//0.25mb
         private Dictionary<string, ReadAheadCache> readCache = new Dictionary<string, ReadAheadCache>();
 
         public DokanController(Model m)
@@ -109,25 +109,19 @@ namespace FAP.Application.Controllers
                 //If cache item is valid then check to see if we already have the data we need
                 if (cacheItem.Expires > Environment.TickCount)
                 {
-                    if (offset >= cacheItem.Offset && offset < cacheItem.Offset + cacheItem.Data.Length)
+                    long location = offset - cacheItem.Offset;
+                    if (offset >= cacheItem.Offset && offset < cacheItem.Offset + cacheItem.Data.Length && location + buffer.Length<cacheItem.DataSize)
                     {
-                        int read = 0;
-                        for (long internalOffset = offset - cacheItem.Offset; internalOffset < cacheItem.DataSize && read < buffer.Length; internalOffset++)
-                        {
-                            buffer[read] = cacheItem.Data[internalOffset];
-                            read++;
-                        }
-                        if (read > 0)
-                        {
-                            LogManager.GetLogger("faplog").Trace("Dokan ReadFile (cached) {0} Size {1} Offset {2}", filename, buffer.Length, offset);
-                            readBytes = (uint)read;
-                            return DokanNet.DOKAN_SUCCESS;
-                        }
+                        for (int i = 0; i < buffer.Length; i++)
+                            buffer[i] = cacheItem.Data[i + location];
+                       // LogManager.GetLogger("faplog").Trace("Dokan ReadFile (cached) {0} Size {1} Offset {2}", filename, buffer.Length, offset);
+                        readBytes = (uint)buffer.Length;
+                        return DokanNet.DOKAN_SUCCESS;
                     }
                 }
 
                 //Not in buffer
-                LogManager.GetLogger("faplog").Trace("Dokan ReadFile {0} Size {1} Offset {2}", filename, buffer.Length, offset);
+               // LogManager.GetLogger("faplog").Trace("Dokan ReadFile {0} Size {1} Offset {2}", filename, buffer.Length, offset);
 
                 try
                 {
@@ -231,7 +225,7 @@ namespace FAP.Application.Controllers
             {
                 Monitor.Exit(cacheItem.Lock);
             }
-            return DokanNet.DOKAN_ERROR;
+            return DokanNet.ERROR_FILE_NOT_FOUND;
         }
 
         private Node ParsePath(string path, out string nodePath)
@@ -386,6 +380,31 @@ namespace FAP.Application.Controllers
 
             string fileName = Path.GetFileName(fullPath);
             string path = Path.GetDirectoryName(fullPath);
+
+            if (string.IsNullOrEmpty(fileName))
+            {
+                string[] split = new string[0];
+                if (null != path)
+                    split = path.Split("\\".ToArray(), StringSplitOptions.RemoveEmptyEntries);
+
+                if (split.Length == 0)
+                {
+                    //Root dir
+                    fileinfo.Attributes = FileAttributes.Directory;
+                    fileinfo.CreationTime = DateTime.Now;
+                    fileinfo.FileName = "\\";
+                    fileinfo.LastAccessTime = DateTime.Now;
+                    fileinfo.LastWriteTime = DateTime.Now;
+                    fileinfo.Length = 0;
+                    return DokanNet.DOKAN_SUCCESS;
+                }
+                else
+                {
+                    fileName = split[split.Length - 1];
+                    path = path.Substring(0, path.Length - fileName.Length);
+                }
+            }
+
 
             var bf = GetDirectoryWithCache(path);
             if (null != bf)
