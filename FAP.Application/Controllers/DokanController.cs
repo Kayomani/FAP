@@ -26,8 +26,9 @@ namespace FAP.Application.Controllers
 
         private Dictionary<string,BrowsingCache> _browsingcache = new Dictionary<string, BrowsingCache>();
         private  ReaderWriterLockSlim readLock = new ReaderWriterLockSlim();
-        private readonly int BROWSE_CACHE_TIME = 10000;//10 seconds
+        private readonly TimeSpan BROWSE_CACHE_TIME = new TimeSpan(0,0,15);//10 seconds
         private readonly int FILE_READAHEAD_SIZE = 262144;//0.25mb
+        private readonly int LARGE_READ_SIZE = 1000000;//980kb 
         private Dictionary<string, ReadAheadCache> readCache = new Dictionary<string, ReadAheadCache>();
 
         public DokanController(Model m)
@@ -85,44 +86,147 @@ namespace FAP.Application.Controllers
             }
         }
 
+        /// <summary>
+        /// Remove expired items in the cache
+        /// </summary>
+        public void CleanUp()
+        {
+            //Clean read cache
+            lock (readCache)
+            {
+                foreach (var item in readCache.ToList())
+                {
+                    if (item.Value.Expires < DateTime.Now)
+                    {
+                        lock (item.Value.Lock)
+                        {
+                            readCache.Remove(item.Key);
+                            item.Value.Data = null;
+                            if (null != item.Value.Response)
+                            {
+                                try
+                                {
+                                    using (var resp = item.Value.Response)
+                                    {
+                                        using (var stream = resp.GetResponseStream())
+                                            stream.Close();
+                                    }
+                                }
+                                catch { }
+                                item.Value.Response = null;
+                            }
+                        }
+                    }
+                }
+            }
+            //Clean file listing cache
+            try
+            {
+                readLock.EnterReadLock();
+                foreach (var item in _browsingcache.ToList())
+                {
+                    if (item.Value.Expires < DateTime.Now)
+                    {
+                        lock (item.Value.Lock)
+                        {
+                            _browsingcache.Remove(item.Key);
+                            if (null != item.Value.Info)
+                                item.Value.Info.Clear();
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                readLock.ExitReadLock();
+            }
+        }
 
         public int ReadFile(string filename, byte[] buffer, ref uint readBytes, long offset, DokanFileInfo info)
         {
-            
+
+            FileInformation fileInfo = new FileInformation();
+            if (DokanNet.DOKAN_SUCCESS == GetFileInformation(filename, fileInfo, null) && null != fileInfo)
+            {
+                if (fileInfo.Length <= offset || offset < 0)
+                {
+                    LogManager.GetLogger("faplog").Error("Dokan ReadFile too far {0} {1} to {2} ", filename, offset, offset + buffer.Length);
+                    readBytes = 0;
+                    return DokanNet.DOKAN_SUCCESS;
+                }
+            }
+
 
             ReadAheadCache cacheItem;
-            lock(readCache)
+            lock (readCache)
             {
-                if(readCache.ContainsKey(filename))
+                if (readCache.ContainsKey(filename))
                 {
                     cacheItem = readCache[filename];
                 }
                 else
                 {
                     cacheItem = new ReadAheadCache();
-                    readCache.Add(filename,cacheItem);
+                    readCache.Add(filename, cacheItem);
                 }
             }
+
+            LogManager.GetLogger("faplog").Error("Dokan ReadFile {0} {1} at {2} to {3}", cacheItem.Type, filename, offset, offset + buffer.Length);
+
             try
             {
                 Monitor.Enter(cacheItem.Lock);
                 //If cache item is valid then check to see if we already have the data we need
-                if (cacheItem.Expires > Environment.TickCount)
+                if (cacheItem.Expires > DateTime.Now && cacheItem.Type == ReadAheadCacheType.Random)
                 {
                     long location = offset - cacheItem.Offset;
-                    if (offset >= cacheItem.Offset && offset < cacheItem.Offset + cacheItem.Data.Length && location + buffer.Length<cacheItem.DataSize)
+                    if (offset >= cacheItem.Offset && offset < cacheItem.Offset + cacheItem.Data.Length && location + buffer.Length < cacheItem.DataSize)
                     {
                         for (int i = 0; i < buffer.Length; i++)
                             buffer[i] = cacheItem.Data[i + location];
-                       // LogManager.GetLogger("faplog").Trace("Dokan ReadFile (cached) {0} Size {1} Offset {2}", filename, buffer.Length, offset);
+                        LogManager.GetLogger("faplog").Trace("Dokan ReadFile (cached) {0} Size {1} Offset {2}", filename, buffer.Length, offset);
                         readBytes = (uint)buffer.Length;
                         return DokanNet.DOKAN_SUCCESS;
                     }
+
+                    
                 }
+                //Check Read type
+                switch (cacheItem.Type)
+                {
+                    case ReadAheadCacheType.Unset:
+                        //If a large buffer is being used its likely we are doing a copy
+                        if (buffer.Length > LARGE_READ_SIZE) // 960kb
+                            cacheItem.Type = ReadAheadCacheType.Sequential;
+                        else
+                            cacheItem.Type = ReadAheadCacheType.Random;
 
-                //Not in buffer
-               // LogManager.GetLogger("faplog").Trace("Dokan ReadFile {0} Size {1} Offset {2}", filename, buffer.Length, offset);
+                        LogManager.GetLogger("faplog").Error("Dokan ReadFile new {0} {1}", cacheItem.Type.ToString(), filename);
+                        break;
+                    case ReadAheadCacheType.Sequential:
+                        if (cacheItem.Offset != offset)
+                        {
+                            cacheItem.Response.GetResponseStream().Close();
+                            cacheItem.Response.GetResponseStream().Dispose();
+                            cacheItem.Response.Close();
+                            cacheItem.Response = null;
+                            cacheItem.Type = ReadAheadCacheType.Random;
+                            cacheItem.SequentialReads = 0;
+                            LogManager.GetLogger("faplog").Error("Dokan ReadFile To Seq {0} {1}", cacheItem.Type.ToString(), filename);
+                        }
+                        break;
+                    case ReadAheadCacheType.Random:
+                        if (cacheItem.SequentialReads > 4)
+                        {
+                            cacheItem.Type = ReadAheadCacheType.Sequential;
+                            cacheItem.DataSize = 0;
+                            cacheItem.Data = new byte[0];
+                            cacheItem.Offset = 0;
+                            LogManager.GetLogger("faplog").Error("Dokan ReadFile To Random {0} {1}", cacheItem.Type.ToString(), filename);
+                        }
+                        break;
 
+                }
                 try
                 {
                     string path;
@@ -133,29 +237,65 @@ namespace FAP.Application.Controllers
                         if (!url.StartsWith("/"))
                             url = "/" + url;
 
-                        var req = (HttpWebRequest)
-                                  WebRequest.Create(getDownloadUrl(node) + url);
-                        // req.UserAgent = Model.AppVersion;
-                        // req.Headers.Add("FAP-SOURCE", model.LocalNode.ID);
-                       // req.UserAgent = Model.AppVersion;
-                        req.Headers.Add("FAP-SOURCE", _model.LocalNode.ID);
-                        req.Pipelined = true;
-                        // req.Timeout = 10000;
-                      //   req.ReadWriteTimeout = 10000;
-                        //If we are resuming then add range
-                       // if (offset != 0)
-                        //{
-                            //Yes Micrsoft if you read this...  OH WHY IS ADDRANGE ONLY AN INT?? We live in an age where we might actually download more than 2gb
-                            //req.AddRange(fileStream.Length);
 
-                            //Hack
+                        if (cacheItem.Type == ReadAheadCacheType.Sequential)
+                        {
+                            if (null == cacheItem.Response)
+                            {
+                                //Create new download session
+                                var req = (HttpWebRequest)
+                                      WebRequest.Create(getDownloadUrl(node) + url);
+                                req.Headers.Add("FAP-SOURCE", _model.LocalNode.ID);
+                                MethodInfo method = typeof(WebHeaderCollection).GetMethod("AddWithoutValidate",
+                                                                                           BindingFlags.Instance |
+                                                                                           BindingFlags.NonPublic);
+                                string key = "Range";
+                                string val = string.Format("bytes={0}", offset);
+                                method.Invoke(req.Headers, new object[] { key, val });
+                                cacheItem.Response = (HttpWebResponse)req.GetResponse();
+                                cacheItem.Offset = 0;
+                            }
+
+                            if (cacheItem.Response.StatusCode == HttpStatusCode.OK || cacheItem.Response.StatusCode == HttpStatusCode.PartialContent)
+                            {
+                                var stream = cacheItem.Response.GetResponseStream();
+                                int read = 0;
+
+                                while (true)
+                                {
+                                    read += stream.Read(buffer, read, buffer.Length - read);
+                                    //Reached full buffer or end of file
+                                    if (read == buffer.Length || cacheItem.Response.ContentLength == cacheItem.Offset + read)
+                                        break;
+                                }
+
+                                cacheItem.Expires = DateTime.Now + BROWSE_CACHE_TIME;
+                                cacheItem.Offset += read;
+                                readBytes = (uint)read;
+                                return DokanNet.DOKAN_SUCCESS;
+                            }
+                            else
+                            {
+                                cacheItem.Type = ReadAheadCacheType.Unset;
+                                cacheItem.Response.GetResponseStream().Close();
+                                cacheItem.Response.GetResponseStream().Dispose();
+                                cacheItem.Response.Close();
+                            }
+                        }
+                        else
+                        {
+                            //Random access read
+                            var req = (HttpWebRequest)
+                                      WebRequest.Create(getDownloadUrl(node) + url);
+                            req.Headers.Add("FAP-SOURCE", _model.LocalNode.ID);
+                            req.Pipelined = true;
                             MethodInfo method = typeof(WebHeaderCollection).GetMethod("AddWithoutValidate",
                                                                                        BindingFlags.Instance |
                                                                                        BindingFlags.NonPublic);
                             string key = "Range";
 
                             long readSize = FILE_READAHEAD_SIZE;
-                             //If request is bigger then read ahead then increase request size
+                            //If request is bigger then read ahead then increase request size
                             if (buffer.LongLength > readSize)
                             {
                                 //Upto the free file size limit
@@ -167,59 +307,71 @@ namespace FAP.Application.Controllers
 
                             string val = string.Format("bytes={0}-{1}", offset, offset + readSize);
                             method.Invoke(req.Headers, new object[] { key, val });
-                        //}
 
-                        using(var resp = (HttpWebResponse)req.GetResponse())
-                        {
-
-                            if (resp.StatusCode == HttpStatusCode.OK || resp.StatusCode == HttpStatusCode.PartialContent)
+                            using (var resp = (HttpWebResponse)req.GetResponse())
                             {
-                                cacheItem.Data = new byte[readSize];
-                                cacheItem.Offset = offset;
-                                using (var r = resp.GetResponseStream())
+
+                                if (resp.StatusCode == HttpStatusCode.OK || resp.StatusCode == HttpStatusCode.PartialContent)
                                 {
-                                    cacheItem.DataSize = 0;
-                                    int position = 0;
-                                    while (position < resp.ContentLength)
+                                    //Check for sequential reads
+                                    if ((cacheItem.Offset + cacheItem.DataSize == offset || cacheItem.Offset + buffer.Length == offset) && cacheItem.DataSize != 0)
+                                        cacheItem.SequentialReads++;
+                                    else
+                                        cacheItem.SequentialReads = 0;
+
+                                    cacheItem.Data = new byte[readSize];
+                                    cacheItem.Offset = offset;
+                                    using (var r = resp.GetResponseStream())
                                     {
-                                        int read = r.Read(cacheItem.Data, position, cacheItem.Data.Length - position);
-                                        cacheItem.DataSize += read;
-                                        position += read;
-                                    }
+                                        cacheItem.DataSize = 0;
+                                        int position = 0;
 
-
-                                    cacheItem.Expires = Environment.TickCount + BROWSE_CACHE_TIME;
-                                    if (cacheItem.DataSize != resp.ContentLength)
-                                    {
-
-                                    }
-
-                                    {
-                                        int read = 0;
-                                        for (long i = 0; i < cacheItem.DataSize && i < buffer.Length; i++)
+                                        while (position < resp.ContentLength)
                                         {
-                                            buffer[i] = cacheItem.Data[i];
-                                            read++;
+                                            int read = r.Read(cacheItem.Data, position, cacheItem.Data.Length - position);
+                                            cacheItem.DataSize += read;
+                                            position += read;
                                         }
 
-                                        //Do not save oversize buffers
-                                        if (cacheItem.Data.Length > FILE_READAHEAD_SIZE)
-                                        {
-                                            cacheItem.Data = new byte[0];
-                                            cacheItem.Expires = 0;
-                                        }
-                                        else
-                                            cacheItem.Expires = Environment.TickCount + BROWSE_CACHE_TIME;
+                                        cacheItem.Expires = DateTime.Now + BROWSE_CACHE_TIME;
 
-                                        readBytes = (uint)read;
-                                        return DokanNet.DOKAN_SUCCESS;
+                                        {
+                                            int read = 0;
+                                            for (long i = 0; i < cacheItem.DataSize && i < buffer.Length; i++)
+                                            {
+                                                buffer[i] = cacheItem.Data[i];
+                                                read++;
+                                            }
+
+                                            //Do not save oversize buffers
+                                            /* if (cacheItem.Data.Length > LARGE_READ_SIZE)
+                                             {
+                                                 cacheItem.Data = new byte[0];
+                                                 cacheItem.DataSize = 0;
+                                                 cacheItem.Expires = DateTime.MinValue;
+                                                 LogManager.GetLogger("faplog").Error("Dokan ReadFile Clear large buffer");
+                                             }
+                                             else*/
+                                            cacheItem.Expires = DateTime.Now + BROWSE_CACHE_TIME;
+
+                                            readBytes = (uint)read;
+                                            LogManager.GetLogger("faplog").Error("Dokan ReadFile Random buffer {0} {1} :: {2}", cacheItem.Offset, cacheItem.Offset + cacheItem.DataSize, cacheItem.SequentialReads);
+                                            return DokanNet.DOKAN_SUCCESS;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-                catch { }
+                catch {
+                    //Clear down
+                    cacheItem.Response = null;
+                    cacheItem.Offset = 0;
+                    cacheItem.DataSize = 0;
+                    cacheItem.Data = new byte[0];
+                    cacheItem.Expires = DateTime.MinValue;
+                }
             }
             finally
             {
@@ -278,7 +430,7 @@ namespace FAP.Application.Controllers
                     cache = _browsingcache[path];
                 else
                 {
-                    cache = new BrowsingCache() { Expires = 0};
+                    cache = new BrowsingCache() { Expires = DateTime.MinValue};
                     _browsingcache.Add(path, cache);
                 }
                
@@ -293,7 +445,7 @@ namespace FAP.Application.Controllers
                 Monitor.Enter(cache.Lock);
                 //Item is cached so just return it
 
-                if (cache.Expires > Environment.TickCount)
+                if (cache.Expires > DateTime.Now)
                 {
 
                     if (null == cache.Info)
@@ -313,7 +465,7 @@ namespace FAP.Application.Controllers
                     if (c.Execute(cmd, node))
                     {
                         cache.Info = cmd.Results;
-                        cache.Expires = Environment.TickCount + BROWSE_CACHE_TIME;
+                        cache.Expires = DateTime.Now + BROWSE_CACHE_TIME;
                         return cache.Info.ToList();
                     }
                 }
@@ -333,7 +485,7 @@ namespace FAP.Application.Controllers
 
         public int OpenDirectory(string filename, DokanFileInfo info)
         {
-            LogManager.GetLogger("faplog").Trace("Dokan OpenDirectory {0}",filename);
+            //LogManager.GetLogger("faplog").Trace("Dokan OpenDirectory {0}",filename);
             if (null != GetDirectoryWithCache(filename))
                 return DokanNet.DOKAN_SUCCESS;
             return DokanNet.ERROR_PATH_NOT_FOUND;
@@ -341,17 +493,17 @@ namespace FAP.Application.Controllers
 
         public int CreateDirectory(string filename, DokanFileInfo info)
         {
-            return DokanNet.DOKAN_ERROR;
+            return DokanNet.ERROR_ACCESS_DENIED;
         }
 
         public int Cleanup(string filename, DokanFileInfo info)
         {
-            return 0;
+            return DokanNet.DOKAN_SUCCESS;
         }
 
         public int CloseFile(string filename, DokanFileInfo info)
         {
-            return 0;
+            return DokanNet.DOKAN_SUCCESS;
         }
 
         private string getDownloadUrl(Node remoteNode)
@@ -366,7 +518,7 @@ namespace FAP.Application.Controllers
 
         public int WriteFile(string filename, byte[] buffer, ref uint writtenBytes, long offset, DokanFileInfo info)
         {
-            return 0;
+            return DokanNet.DOKAN_ERROR;
         }
 
         public int FlushFileBuffers(string filename, DokanFileInfo info)
@@ -376,7 +528,7 @@ namespace FAP.Application.Controllers
 
         public int GetFileInformation(string fullPath, FileInformation fileinfo, DokanFileInfo info)
         {
-            LogManager.GetLogger("faplog").Trace("Dokan GetFileInformation {0}", fullPath);
+            //LogManager.GetLogger("faplog").Trace("Dokan GetFileInformation {0}", fullPath);
 
             string fileName = Path.GetFileName(fullPath);
             string path = Path.GetDirectoryName(fullPath);
@@ -426,7 +578,7 @@ namespace FAP.Application.Controllers
 
         public int FindFiles(string path, System.Collections.ArrayList files, DokanFileInfo info)
         {
-            LogManager.GetLogger("faplog").Trace("Dokan FindFiles {0}", path);
+            //LogManager.GetLogger("faplog").Trace("Dokan FindFiles {0}", path);
 
             var bf = GetDirectoryWithCache(path);
             if (null != bf)
@@ -461,7 +613,7 @@ namespace FAP.Application.Controllers
 
         public int DeleteFile(string filename, DokanFileInfo info)
         {
-            return DokanNet.ERROR_ACCESS_DENIED;
+            return DokanNet.DOKAN_ERROR;
         }
 
         public int DeleteDirectory(string filename, DokanFileInfo info)
@@ -486,12 +638,12 @@ namespace FAP.Application.Controllers
 
         public int LockFile(string filename, long offset, long length, DokanFileInfo info)
         {
-            return 0;
+            return DokanNet.DOKAN_SUCCESS;
         }
 
         public int UnlockFile(string filename, long offset, long length, DokanFileInfo info)
         {
-            return 0;
+            return DokanNet.DOKAN_SUCCESS;
         }
 
         public int GetDiskFreeSpace(ref ulong freeBytesAvailable, ref ulong totalBytes, ref ulong totalFreeBytes, DokanFileInfo info)
@@ -505,24 +657,38 @@ namespace FAP.Application.Controllers
 
         public int Unmount(DokanFileInfo info)
         {
-            return 0;
+            return DokanNet.DOKAN_SUCCESS;
         }
         #endregion
 
         public class BrowsingCache
         {
-            public int Expires { set; get; }
+            public DateTime Expires { set; get; }
             public List<BrowsingFile> Info { set; get; }
             public object Lock = new object();
         }
 
         public class ReadAheadCache
         {
-            public int Expires { set; get; }
-            public byte[] Data { set; get; }
+            public ReadAheadCache() { Type = ReadAheadCacheType.Unset; }
+
+            public ReadAheadCacheType Type { set; get; }
+            public int SequentialReads { set; get; }
+            //Shared
             public long Offset { set; get; }
+
+            //Random
+            public DateTime Expires { set; get; }
+            public byte[] Data { set; get; }
+            
             public int DataSize { set; get; }
+            //Sequential
+            public HttpWebResponse Response { set; get; }
+
             public object Lock = new object();
         }
+
+        public enum ReadAheadCacheType {Random,Sequential,Unset};
+
    }
 }

@@ -1,0 +1,5 @@
+;!@Install@!UTF-8!
+RunProgram="setup.exe"
+ExtractTitle="Extracting installer.."
+GUIMode="1"
+;!@InstallEnd@!

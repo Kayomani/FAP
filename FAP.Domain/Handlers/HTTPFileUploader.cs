@@ -135,7 +135,7 @@ namespace FAP.Domain.Handlers
                             ResumePoint = start;
                         }
 
-                        if (end < stream.Length)
+                        if (end < stream.Length && end !=0)
                             readEnd = end;
 
                         context.Response.Status = HttpStatusCode.PartialContent;

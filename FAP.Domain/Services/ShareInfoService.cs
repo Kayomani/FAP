@@ -66,7 +66,7 @@ namespace FAP.Domain.Services
                 }
                 catch (Exception e)
                 {
-                    LogManager.GetLogger("faplog").DebugException("Failed to load share info for" + share.Name, e);
+                    LogManager.GetLogger("faplog").DebugException("Failed to load share info for " + share.Name, e);
                     ThreadPool.QueueUserWorkItem(DoRefreshPath, share);
                 }
             }

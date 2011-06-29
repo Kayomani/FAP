@@ -38,16 +38,18 @@ namespace FAP.Application.Controllers
         //Sync object for scanfordownloads - only single invocations allowed.
         private readonly object sync = new object();
         private readonly List<DownloadWorkerService> workers = new List<DownloadWorkerService>();
+        private readonly DokanController dokanController;
         private Logger logger;
         private bool run;
 
-        public WatchdogController(Model m, SharesController s, BufferService b, OverlordManagerService o)
+        public WatchdogController(Model m, SharesController s, BufferService b, OverlordManagerService o,DokanController d)
         {
             model = m;
             shareController = s;
             bufferService = b;
             logger = LogManager.GetLogger("faplog");
             overlordLauncherService = o;
+            dokanController = d;
         }
 
         public void Start()
@@ -127,6 +129,8 @@ namespace FAP.Application.Controllers
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                     GC.Collect();
+                    //Clean dokan cache
+                    dokanController.CleanUp();
                 }
 
                 //Wait 5 seconds minus the time it took to execute

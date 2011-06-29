@@ -1,0 +1,1 @@
+copy /b 7zSD.sfx + config.txt + DISK1.7z FAP.exe
