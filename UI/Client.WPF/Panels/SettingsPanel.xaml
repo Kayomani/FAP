@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             MinWidth="600" d:DesignHeight="484" d:DesignWidth="636">
+             MinWidth="600" d:DesignHeight="584" d:DesignWidth="636">
     <UserControl.Background>
         <LinearGradientBrush EndPoint="0.92,0.791" MappingMode="RelativeToBoundingBox" StartPoint="0.009,1.19">
             <GradientStop Color="Black" Offset="0.096"/>
@@ -112,6 +112,33 @@
                 <!--<Label  Visibility="Hidden" Content="Max uploads" Height="28" HorizontalAlignment="Left" Margin="22,104,0,0" VerticalAlignment="Top" />
                 <TextBox Visibility="Hidden" Height="23" HorizontalAlignment="Left" Margin="121,115,0,0" Text="{Binding  Model.MaxUploadsPerUser}" VerticalAlignment="Top" Width="60" />
                 <Label Visibility="Hidden" Content="per user" Height="28" HorizontalAlignment="Left" Margin="22,117,0,0" VerticalAlignment="Top" />-->
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="FAP HD" Height="70">
+            <Grid Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150px" />
+                    <ColumnDefinition Width="90px" />
+                    <ColumnDefinition Width="100px" />
+                    <ColumnDefinition Width="100px" />
+                    <ColumnDefinition Width="80px" />
+                    <ColumnDefinition Width="100px" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="28px" />
+                </Grid.RowDefinitions>
+
+                <Label Margin="5,0,0,0" Content="Drive letter" Grid.Column="0" VerticalAlignment="Center" />
+                <ComboBox  Height="23" ItemsSource="{Binding AvailibleDrives}"  SelectedValue="{Binding DokanDriveLetter,ValidatesOnExceptions=True,ValidatesOnDataErrors=True,NotifyOnValidationError=True,UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" OverridesDefaultStyle="False" />
+
+
+
+                <Button Grid.Column="3" Content="{Binding DokanActionText}" Width="65" Height="23" HorizontalAlignment="Left" Command="{Binding DokanAction}" />
+
+                <Label Margin="5,0,0,0" Content="Auto start" Grid.Column="4" VerticalAlignment="Center" />
+                <CheckBox Height="23" Grid.Column="5" VerticalAlignment="Center" IsChecked="{Binding Model.AutoStartDokan}" />
+
+
             </Grid>
         </GroupBox>
     </StackPanel>

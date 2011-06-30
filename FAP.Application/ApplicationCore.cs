@@ -149,8 +149,12 @@ namespace FAP.Application
             if (showWindow)
                 ShowMainWindow();
             ThreadPool.QueueUserWorkItem(MainWindowUpdater);
+            if (!model.DisplayedHelp)
+                ShowQuickStart();
             dokan = container.Resolve<DokanController>();
-            dokan.Start();
+            dokan.DriveLetter = model.DokanDriveLetter;
+            if (model.AutoStartDokan)
+                dokan.Start();
         }
 
         public bool Load(bool server)
@@ -189,9 +193,6 @@ namespace FAP.Application
                 conversationController = (ConversationController) container.Resolve<IConversationController>();
                 watchdogController = container.Resolve<WatchdogController>();
                 watchdogController.Start();
-
-                if (!model.DisplayedHelp)
-                    ShowQuickStart();
             }
             return true;
         }

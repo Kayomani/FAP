@@ -16,13 +16,15 @@ using FAP.Domain.Verbs;
 using FAP.Network;
 using NLog;
 using Fap.Foundation;
+using System.Diagnostics;
 
 namespace FAP.Application.Controllers
 {
-    public class DokanController : DokanOperations
+    public class DokanController : FAP.Domain.Entities.BaseEntity, DokanOperations
     {
         private Model _model;
-        private const char DriveLetter = 't';
+        private char driveLetter = 'T';
+        private bool active =false;
 
         private Dictionary<string,BrowsingCache> _browsingcache = new Dictionary<string, BrowsingCache>();
         private  ReaderWriterLockSlim readLock = new ReaderWriterLockSlim();
@@ -36,13 +38,52 @@ namespace FAP.Application.Controllers
             _model =m;
         }
 
+        public bool Active
+        {
+            get { return active; }
+            private set { active = value; NotifyChange("Active"); }
+        }
+        public char DriveLetter 
+        {
+            get { return driveLetter; }
+            set { driveLetter = value; }
+        }
+
+        public bool IsDokanInstalled
+        {
+            get 
+            {
+                string path = Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\dokan.sys";
+                string path64 = Path.GetDirectoryName(path) + "\\..\\SysWOW64\\dokan.dll";
+
+                return System.IO.File.Exists(path) || System.IO.File.Exists(path64); 
+            }
+
+        }
+
+        public void InstallDokan()
+        {
+            try
+            {
+                Process.Start(Path.GetDirectoryName(Assembly.GetCallingAssembly().CodeBase) + "\\DokanInstall_0.6.0.exe");
+            }
+            catch (Exception e)
+            {
+                LogManager.GetLogger("faplog").ErrorException("Error running dokan install", e);
+            }
+        }
+
         public void Stop()
         {
-           int result = DokanNet.DokanUnmount(DriveLetter);
+            int result = DokanNet.DokanRemoveMountPoint(driveLetter.ToString() + ":");
+            if (0 != result)
+                LogManager.GetLogger("faplog").Warn("Dokan unmount error.  Returned: {0}",result);
+            Active = false;
         }
 
         public void Start()
         {
+            Active = true;
             ThreadPool.QueueUserWorkItem(new WaitCallback(StartAsync));
         }
 
@@ -84,6 +125,7 @@ namespace FAP.Application.Controllers
                     break;
 
             }
+            Active = false;
         }
 
         /// <summary>
@@ -171,7 +213,7 @@ namespace FAP.Application.Controllers
                 }
             }
 
-            LogManager.GetLogger("faplog").Error("Dokan ReadFile {0} {1} at {2} to {3}", cacheItem.Type, filename, offset, offset + buffer.Length);
+          //  LogManager.GetLogger("faplog").Error("Dokan ReadFile {0} {1} at {2} to {3}", cacheItem.Type, filename, offset, offset + buffer.Length);
 
             try
             {
@@ -212,7 +254,7 @@ namespace FAP.Application.Controllers
                             cacheItem.Response = null;
                             cacheItem.Type = ReadAheadCacheType.Random;
                             cacheItem.SequentialReads = 0;
-                            LogManager.GetLogger("faplog").Error("Dokan ReadFile To Seq {0} {1}", cacheItem.Type.ToString(), filename);
+                            LogManager.GetLogger("faplog").Error("Dokan ReadFile To Seq from {0} {1}", cacheItem.Type.ToString(), filename);
                         }
                         break;
                     case ReadAheadCacheType.Random:
@@ -221,8 +263,8 @@ namespace FAP.Application.Controllers
                             cacheItem.Type = ReadAheadCacheType.Sequential;
                             cacheItem.DataSize = 0;
                             cacheItem.Data = new byte[0];
-                            cacheItem.Offset = 0;
-                            LogManager.GetLogger("faplog").Error("Dokan ReadFile To Random {0} {1}", cacheItem.Type.ToString(), filename);
+                            cacheItem.Offset = offset;
+                            LogManager.GetLogger("faplog").Error("Dokan ReadFile To Random from {0} {1}", cacheItem.Type.ToString(), filename);
                         }
                         break;
 
@@ -234,9 +276,6 @@ namespace FAP.Application.Controllers
                     if (null != node)
                     {
                         string url = path.Replace('\\', '/');
-                        if (!url.StartsWith("/"))
-                            url = "/" + url;
-
 
                         if (cacheItem.Type == ReadAheadCacheType.Sequential)
                         {
@@ -253,7 +292,7 @@ namespace FAP.Application.Controllers
                                 string val = string.Format("bytes={0}", offset);
                                 method.Invoke(req.Headers, new object[] { key, val });
                                 cacheItem.Response = (HttpWebResponse)req.GetResponse();
-                                cacheItem.Offset = 0;
+                                cacheItem.Offset = offset;
                             }
 
                             if (cacheItem.Response.StatusCode == HttpStatusCode.OK || cacheItem.Response.StatusCode == HttpStatusCode.PartialContent)
@@ -314,7 +353,9 @@ namespace FAP.Application.Controllers
                                 if (resp.StatusCode == HttpStatusCode.OK || resp.StatusCode == HttpStatusCode.PartialContent)
                                 {
                                     //Check for sequential reads
-                                    if ((cacheItem.Offset + cacheItem.DataSize == offset || cacheItem.Offset + buffer.Length == offset) && cacheItem.DataSize != 0)
+                                  
+
+                                    if ((cacheItem.Offset + cacheItem.DataSize)==offset && cacheItem.DataSize != 0)
                                         cacheItem.SequentialReads++;
                                     else
                                         cacheItem.SequentialReads = 0;
