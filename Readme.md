@@ -1,6 +1,8 @@
 ### Description
 FAP is a HTTP based lan file sharing tool. It features chat, system spec comparison, file search, network service scanning and queable file downloads. Shared files and folders can also be downloaded via a web browser. The tool is optimised for high bandwidth LAN enviroments i.e. Gigabit+.
 
+### Binaries
+Releases are availible from https://code.google.com/p/fap/
 
 ### Features
 - Finds all local LAN peers automatically - No need to worry about running servers unless you wish to.
