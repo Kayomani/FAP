@@ -116,7 +116,6 @@
     <Compile Include="Controllers\CompareController.cs" />
     <Compile Include="Controllers\ConnectionController.cs" />
     <Compile Include="Controllers\ConversationController.cs" />
-    <Compile Include="Controllers\DokanController.cs" />
     <Compile Include="Controllers\DownloadQueueController.cs" />
     <Compile Include="Controllers\InterfaceController.cs" />
     <Compile Include="Controllers\PopupWindowController.cs" />
@@ -170,10 +169,6 @@
     <ProjectReference Include="..\FAP.Network\FAP.Network.csproj">
       <Project>{0AC20642-A791-4A95-89C7-94F5027D2A1A}</Project>
       <Name>FAP.Network</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\libs\dokan-net-0.6.0\DokanNet\DokanNet.csproj">
-      <Project>{A09B408A-26A0-4FF8-83D5-6E1B1DA5F63C}</Project>
-      <Name>DokanNet</Name>
     </ProjectReference>
     <ProjectReference Include="..\libs\WpfApplicationFramework\WpfApplicationFramework\WpfApplicationFramework\WpfApplicationFramework.csproj">
       <Project>{27B67DFE-0BF1-4435-B036-E4C083EAEA03}</Project>

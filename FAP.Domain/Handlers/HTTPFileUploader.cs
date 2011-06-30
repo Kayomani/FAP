@@ -37,18 +37,16 @@ namespace FAP.Domain.Handlers
         private readonly BufferService bufferService;
         private readonly NetworkSpeedMeasurement nsm;
         private readonly ServerUploadLimiterService uploadLimiter;
-        private readonly Model model;
 
         private bool isComplete;
         private long length;
         private long position;
         private string status = "HTTP - Connecting..";
 
-        public HTTPFileUploader(BufferService b, ServerUploadLimiterService u, Model m)
+        public HTTPFileUploader(BufferService b, ServerUploadLimiterService u)
         {
             bufferService = b;
             uploadLimiter = u;
-            model = m;
             nsm = new NetworkSpeedMeasurement(NetSpeedType.Upload);
         }
 
@@ -91,68 +89,10 @@ namespace FAP.Domain.Handlers
             IHeader rangeHeader =
                 context.Request.Headers.Where(n => n.Name.ToLowerInvariant() == "range").FirstOrDefault();
             ServerUploadToken token = null;
-            TransferSession session = null;
-            long readEnd = stream.Length;
-
-
             try
             {
-                if (null != rangeHeader)
+                if (stream.Length > Model.FREE_FILE_LIMIT)
                 {
-                    //Partial request
-                    //Try to parse header - if we fail just send a 200 ok from zero
-                    long start = 0;
-                    long end = 0;
-
-                    if (rangeHeader.HeaderValue.StartsWith("bytes="))
-                    {
-                        string header = rangeHeader.HeaderValue.Substring(6).Trim();
-                        string starttxt = string.Empty;
-                        string endtxt = string.Empty;
-
-                        if (header.Contains('-'))
-                        {
-                            starttxt = header.Substring(0, header.IndexOf("-"));
-                            endtxt = header.Substring(header.IndexOf("-") + 1,
-                                                      header.Length - (header.IndexOf("-") + 1));
-                        }
-                        else
-                        {
-                            starttxt = header;
-                        }
-
-                        if (!string.IsNullOrEmpty(starttxt))
-                            start = long.Parse(starttxt);
-                        if (!string.IsNullOrEmpty(endtxt))
-                            end = long.Parse(endtxt);
-                        //Only allow a partial request start.  May implement this at some point but its beyond the scope of this atm.
-                        if (start != 0)
-                        {
-                            if (start > stream.Length)
-                                start = stream.Length;
-                            stream.Seek(start, SeekOrigin.Begin);
-                            position = start;
-                            ResumePoint = start;
-                        }
-
-                        if (end < stream.Length && end !=0)
-                            readEnd = end;
-
-                        context.Response.Status = HttpStatusCode.PartialContent;
-                    }
-                }
-            }
-            catch
-            {
-            }
-
-            try
-            {
-                if ((readEnd - position) > Model.FREE_FILE_LIMIT)
-                {
-
-                    session = new TransferSession(this);
-                    model.TransferSessions.Add(session);
                     //File isnt free leech, acquire a token before we send the file
                     token = uploadLimiter.RequestUploadToken(context.RemoteEndPoint.Address.ToString());
                     while (token.GlobalQueuePosition > 0)
@@ -164,41 +104,71 @@ namespace FAP.Domain.Handlers
                 }
 
                 status = string.Format("HTTP ({0}) Sending {1}", user, url);
+                try
+                {
+                    if (null != rangeHeader)
+                    {
+                        //Partial request
+                        //Try to parse header - if we fail just send a 200 ok from zero
+                        long start = 0;
+                        long end = 0;
 
+                        if (rangeHeader.HeaderValue.StartsWith("bytes="))
+                        {
+                            string header = rangeHeader.HeaderValue.Substring(6).Trim();
+                            string starttxt = string.Empty;
+                            string endtxt = string.Empty;
+
+                            if (header.Contains('-'))
+                            {
+                                starttxt = header.Substring(0, header.IndexOf("-"));
+                                endtxt = header.Substring(header.IndexOf("-") + 1,
+                                                          header.Length - (header.IndexOf("-") + 1));
+                            }
+                            else
+                            {
+                                starttxt = header;
+                            }
+
+                            if (!string.IsNullOrEmpty(starttxt))
+                                start = long.Parse(starttxt);
+                            if (!string.IsNullOrEmpty(endtxt))
+                                end = long.Parse(endtxt);
+                            //Only allow a partial request start.  May implement this at some point but its beyond the scope of this atm.
+                            if (start != 0 && end == 0)
+                            {
+                                if (start > stream.Length)
+                                    start = stream.Length;
+                                stream.Seek(start, SeekOrigin.Begin);
+                                position = start;
+
+                                ResumePoint = start;
+                            }
+                            context.Response.Status = HttpStatusCode.PartialContent;
+                        }
+                    }
+                }
+                catch
+                {
+                }
 
                 TransferStart = DateTime.Now;
                 //Send headers
-                context.Response.ContentLength.Value = readEnd - stream.Position;
-                if (context.Response.ContentLength.Value == 0)
-                {
-
-                }
-
+                context.Response.ContentLength.Value = stream.Length - stream.Position;
                 var generator = new ResponseWriter();
                 generator.SendHeaders(context, context.Response);
                 //Send data
                 MemoryBuffer buffer = bufferService.GetBuffer();
                 try
                 {
-                    long sent = 0;
-                    while (true)
+                    int bytesRead = stream.Read(buffer.Data, 0, buffer.Data.Length);
+                    while (bytesRead > 0)
                     {
-                        int chunkLength = buffer.Data.Length;
-
-                        if (readEnd - stream.Position < chunkLength)
-                            chunkLength = (int)(readEnd - stream.Position);
-                        if (chunkLength < 1)
-                            break;
-                        int bytesRead = stream.Read(buffer.Data, 0, chunkLength);
-                        if (bytesRead == 0)
-                            break;
+                        context.LastAction = DateTime.Now;
                         context.Stream.Write(buffer.Data, 0, bytesRead);
                         position += bytesRead;
                         nsm.PutData(bytesRead);
-                        sent += bytesRead;
-                    }
-                    if (context.Response.ContentLength.Value != sent)
-                    {
+                        bytesRead = stream.Read(buffer.Data, 0, buffer.Data.Length);
                     }
                 }
                 catch (Exception err)
@@ -212,8 +182,6 @@ namespace FAP.Domain.Handlers
             }
             finally
             {
-                if (null != session)
-                    model.TransferSessions.Remove(session);
                 status = string.Format("HTTP ({0}) Upload complete", user);
                 if (null != token)
                     uploadLimiter.FreeToken(token);

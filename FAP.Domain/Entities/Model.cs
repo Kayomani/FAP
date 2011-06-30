@@ -70,8 +70,6 @@ namespace FAP.Domain.Entities
         private int maxDownloadsPerUser;
         private int maxUploads;
         private int maxUploadsPerUser;
-        private bool autoStartDokan;
-        private char dokanDriveLetter;
         private SafeObservedCollection<string> messages = new SafeObservedCollection<string>();
         private Network network = new Network();
         private Node node;
@@ -301,18 +299,6 @@ namespace FAP.Domain.Entities
             get { return maxUploadsPerUser; }
         }
 
-        public bool AutoStartDokan
-        {
-            get { return autoStartDokan; }
-            set { autoStartDokan = value; NotifyChange("AutoStartDokan"); }
-        }
-
-        public char DokanDriveLetter
-        {
-            get { return dokanDriveLetter; }
-            set { dokanDriveLetter = value; NotifyChange("DokanDriveLetter"); }
-        }
-
         /// <summary>
         /// Called by methods which should not be interupted such as saving the download list.
         /// </summary>
@@ -370,8 +356,6 @@ namespace FAP.Domain.Entities
                         AlwaysNoCacheBrowsing = saved.AlwaysNoCacheBrowsing;
                         OverlordPriority = saved.OverlordPriority;
                         DisplayedHelp = saved.DisplayedHelp;
-                        DokanDriveLetter = saved.DokanDriveLetter;
-                        AutoStartDokan = saved.AutoStartDokan;
                     }
                     else if (File.Exists(Legacy.Model.saveLocation))
                     {

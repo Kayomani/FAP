@@ -71,9 +71,6 @@ namespace FAP.Domain.Handlers
             IHeader rangeHeader =
                 context.Request.Headers.Where(n => n.Name.ToLowerInvariant() == "range").FirstOrDefault();
             ServerUploadToken token = null;
-
-            long steamEndPoint = stream.Length;
-
             try
             {
                 //Check for range header
@@ -112,16 +109,16 @@ namespace FAP.Domain.Handlers
                             position = start;
                             ResumePoint = start;
                         }
-
+                        //TODO: Implement this
                         if (end != 0)
-                            steamEndPoint = end;
+                            throw new Exception("End range not supported");
                     }
                 }
 
                 //Send HTTP Headers
                 SendChunkedHeaders(context);
 
-                if (steamEndPoint - stream.Position > Model.FREE_FILE_LIMIT)
+                if (stream.Length - stream.Position > Model.FREE_FILE_LIMIT)
                 {
                     //File isnt free leech, acquire a token before we send the file
                     token = uploadLimiter.RequestUploadToken(context.RemoteEndPoint.Address.ToString());
@@ -151,13 +148,13 @@ namespace FAP.Domain.Handlers
                     //Unfortunatly the microsoft http client implementation uses an int32 for chunk sizes which limits them to 2047mb. 
                     //so sigh, send it smaller chunks.  Use a limit to 1.86gb for as it is more clean..
 
-                    for (long i = 0; i < steamEndPoint; i += CHUNK_SIZE_LIMIT)
+                    for (long i = 0; i < stream.Length; i += CHUNK_SIZE_LIMIT)
                     {
                         int chunkSize = 0;
-                        if (steamEndPoint - position > CHUNK_SIZE_LIMIT)
+                        if (stream.Length - position > CHUNK_SIZE_LIMIT)
                             chunkSize = CHUNK_SIZE_LIMIT;
                         else
-                            chunkSize = (int)(steamEndPoint - position);
+                            chunkSize = (int) (stream.Length - position);
 
                         //Send chunk length
                         byte[] hexbytes = Encoding.ASCII.GetBytes(chunkSize.ToString("X"));

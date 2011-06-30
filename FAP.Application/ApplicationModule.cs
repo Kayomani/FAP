@@ -34,7 +34,6 @@ namespace FAP.Application
             builder.RegisterType<WatchdogController>().SingleInstance();
             builder.RegisterType<InterfaceController>();
             builder.RegisterType<ApplicationCore>().SingleInstance();
-            builder.RegisterType<DokanController>().SingleInstance(); 
         }
     }
 }

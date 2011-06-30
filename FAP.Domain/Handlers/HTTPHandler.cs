@@ -127,6 +127,68 @@ namespace FAP.Domain.Handlers
             }
             else
             {
+                bool validPath = false;
+
+                string page = Encoding.UTF8.GetString(GetResource("template.html"));
+                var pagedata = new Dictionary<string, object>();
+
+                pagedata.Add("model", model);
+                pagedata.Add("appver", Model.AppVersion);
+                pagedata.Add("freelimit", Utility.FormatBytes(Model.FREE_FILE_LIMIT));
+                pagedata.Add("uploadslots", model.MaxUploads);
+                int freeslots = model.MaxUploads - uploadLimiter.GetActiveTokenCount();
+                pagedata.Add("currentuploadslots", freeslots);
+                pagedata.Add("queueInfo", freeslots > 0 ? "" : "  Queue length: " + uploadLimiter.GetQueueLength() + ".");
+                pagedata.Add("slotcolour", freeslots > 0 ? "green" : "red");
+
+                pagedata.Add("util", new Utility());
+
+                if (!path.EndsWith("/"))
+                    pagedata.Add("path", (path + "/").Replace("#", "%23"));
+                else
+                    pagedata.Add("path", (path).Replace("#", "%23"));
+
+                //Add path info
+                var paths = new List<Dictionary<string, object>>();
+
+                string[] split = path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 0; i < split.Length; i++)
+                {
+                    var sb = new StringBuilder("/");
+                    for (int y = 0; y <= i; y++)
+                    {
+                        sb.Append(split[y]);
+                        sb.Append("/");
+                    }
+
+                    var di = new Dictionary<string, object>();
+                    di.Add("Name", split[i]);
+                    di.Add("Path", sb.ToString());
+                    paths.Add(di);
+                }
+
+                pagedata.Add("pathSplit", paths);
+
+                /* List<DisplayInfo> peers = new List<DisplayInfo>();
+
+                 foreach (var peer in model.Network.Nodes.ToList().Where(n => n.NodeType != ClientType.Overlord && !string.IsNullOrEmpty(n.Nickname)))
+                 {
+                     if (!string.IsNullOrEmpty(peer.Location))
+                     {
+                         DisplayInfo p = new DisplayInfo();
+                         p.SetData("Name", string.IsNullOrEmpty(peer.Nickname) ? "Unknown" : peer.Nickname);
+                         p.SetData("Location", peer.Location);
+                         peers.Add(p);
+                     }
+                 }
+
+                 pagedata.Add("peers", peers);*/
+                var files = new List<Dictionary<string, object>>();
+                long totalSize = 0;
+
+
+
+
                 //Try to resolve the path to a file first
                 string[] possiblePaths;
                 if (infoService.ToLocalPath(path, out possiblePaths))
@@ -134,13 +196,6 @@ namespace FAP.Domain.Handlers
                     foreach (string possiblePath in possiblePaths)
                         if (File.Exists(possiblePath))
                             return SendFile(e, possiblePath, path);
-
-
-                bool validPath = false;
-                var pagedata = new Dictionary<string, object>();
-                var files = new List<Dictionary<string, object>>();
-                long totalSize = 0;
-                string page = string.Empty;
 
                 //User didnt request a file so try to send directory info
                 List<BrowsingFile> results;
@@ -190,44 +245,6 @@ namespace FAP.Domain.Handlers
                     validPath = true;
                     //Clear result list to help GC
                     results.Clear();
-
-                    page = Encoding.UTF8.GetString(GetResource("template.html"));
-                    pagedata.Add("model", model);
-                    pagedata.Add("appver", Model.AppVersion);
-                    pagedata.Add("freelimit", Utility.FormatBytes(Model.FREE_FILE_LIMIT));
-                    pagedata.Add("uploadslots", model.MaxUploads);
-                    int freeslots = model.MaxUploads - uploadLimiter.GetActiveTokenCount();
-                    pagedata.Add("currentuploadslots", freeslots);
-                    pagedata.Add("queueInfo", freeslots > 0 ? "" : "  Queue length: " + uploadLimiter.GetQueueLength() + ".");
-                    pagedata.Add("slotcolour", freeslots > 0 ? "green" : "red");
-
-                    pagedata.Add("util", new Utility());
-
-                    if (!path.EndsWith("/"))
-                        pagedata.Add("path", (path + "/").Replace("#", "%23"));
-                    else
-                        pagedata.Add("path", (path).Replace("#", "%23"));
-
-                    //Add path info
-                    var paths = new List<Dictionary<string, object>>();
-
-                    string[] split = path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-                    for (int i = 0; i < split.Length; i++)
-                    {
-                        var sb = new StringBuilder("/");
-                        for (int y = 0; y <= i; y++)
-                        {
-                            sb.Append(split[y]);
-                            sb.Append("/");
-                        }
-
-                        var di = new Dictionary<string, object>();
-                        di.Add("Name", split[i]);
-                        di.Add("Path", sb.ToString());
-                        paths.Add(di);
-                    }
-
-                    pagedata.Add("pathSplit", paths);
                 }
 
 
@@ -257,7 +274,6 @@ namespace FAP.Domain.Handlers
             if (null == data)
             {
                 data = Encoding.UTF8.GetBytes("404 Not found");
-                e.Response.Status = HttpStatusCode.NotFound;
             }
             var generator = new ResponseWriter();
             e.Response.ContentLength.Value = data.Length;
@@ -329,37 +345,52 @@ namespace FAP.Domain.Handlers
         /// <param name="stream">File stream</param>
         private void SendFile(IHttpContext context, Stream stream, string url)
         {
-            var worker = new HTTPFileUploader(bufferService, uploadLimiter,model);
-            //Try to find the username of the request
-            string userName = context.RemoteEndPoint.Address.ToString();
-            Node search =
-                model.Network.Nodes.ToList().Where(n => n.NodeType != ClientType.Overlord && n.Host == userName).
-                    FirstOrDefault();
-            if (null != search && !string.IsNullOrEmpty(search.Nickname))
-                userName = search.Nickname;
-
-            worker.DoUpload(context, stream, userName, url);
-
-            //Add log of the upload
-            double seconds = (DateTime.Now - worker.TransferStart).TotalSeconds;
-            var txlog = new TransferLog();
-            txlog.Nickname = userName;
-            txlog.Completed = DateTime.Now;
-            txlog.Filename = Path.GetFileName(url);
-            txlog.Path = Path.GetDirectoryName(url);
-            if (!string.IsNullOrEmpty(txlog.Path))
+            var worker = new HTTPFileUploader(bufferService, uploadLimiter);
+            TransferSession session = null;
+            try
             {
-                txlog.Path = txlog.Path.Replace('\\', '/');
-                if (txlog.Path.StartsWith("/"))
-                    txlog.Path = txlog.Path.Substring(1);
-            }
+                if (stream.Length > Model.FREE_FILE_LIMIT)
+                {
+                    session = new TransferSession(worker);
+                    model.TransferSessions.Add(session);
+                }
 
-            txlog.Size = worker.Length - worker.ResumePoint;
-            if (txlog.Size < 0)
-                txlog.Size = 0;
-            if (0 != seconds)
-                txlog.Speed = (int)(txlog.Size / seconds);
-            model.CompletedUploads.Add(txlog);
+                //Try to find the username of the request
+                string userName = context.RemoteEndPoint.Address.ToString();
+                Node search =
+                    model.Network.Nodes.ToList().Where(n => n.NodeType != ClientType.Overlord && n.Host == userName).
+                        FirstOrDefault();
+                if (null != search && !string.IsNullOrEmpty(search.Nickname))
+                    userName = search.Nickname;
+
+                worker.DoUpload(context, stream, userName, url);
+
+                //Add log of the upload
+                double seconds = (DateTime.Now - worker.TransferStart).TotalSeconds;
+                var txlog = new TransferLog();
+                txlog.Nickname = userName;
+                txlog.Completed = DateTime.Now;
+                txlog.Filename = Path.GetFileName(url);
+                txlog.Path = Path.GetDirectoryName(url);
+                if (!string.IsNullOrEmpty(txlog.Path))
+                {
+                    txlog.Path = txlog.Path.Replace('\\', '/');
+                    if (txlog.Path.StartsWith("/"))
+                        txlog.Path = txlog.Path.Substring(1);
+                }
+
+                txlog.Size = worker.Length - worker.ResumePoint;
+                if (txlog.Size < 0)
+                    txlog.Size = 0;
+                if (0 != seconds)
+                    txlog.Speed = (int) (txlog.Size/seconds);
+                model.CompletedUploads.Add(txlog);
+            }
+            finally
+            {
+                if (null != session)
+                    model.TransferSessions.Remove(session);
+            }
         }
 
         private string getParentDir(string path)

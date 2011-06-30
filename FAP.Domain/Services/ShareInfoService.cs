@@ -66,7 +66,7 @@ namespace FAP.Domain.Services
                 }
                 catch (Exception e)
                 {
-                    LogManager.GetLogger("faplog").DebugException("Failed to load share info for " + share.Name, e);
+                    LogManager.GetLogger("faplog").DebugException("Failed to load share info for" + share.Name, e);
                     ThreadPool.QueueUserWorkItem(DoRefreshPath, share);
                 }
             }
@@ -294,8 +294,6 @@ namespace FAP.Domain.Services
                 {
                     //No cache info or cache not allowed, try to pull file information directly.
 
-                    int validPaths = 0;
-
                     foreach (string posiblePath in posiblePaths)
                     {
                         string fsPath = posiblePath.Replace('/', '\\');
@@ -335,12 +333,9 @@ namespace FAP.Domain.Services
                                                     LastModified = file.LastWriteTime
                                                 });
                             }
-                            validPaths++;
                         }
                         catch { }
                     }
-                    if (validPaths == 0)
-                        return false;
 
                     if (posiblePaths.Length > 1)
                         isVirtual = true;

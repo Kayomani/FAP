@@ -25,9 +25,6 @@ using FAP.Domain.Entities;
 using Fap.Foundation;
 using Microsoft.Win32;
 using System.ComponentModel;
-using System.Collections.Generic;
-using System;
-using System.Linq;
 
 namespace FAP.Application.ViewModels
 {
@@ -39,59 +36,12 @@ namespace FAP.Application.ViewModels
         private ICommand editDownloadDir;
         private Model model;
         private ICommand resetInterface;
-        private List<string> availibleDrives;
-        private ICommand dokanAction;
-        private string dokanActionText;
-        private string dokanDriveLetter;
 
         public SettingsViewModel(ISettingsView view)
             : base(view)
         {
         }
 
-        public List<string> AvailibleDrives
-        {
-            get
-            {
-                return availibleDrives;
-            }
-            set
-            {
-                availibleDrives = value;
-                RaisePropertyChanged("AvailibleDrives");
-            }
-        }
-
-        public string DokanActionText
-        {
-            get { return dokanActionText; }
-            set
-            {
-                dokanActionText = value;
-                RaisePropertyChanged("DokanActionText");
-            }
-        }
-
-        public ICommand DokanAction
-        {
-            get { return dokanAction; }
-            set
-            {
-                dokanAction = value;
-                RaisePropertyChanged("DokanAction");
-            }
-        }
-
-        public string DokanDriveLetter
-        {
-            get { return dokanDriveLetter; }
-            set
-            {
-                dokanDriveLetter = value;
-                RaisePropertyChanged("DokanDriveLetter");
-            }
-        }
-        
         public ICommand ResetInterface
         {
             get { return resetInterface; }

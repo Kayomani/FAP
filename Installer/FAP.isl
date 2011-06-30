@@ -346,7 +346,6 @@
 		<row><td>Antlr3.StringTemplate.dll2</td><td>{F3A3C3E6-65A8-46A1-9A89-C0EB7B052135}</td><td>INSTALLDIR</td><td>2</td><td/><td>antlr3.stringtemplate.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Autofac.dll2</td><td>{7CCC5BCC-88E1-4BA0-B149-2678D0964C7D}</td><td>INSTALLDIR</td><td>2</td><td/><td>autofac.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BlogsPrajeesh.BlogSpot.WPFControls.dll2</td><td>{59277238-3C7F-4786-899A-CDD312902AC6}</td><td>INSTALLDIR</td><td>2</td><td/><td>blogsprajeesh.blogspot.wpfco2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>DokanInstall_0.6.0.exe</td><td>{F005BF21-9A70-450B-9D62-2D9CA76B80FE}</td><td>INSTALLDIR</td><td>2</td><td/><td>dokaninstall_0.6.0.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>FAP.Application.dll2</td><td>{EC88AFE1-2F72-4586-BE12-1B4E0EF1A82B}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.application.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>FAP.Domain.dll2</td><td>{B6C6C78A-3193-4390-B2A5-F6232921A197}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.domain.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>FAP.Network.dll2</td><td>{168E040B-CDD9-4DFD-B6B3-B5F2AEDBA5FB}</td><td>INSTALLDIR</td><td>2</td><td/><td>fap.network.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1905,7 +1904,6 @@
 		<row><td>AlwaysInstall</td><td>Antlr3.StringTemplate.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>Autofac.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>BlogsPrajeesh.BlogSpot.WPFControls.dll2</td></row>
-		<row><td>AlwaysInstall</td><td>DokanInstall_0.6.0.exe</td></row>
 		<row><td>AlwaysInstall</td><td>FAP.Application.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>FAP.Domain.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>FAP.Network.dll2</td></row>
@@ -1955,7 +1953,6 @@
 		<row><td>chart_bar.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>CHARTB~1.PNG|Chart Bar.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\Chart Bar.png</td><td>1</td><td/></row>
 		<row><td>client.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>client.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\client.png</td><td>1</td><td/></row>
 		<row><td>cog.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>Cog.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\Cog.png</td><td>1</td><td/></row>
-		<row><td>dokaninstall_0.6.0.exe</td><td>DokanInstall_0.6.0.exe</td><td>DOKANI~1.EXE|DokanInstall_0.6.0.exe</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\libs\dokan-net-0.6.0\DokanInstall_0.6.0.exe</td><td>1</td><td/></row>
 		<row><td>drawer_closed.png</td><td>ISX_DEFAULTCOMPONENT9</td><td>DRAWER~1.PNG|Drawer Closed.png</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Help\images\Drawer Closed.png</td><td>1</td><td/></row>
 		<row><td>fap.application.dll2</td><td>FAP.Application.dll2</td><td>FAPAPP~1.DLL|FAP.Application.dll</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\FAP.Application.dll</td><td>1</td><td/></row>
 		<row><td>fap.css</td><td>ISX_DEFAULTCOMPONENT4</td><td>fap.css</td><td>0</td><td/><td/><td/><td>1</td><td>F:\src\fap_git\UI\Client.WPF\bin\Release\Web.Resources\CSS\fap.css</td><td>1</td><td/></row>
@@ -2264,7 +2261,6 @@
 		<row><td>Antlr3.StringTemplate.dll2</td><td/><td/><td>_5589D5DB_50FD_4919_A8B6_BBDEE3279CAB_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Autofac.dll2</td><td/><td/><td>_2742466B_24B9_4EC9_B53B_7BFA77EC247F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>BlogsPrajeesh.BlogSpot.WPFControls.dll2</td><td/><td/><td>_BAAE9D72_CB68_44E6_AFDE_1F20C6D372F0_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>DokanInstall_0.6.0.exe</td><td/><td/><td>_2CEBFF03_910E_4191_B813_0020B34143EF_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>FAP.Application.dll2</td><td/><td/><td>_5A24FD54_5F02_4DEC_B62A_6387E85242D0_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>FAP.Domain.dll2</td><td/><td/><td>_700397F4_DDC1_4283_8991_3F7962ABDC70_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>FAP.Network.dll2</td><td/><td/><td>_ECB4FF62_64CC_4C88_AE67_AA23D4BEE9E7_FILTER</td><td/><td/><td/><td/></row>
