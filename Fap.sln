@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{42557362-4AF5-45EE-9992-928DB97C4A2C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Console", "UI\Server.Console\Server.Console.csproj", "{8A733BD1-DECA-4E2D-B5B5-B8A87D8742C0}"
@@ -8,8 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fap.Presentation", "UI\Client.WPF\Fap.Presentation.csproj", "{67F392E7-7F7D-49FC-AD0D-2C06CE948D55}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Console", "UI\Client.Console\Client.Console.csproj", "{64266754-C93F-4A00-AE3B-67DFC20C7B0D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{B726536B-FC42-4992-8AA2-BD08432FBB75}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FAP.Domain", "FAP.Domain\FAP.Domain.csproj", "{9822FF50-837E-4984-951F-629CE449D2E4}"
 EndProject

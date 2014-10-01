@@ -5,7 +5,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
               xmlns:base="clr-namespace:Fap.Presentation"
              xmlns:local="clr-namespace:Fap.Presentation.Panels"
-             xmlns:toolkit="http://schemas.microsoft.com/wpf/2008/toolkit"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="900">
     <UserControl.Resources>
@@ -88,7 +87,7 @@
                         <ComboBoxItem>Before</ComboBoxItem>
                         <ComboBoxItem>After</ComboBoxItem>
                     </ComboBox>
-                    <toolkit:DatePicker  SelectedDate="{Binding ModifiedDate}" />
+                    <DatePicker  SelectedDate="{Binding ModifiedDate}" />
                 </StackPanel>
             </GroupBox>
             <Label Margin="10,10,10,10"  Content="{Binding UpperStatusMessage}" />
