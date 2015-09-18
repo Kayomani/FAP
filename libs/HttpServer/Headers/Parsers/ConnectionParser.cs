@@ -6,7 +6,7 @@ namespace HttpServer.Headers.Parsers
     /// <summary>
     /// Parses <see cref="ConnectionHeader"/>.
     /// </summary>
-    [ParserFor(ConnectionHeader.NAME)]
+    [ParserFor(ConnectionHeader.Key)]
     public class ConnectionParser : IHeaderParser
     {
         #region IHeaderParser Members

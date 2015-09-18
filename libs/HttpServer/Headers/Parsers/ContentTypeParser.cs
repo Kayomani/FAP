@@ -6,7 +6,7 @@ namespace HttpServer.Headers.Parsers
     /// <summary>
     /// Parses <see cref="ContentTypeHeader"/>.
     /// </summary>
-    [ParserFor(ContentTypeHeader.NAME)]
+    [ParserFor(ContentTypeHeader.Key)]
     public class ContentTypeParser : IHeaderParser
     {
         #region IHeaderParser Members

@@ -169,7 +169,7 @@ namespace Fap.Presentation
             {
                 Console.WriteLine(e.Exception.Message);
                 if (null != container)
-                    LogManager.GetLogger("faplog").FatalException("Unhandled dispatcher exception", e.Exception);
+                    LogManager.GetLogger("faplog").Fatal("Unhandled dispatcher exception", e.Exception);
                 e.Handled = true;
             }
         }
@@ -187,7 +187,7 @@ namespace Fap.Presentation
             {
                 Console.WriteLine(e.Exception.Message);
                 if (null != container)
-                    LogManager.GetLogger("faplog").FatalException("Unhandled exception", e.Exception);
+                    LogManager.GetLogger("faplog").Fatal("Unhandled exception", e.Exception);
                 e.Handled = true;
             }
         }

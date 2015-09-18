@@ -2,7 +2,7 @@
 
 namespace HttpServer.Headers.Parsers
 {
-    [ParserFor(AuthorizationHeader.NAME)]
+    [ParserFor(AuthorizationHeader.Key)]
     internal class AuthorizationParser : IHeaderParser
     {
         #region IHeaderParser Members

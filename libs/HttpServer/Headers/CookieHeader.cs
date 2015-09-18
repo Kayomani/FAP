@@ -8,7 +8,7 @@ namespace HttpServer.Headers
     /// </summary>
     public class CookieHeader : IHeader
     {
-        public const string NAME = "Cookie";
+        public const string Key = "Cookie";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CookieHeader"/> class.
@@ -34,7 +34,7 @@ namespace HttpServer.Headers
         /// </summary>
         public string Name
         {
-            get { return NAME; }
+            get { return Key; }
         }
 
         /// <summary>

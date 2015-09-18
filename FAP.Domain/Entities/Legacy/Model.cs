@@ -48,7 +48,7 @@ namespace FAP.Domain.Entities.Legacy
         private bool disableCompare;
         private string downloadFolder;
 
-        private DownloadQueue downloadQueue;
+       // private DownloadQueue downloadQueue;
         private string incompleteFolder;
         private string ipAddress;
         private int maxDownloads;
@@ -56,7 +56,7 @@ namespace FAP.Domain.Entities.Legacy
         private int maxUploads;
         private int maxUploadsPerUser;
         private SafeObservable<string> messages;
-        private SafeObservable<Network> networks;
+       // private SafeObservable<Network> networks;
         private PeerSortType peerSortType;
         private ObservableCollection<Node> peers;
         private SafeObservable<Share> shares;

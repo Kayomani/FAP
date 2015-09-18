@@ -20,10 +20,8 @@ namespace HttpServer.Authentication
         /// <summary>
         /// Create a response that can be sent in the WWW-Authenticate header.
         /// </summary>
-        /// <param name="realm">Realm that the user should authenticate in</param>
-        /// <param name="options">Not used by basic authentication</param>
-        /// <returns>A WWW-Authenticate header.</returns>
-        /// <exception cref="ArgumentNullException">Argument is <c>null</c>.</exception>
+        /// <param name="realm"></param>
+        /// <returns></returns>
         public IHeader CreateChallenge(string realm)
         {
             if (string.IsNullOrEmpty(realm))

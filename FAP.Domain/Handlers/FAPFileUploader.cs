@@ -182,7 +182,7 @@ namespace FAP.Domain.Handlers
                 }
                 catch (Exception err)
                 {
-                    LogManager.GetLogger("faplog").TraceException("Failed write file to http stream", err);
+                    LogManager.GetLogger("faplog").Trace("Failed write file to http stream", err);
                 }
                 finally
                 {

@@ -59,7 +59,7 @@ namespace HttpServer.Headers
         /// <summary>
         /// Header name
         /// </summary>
-        public const string NAME = "Cache-Control";
+        public const string Key = "Cache-Control";
 
         #region IHeader Members
 
@@ -68,7 +68,7 @@ namespace HttpServer.Headers
         /// </summary>
         public string Name
         {
-            get { return NAME; }
+            get { return Key; }
         }
 
         public string HeaderValue

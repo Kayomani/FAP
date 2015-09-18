@@ -173,7 +173,7 @@ namespace FAP.Domain.Handlers
                 }
                 catch (Exception err)
                 {
-                    LogManager.GetLogger("faplog").TraceException("Failed to send body through context stream.", err);
+                    LogManager.GetLogger("faplog").Trace("Failed to send body through context stream.", err);
                 }
                 finally
                 {

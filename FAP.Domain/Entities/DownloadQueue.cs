@@ -59,7 +59,7 @@ namespace FAP.Domain.Entities
                 }
                 catch (Exception e)
                 {
-                    LogManager.GetLogger("faplog").WarnException("Failed to read download queue", e);
+                    LogManager.GetLogger("faplog").Warn("Failed to read download queue", e);
                 }
             }
         }

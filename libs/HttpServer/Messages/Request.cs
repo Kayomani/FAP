@@ -125,8 +125,8 @@ namespace HttpServer.Messages
         /// </summary>
         public ConnectionHeader Connection
         {
-            get { return (ConnectionHeader) Headers[ConnectionHeader.NAME]; }
-            set { _headers[ConnectionHeader.NAME] = value; }
+            get { return (ConnectionHeader) Headers[ConnectionHeader.Key]; }
+            set { _headers[ConnectionHeader.Key] = value; }
         }
 
         /// <summary>

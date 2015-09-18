@@ -10,7 +10,6 @@ namespace HttpServer.Tools
     /// Your class must be tagged with <see cref="ISerializable"/> attribute to be able to use sessions.
     /// </remarks>
     [Serializable]
-    [Obsolete("Use the Sessions namespace instead")]
     public class Session
     {
         [ThreadStatic] private static Session _currentSession;

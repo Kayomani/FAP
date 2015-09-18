@@ -41,7 +41,7 @@ namespace HttpServer
 		///<summary>
 		/// Gets or sets content type
 		///</summary>
-		ContentTypeHeader ContentType { get; set; }
+        new ContentTypeHeader ContentType { get; set; }
 
         /// <summary>
         /// Redirect user.

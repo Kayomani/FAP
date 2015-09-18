@@ -41,7 +41,7 @@ namespace FAP.Domain.Entities
     [Serializable]
     public class Model : BaseEntity, IDataErrorInfo
     {
-        public static readonly string AppVersion = "FAP r1";
+        public static readonly string AppVersion = "FAP Beat 7.5ish";
         public static readonly string ProtocolVersion = "FAP/1.0";
         public static int UPLINK_TIMEOUT = 60000; //1 minute
         public static int DOWNLOAD_RETRY_TIME = 120000; //2minutes
@@ -384,7 +384,7 @@ namespace FAP.Domain.Entities
                 }
                 catch (Exception e)
                 {
-                    LogManager.GetLogger("faplog").WarnException("Failed to read config", e);
+                    LogManager.GetLogger("faplog").Warn("Failed to read config", e);
                 }
             }
         }

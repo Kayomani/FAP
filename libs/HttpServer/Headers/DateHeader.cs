@@ -52,7 +52,7 @@ namespace HttpServer.Headers
         /// <summary>
         /// Header name
         /// </summary>
-        public const string NAME = "Date";
+        public const string Key = "Date";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DateHeader"/> class.

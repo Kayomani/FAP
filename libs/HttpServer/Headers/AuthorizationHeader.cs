@@ -59,7 +59,7 @@ namespace HttpServer.Headers
         /// <summary>
         /// Name constant
         /// </summary>
-        public const string NAME = "Authorization";
+        public const string Key = "Authorization";
 
         /// <summary>
         /// Gets or sets authentication data.
@@ -78,7 +78,7 @@ namespace HttpServer.Headers
         /// </summary>
         public string Name
         {
-            get { return NAME; }
+            get { return Key; }
         }
 
         public string HeaderValue

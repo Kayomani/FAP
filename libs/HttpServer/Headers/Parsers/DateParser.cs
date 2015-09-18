@@ -7,7 +7,7 @@ namespace HttpServer.Headers.Parsers
     /// <summary>
     /// Parses "Date" header.
     /// </summary>
-    [ParserFor(DateHeader.NAME)]
+    [ParserFor(DateHeader.Key)]
     [ParserFor("If-Modified-Since")]
     internal class DateParser : IHeaderParser
     {

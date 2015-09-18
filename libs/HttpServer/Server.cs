@@ -273,7 +273,7 @@ namespace HttpServer
         /// </remarks>
 	    protected virtual void OnAuthentication(RequestContext context)
 	    {
-	        var authHeader = (AuthorizationHeader) context.Request.Headers[AuthorizationHeader.NAME];
+	        var authHeader = (AuthorizationHeader) context.Request.Headers[AuthorizationHeader.Key];
             if (authHeader != null)
                 AuthenticationProvider.Authenticate(context.Request);
 	    }

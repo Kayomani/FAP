@@ -120,7 +120,7 @@ namespace FAP.Application.Controllers
                 }
                 catch (Exception e)
                 {
-                    logger.ErrorException("Add share error", e);
+                    logger.Error("Add share error", e);
                     container.Resolve<IMessageService>().ShowError("Failed to add share: " + e.Message);
                 }
             }

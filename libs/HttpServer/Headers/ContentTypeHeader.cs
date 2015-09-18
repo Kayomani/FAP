@@ -10,7 +10,7 @@ namespace HttpServer.Headers
         /// <summary>
         /// Header name.
         /// </summary>
-        public const string NAME = "Content-Type";
+        public const string Key = "Content-Type";
         private readonly HeaderParameterCollection _parameters;
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace HttpServer.Headers
         /// </summary>
         public string Name
         {
-            get { return NAME; }
+            get { return Key; }
         }
 
         public string HeaderValue

@@ -7,7 +7,7 @@ namespace HttpServer.Headers.Parsers
     /// <summary>
     /// Parses Cookie header.
     /// </summary>
-    [ParserFor(CookieHeader.NAME)]
+    [ParserFor(CookieHeader.Key)]
     public class CookieParser : IHeaderParser
     {
         #region IHeaderParser Members

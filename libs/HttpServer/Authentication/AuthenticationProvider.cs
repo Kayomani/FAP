@@ -36,9 +36,9 @@ namespace HttpServer.Authentication
         /// <exception cref="NotSupportedException">Requested authentication scheme is not supported.</exception>
         public IAuthenticationUser Authenticate(IRequest request)
         {
-            var authHeader = request.Headers[AuthorizationHeader.NAME] as AuthorizationHeader;
+            var authHeader = request.Headers[AuthorizationHeader.Key] as AuthorizationHeader;
             if (authHeader == null)
-                throw new InvalidOperationException(AuthorizationHeader.NAME + " header was not found in the request.");
+                throw new InvalidOperationException(AuthorizationHeader.Key + " header was not found in the request.");
 
             IAuthenticator authenticator;
             if (!_authenticators.TryGetValue(authHeader.Scheme, out authenticator))

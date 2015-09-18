@@ -163,7 +163,7 @@ namespace Odyssey.Controls
 
 
 
-        [SecurityTreatAsSafe, SecurityCritical]
+        [SecuritySafeCritical, SecurityCritical]
         protected virtual void OnClick()
         {
             OnClickImpl(false);

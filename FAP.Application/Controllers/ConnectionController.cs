@@ -110,7 +110,7 @@ namespace FAP.Application.Controllers
             }
             catch (Exception e)
             {
-                LogManager.GetLogger("faplog").ErrorException("Failed to send chat message", e);
+                LogManager.GetLogger("faplog").Error("Failed to send chat message", e);
             }
         }
 

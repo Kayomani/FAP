@@ -47,7 +47,7 @@ namespace HttpServer.Headers
         /// <summary>
         /// Header name
         /// </summary>
-        public const string NAME = "Connection";
+        public const string Key = "Connection";
 
         /// <summary>
         /// Default connection header for HTTP/1.0
@@ -108,7 +108,7 @@ namespace HttpServer.Headers
         /// </summary>
         public string Name
         {
-            get { return NAME; }
+            get { return Key; }
         }
 
         public string HeaderValue
